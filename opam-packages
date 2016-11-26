@@ -1,0 +1,12 @@
+ppx_deriving
+ppx_deriving_yojson
+zarith
+pprint
+unix
+wasm
+process
+fileutils
+stdint
+batteries
+sqlite3
+menhirLib

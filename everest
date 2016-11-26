@@ -1,0 +1,124 @@
+#!/bin/bash
+
+# Some remarks about this script:
+# - since OSX packages the last GPLv2 version of Bash which is almost a decade
+#   old, for portability, this script may not use the fanciest constructs; if I
+#   get fed up with the limitation, I may just require a recent version of bash.
+
+# Any error is fatal.
+set -e
+set -x # uncomment for debugging.
+
+# "Modularity": include other files
+source lib.sh
+
+
+do_check ()
+{
+  echo "$0: checking environment"
+
+  # Basic utilities
+  success_or "which" "please execute this script in a Unix environment"
+  if is_osx; then
+    success_or "greadlink" "please run \"brew install coreutils\""
+  fi
+
+  # OCaml
+  success_or "ocaml"
+  ocaml -noinit -noprompt -stdin <<OCAML
+    if Sys.ocaml_version < "4.02.2" then begin
+      print_endline "ERROR: Everest needs OCaml >= 4.02.2";
+      exit 1
+    end
+OCAML
+
+  # OCamlfind & extra packages. Required OPAM packages are stored in
+  # [opam-packages] with one package name per line
+  success_or "ocamlfind"
+  for p in $(cat opam-packages); do
+    if ! ocamlfind query $p >/dev/null 2>&1; then
+      echo "ERROR: ocamlfind package $p is not installed"
+      ifyes "opam install $p"
+    fi
+  done
+  echo "all ocamlfind packages found"
+
+  # Test for the existence of fsc (windows) or fsharpc (other)
+  if is_windows; then
+    success_or "fsc"
+  else
+    success_or "fsharpc"
+  fi
+}
+
+do_env ()
+{
+  true
+}
+
+do_fetch ()
+{
+  true
+}
+
+do_make ()
+{
+  true
+}
+
+do_snapshot ()
+{
+  true
+}
+
+print_usage ()
+{
+  cat <<HELP
+OVERVIEW: $0, a high-level management script for Project Everest
+
+USAGE: $0 COMMAND
+
+COMMANDS:
+  check     ensure that all the required programs are found in path
+
+  env       print a set of environment variables that you should put in your ~/.bashrc
+
+  fetch     update the known set of working revisions, then proceed to update the working
+            trees one by one
+
+  make      rebuild all projects
+
+  snapshot  record the current status of all projects a new known set of working
+            revisions
+
+  help      print the current message
+HELP
+}
+
+# Parsing script arguments.
+case "$1" in
+  check)
+    do_check
+    ;;
+
+  env)
+    do_env
+    ;;
+
+  fetch)
+    do_fetch
+    ;;
+
+  make)
+    do_make
+    ;;
+
+  snapshot)
+    do_snapshot
+    ;;
+
+  *)
+    print_usage
+    exit 0
+    ;;
+esac
