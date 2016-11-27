@@ -15,6 +15,23 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
+cd_to_everest () {
+  echo "Switching to the everest directory"
+  if [[ $0 == "." || $0 == "source" ]]; then
+    echo "Cannot source this script"
+    exit 1
+  fi
+  if [[ $0 != ${0#/} ]]; then
+    # Relative or absolute path (contains /)
+    cd $(dirname $0)
+  else
+    # Called via the path
+    cd $(dirname $(which $0))
+  fi
+  echo "... now in $(pwd)"
+}
+
+
 do_check ()
 {
   echo "CHECKING ENVIRONMENT"
@@ -65,6 +82,8 @@ do_env ()
 
 do_pull ()
 {
+  cd_to_everest
+
   echo "PULLING; this implies git pull in every tracked project"
   warned=false
   for r in ${!repositories[@]}; do
