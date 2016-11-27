@@ -16,9 +16,9 @@ source repositories.sh
 source hashes.sh
 
 cd_to_everest () {
-  echo "Switching to the everest directory"
+  blue "Switching to the everest directory"
   if [[ $0 == "." || $0 == "source" ]]; then
-    echo "Cannot source this script"
+    red "Cannot source this script"
     exit 1
   fi
   if [[ $0 != ${0#/} ]]; then
@@ -34,7 +34,7 @@ cd_to_everest () {
 
 do_check ()
 {
-  echo "CHECKING ENVIRONMENT"
+  blue "Checking environment"
 
   # Basic utilities
   success_or "which" "please execute this script in a Unix environment"
@@ -56,7 +56,7 @@ OCAML
   success_or "ocamlfind"
   for p in $(cat opam-packages); do
     if ! ocamlfind query $p >/dev/null 2>&1; then
-      echo "ERROR: ocamlfind package $p is not installed"
+      red "ERROR: ocamlfind package $p is not installed"
       if_yes "opam install $p"
     fi
   done
@@ -84,13 +84,13 @@ do_pull ()
 {
   cd_to_everest
 
-  echo "PULLING; this implies git pull in every tracked project"
+  blue "Pulling; this implies git pull in every tracked project"
   warned=false
   for r in ${!repositories[@]}; do
     # Some sanity checks, and clone the repositories that aren't there already
     if [ ! -d $r ]; then
       if [ -f $r ]; then
-        echo "$r exists but is not a directory, aborting"
+        red "$r exists but is not a directory, aborting"
         exit 1
       fi
       if ! $warned; then
@@ -112,8 +112,7 @@ do_pull ()
 
     # Try to find a remote branch that contains this hash (there HAS to be one)
     if [[ $branch == "" ]]; then
-      echo In $r, no know branch contains $hash! Seems like someone forgot to \
-        push a commit... trying anyhow
+      red "In $r, no know branch contains $hash! Seems like someone forgot to push a commit... trying anyhow"
       git checkout $hash
 
     else
@@ -122,7 +121,7 @@ do_pull ()
       echo "Trying to switch to branch $short"
       git checkout $short
       if [[ $(git rev-parse --abbrev-ref --symbolic-full-name @{u}) != $branch ]]; then
-        echo "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
+        red "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
         git checkout $hash
       elif ! git merge --ff $hash; then
         # Case where local branch has diverged from origin
@@ -141,7 +140,7 @@ do_make ()
 
 do_snapshot ()
 {
-  echo "SNAPSHOT"
+  blue "Recording a new snapshot"
   echo "declare -A hashes" > new-hashes.sh
   for r in ${!repositories[@]}; do
     cd $r
