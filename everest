@@ -10,27 +10,36 @@ fi
 set -e
 # set -x # uncomment for debugging.
 
-# "Modularity": include other files
-source lib.sh
-source repositories.sh
-source hashes.sh
-
+# The whole script makes the assumption that we're in the everest directory;
+# this is a conservative method that ensures we switch to this directory first
+# thing. Basically, this supports:
+# - calling "everest" (in the PATH)
+# - calling "./everest" (same directory)
+# - calling "/path/to/everest"
+# - calling "../path/to/everest"
+# This bails for corner cases, e.g. "source everest" or "wget http://.../everest | bash"
 cd_to_everest () {
-  blue "Switching to the everest directory"
-  if [[ $0 == "." || $0 == "source" ]]; then
-    red "Cannot source this script"
+  echo -n "Switching to the everest directory"
+  if [[ ${0##*/} != "everest" ]]; then
+    echo -e "\nThis script must be called via ./everest"
     exit 1
   fi
-  if [[ $0 != ${0#/} ]]; then
+  if [[ $0 != ${0#*/} ]]; then
     # Relative or absolute path (contains /)
     cd $(dirname $0)
   else
     # Called via the path
     cd $(dirname $(which $0))
   fi
-  echo "... now in $(pwd)"
+  echo " ... now in $(pwd)"
+  echo
 }
+cd_to_everest
 
+# "Modularity": include other files (requires us to be in the right directory)
+source lib.sh
+source repositories.sh
+source hashes.sh
 
 do_check ()
 {
@@ -82,8 +91,6 @@ do_env ()
 
 do_pull ()
 {
-  cd_to_everest
-
   blue "Pulling; this implies git pull in every tracked project"
   warned=false
   for r in ${!repositories[@]}; do
