@@ -1,21 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Some remarks about this script:
-# - since OSX packages the last GPLv2 version of Bash which is almost a decade
-#   old, for portability, this script may not use the fanciest constructs; if I
-#   get fed up with the limitation, I may just require a recent version of bash.
+# Sorry, everyone
+if (( ${BASH_VERSION%%.*} < 4 )); then
+  echo "This script requires Bash >= 4. On OSX, try: brew install bash"
+fi
 
 # Any error is fatal.
 set -e
-set -x # uncomment for debugging.
+# set -x # uncomment for debugging.
 
 # "Modularity": include other files
 source lib.sh
-
+source repositories.sh
 
 do_check ()
 {
-  echo "$0: checking environment"
+  echo "CHECKING ENVIRONMENT"
 
   # Basic utilities
   success_or "which" "please execute this script in a Unix environment"
@@ -38,10 +38,10 @@ OCAML
   for p in $(cat opam-packages); do
     if ! ocamlfind query $p >/dev/null 2>&1; then
       echo "ERROR: ocamlfind package $p is not installed"
-      ifyes "opam install $p"
+      if_yes "opam install $p"
     fi
   done
-  echo "all ocamlfind packages found"
+  echo "... all ocamlfind packages found"
 
   # Test for the existence of fsc (windows) or fsharpc (other)
   if is_windows; then
@@ -49,16 +49,39 @@ OCAML
   else
     success_or "fsharpc"
   fi
+
+  # TODO: on Windows, check for all the quirks in my ocaml-installer wiki,
+  # including broken OCaml setups, and download binaries for my (own copy) of
+  # c:\ocamlmgw64 (which should not require any environment var tweak) and
+  # ~/.opam.
 }
 
 do_env ()
 {
-  true
+  echo "Not implemented"
 }
 
-do_fetch ()
+do_pull ()
 {
-  true
+  echo "PULLING"
+  warned=false
+  for r in ${!repositories[@]}; do
+    if [ ! -d $r ]; then
+      if [ -f $r ]; then
+        echo $r exists but is not a directory, aborting
+        exit 1
+      fi
+      if ! $warned; then
+        echo Note: you\'re welcome to create symbolic links if you already have \
+          cloned the repository elsewhere
+        warned=true
+      fi
+      if_yes "git clone ${repositories[$r]} $r"
+    else
+      # TODO: actually take a SHA-1 from there!
+      (cd $r && git pull)
+    fi
+  done
 }
 
 do_make ()
@@ -83,7 +106,7 @@ COMMANDS:
 
   env       print a set of environment variables that you should put in your ~/.bashrc
 
-  fetch     update the known set of working revisions, then proceed to update the working
+  pull      update the known set of working revisions, then proceed to update the working
             trees one by one
 
   make      rebuild all projects
@@ -105,8 +128,8 @@ case "$1" in
     do_env
     ;;
 
-  fetch)
-    do_fetch
+  pull)
+    do_pull
     ;;
 
   make)

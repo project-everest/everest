@@ -19,12 +19,12 @@ success_or ()
     fi
     exit 1
   fi
-  echo $1 found
+  echo ... $1 found
 }
 
 # [ifyes cmd] prompts the user, and runs [cmd] if user approved, and aborts
 # otherwise
-ifyes ()
+if_yes ()
 {
   echo "Do you want to run: $1? [Y/n]"
   read ans
