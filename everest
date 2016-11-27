@@ -110,7 +110,6 @@ do_pull ()
     # Find the first remote branch that contains the desired commit
     branch=$(git branch -r --color=never --contains $hash | grep -v -- '->' | head -n 1 | cut -c 3-)
 
-    # Try to find a remote branch that contains this hash (there HAS to be one)
     if [[ $branch == "" ]]; then
       red "In $r, no know branch contains $hash! Seems like someone forgot to push a commit... trying anyhow"
       git checkout $hash
@@ -135,7 +134,17 @@ do_pull ()
 
 do_make ()
 {
-  true
+  blue "Rebuilding all projects"
+  mkdir -p log
+  echo
+  blue "Rebuilding F*"
+  make -C FStar/src/ocaml-output -j 15 | count "log/fstar"
+  echo
+  blue "Rebuilding miTLS"
+  make -C mitls-fstar/src/tls -j 15 tls-gen | count "log/mitls-gen"
+  echo
+  blue "Rebuilding KreMLin"
+  make -C kremlin -j 15 | count "log/kremlin"
 }
 
 do_snapshot ()
@@ -146,7 +155,7 @@ do_snapshot ()
     cd $r
     head=$(git rev-parse HEAD)
     if [[ $(git branch -r --contains $head) == "" ]]; then
-      echo "WARNING: in repository $r, current revision $head has not been pushed!"
+      red "WARNING: in repository $r, current revision $head has not been pushed!"
     fi
     cd ..
     echo "recording $r at revision $head"
@@ -175,13 +184,13 @@ COMMANDS:
 
   env       print a set of environment variables that you should put in your ~/.bashrc
 
-  pull      update the known set of working revisions, then proceed to update the working
-            trees one by one
+  pull      pull all projects and move them to the revisions specified by
+            hashes.sh
 
   make      rebuild all projects
 
-  snapshot  record the current status of all projects a new known set of working
-            revisions
+  snapshot  make the current state a new known set of working revisions; this
+            writes into hashes.sh
 
   help      print the current message
 HELP

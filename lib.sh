@@ -17,6 +17,20 @@ blue () {
   color "$1" 4
 }
 
+# [count log-file] displays the number of lines received so far in the terminal,
+# while writing its output in log-file
+count () {
+  i=0
+  echo -n > $1
+  while read line; do
+    echo $line >> $1
+    i=$(($i+1))
+    echo -ne "\r$i lines of output"
+  done
+  echo
+  green "Success! log is in $1"
+}
+
 # The return value of Bash function is the exit status of their last command;
 # therefore, you can do things like [if is_osx; then ...].
 is_osx () {
