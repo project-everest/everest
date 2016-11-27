@@ -65,9 +65,10 @@ do_env ()
 
 do_pull ()
 {
-  echo "PULLING"
+  echo "PULLING; this implies git pull in every tracked project"
   warned=false
   for r in ${!repositories[@]}; do
+    # Some sanity checks, and clone the repositories that aren't there already
     if [ ! -d $r ]; then
       if [ -f $r ]; then
         echo "$r exists but is not a directory, aborting"
@@ -79,10 +80,38 @@ do_pull ()
         warned=true
       fi
       if_yes "git clone ${repositories[$r]} $r"
-    else
-      # TODO: actually take a SHA-1 from there!
-      (cd $r && git pull)
     fi
+
+    # All sorts of git magic to try to figure out how to smartly checkout the
+    # listed reference
+    cd $r
+    git fetch
+    hash=${hashes[$r]}
+
+    # Find the first remote branch that contains the desired commit
+    branch=$(git branch -r --color=never --contains $hash | grep -v -- '->' | head -n 1 | cut -c 3-)
+
+    # Try to find a remote branch that contains this hash (there HAS to be one)
+    if [[ $branch == "" ]]; then
+      echo In $r, no know branch contains $hash! Seems like someone forgot to \
+        push a commit... trying anyhow
+      git checkout $hash
+
+    else
+      echo "In $r, $branch contains $hash"
+      short=${branch#*/}
+      echo "Trying to switch to branch $short"
+      git checkout $short
+      if [[ $(git rev-parse --abbrev-ref --symbolic-full-name @{u}) != $branch ]]; then
+        echo "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
+        git checkout $hash
+      elif ! git merge --ff $hash; then
+        # Case where local branch has diverged from origin
+        if_yes "git merge $hash"
+      fi
+
+    fi
+    cd ..
   done
 }
 
