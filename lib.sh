@@ -22,7 +22,7 @@ success_or ()
   echo ... $1 found
 }
 
-# [ifyes cmd] prompts the user, and runs [cmd] if user approved, and aborts
+# [if_yes cmd] prompts the user, and runs [cmd] if user approved, and aborts
 # otherwise
 if_yes ()
 {

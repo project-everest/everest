@@ -3,6 +3,7 @@
 # Sorry, everyone
 if (( ${BASH_VERSION%%.*} < 4 )); then
   echo "This script requires Bash >= 4. On OSX, try: brew install bash"
+  exit 1
 fi
 
 # Any error is fatal.
@@ -12,6 +13,7 @@ set -e
 # "Modularity": include other files
 source lib.sh
 source repositories.sh
+source hashes.sh
 
 do_check ()
 {
@@ -68,7 +70,7 @@ do_pull ()
   for r in ${!repositories[@]}; do
     if [ ! -d $r ]; then
       if [ -f $r ]; then
-        echo $r exists but is not a directory, aborting
+        echo "$r exists but is not a directory, aborting"
         exit 1
       fi
       if ! $warned; then
@@ -91,7 +93,27 @@ do_make ()
 
 do_snapshot ()
 {
-  true
+  echo "SNAPSHOT"
+  echo "declare -A hashes" > new-hashes.sh
+  for r in ${!repositories[@]}; do
+    cd $r
+    head=$(git rev-parse HEAD)
+    if [[ $(git branch -r --contains $head) == "" ]]; then
+      echo "WARNING: in repository $r, current revision $head has not been pushed!"
+    fi
+    cd ..
+    echo "recording $r at revision $head"
+    echo "hashes[$r]=$head" >> new-hashes.sh
+  done
+  mv new-hashes.sh hashes.sh
+  cat <<MSG
+
+New hashes have been recorded in hashes.sh. You can see the changes with git
+diff.
+
+If you intend to make this set of working revisions widely available, then you
+must run commit and push.
+MSG
 }
 
 print_usage ()
