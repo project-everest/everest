@@ -17,6 +17,10 @@ blue () {
   color "$1" 4
 }
 
+magenta () {
+  color "$1" 5
+}
+
 # [count log-file] displays the number of lines received so far in the terminal,
 # while writing its output in log-file
 count () {

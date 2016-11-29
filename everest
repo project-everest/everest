@@ -47,7 +47,20 @@ source hashes.sh
 
 do_env ()
 {
-  echo "Not implemented"
+  cat <<INSTRUCTIONS
+# These go in ~/.bashrc; you can possibly replace these by:
+# eval \$(everest env)
+export PATH=/cygdrive/c/ocamlmgw64/bin/:$PATH
+export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:$PATH
+export PATH=$HOME/.opam/system/bin:$PATH
+export PATH=$HOME/.opam/system/lib/stublibs:$PATH
+export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:$PATH
+export PATH=$(pwd)/z3
+export PATH=$(pwd)/FStar/bin
+export PATH=$(pwd)/kremlin
+export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)
+export CYGWIN='winsymlinks:native'
+INSTRUCTIONS
 }
 
 do_check ()
@@ -66,6 +79,7 @@ do_check ()
     if where.exe bash.exe | grep -v cygwin >/dev/null 2>&1; then
       red "ERROR: bash.exe has been found in a non-standard location!"
       echo "Please remove Bash for Windows and others (GNU for Windows, MSYS2, etc.)"
+      exit 1
     fi
     echo "... no suspicious bash"
     if [[ $(uname -m) != "x86_64" ]]; then
@@ -87,15 +101,16 @@ do_check ()
         found=false
         for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup ./$cygsetup; do
           if [ -x "$s" ]; then
+            echo "Found $cygsetup"
             found=true
             cygsetup=$s
           fi
         done
         if ! $found; then
+          magenta "Cygwin setup not found, downloading it"
           wget "https://cygwin.com/setup-x86_64.exe"
           cygsetup=./$cygsetup
         fi
-	echo "Cygwin setup is: $cygsetup"
         echo "Cygwin package $p is missing"
         if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode \$(cat cygwin-packages | tr '\n' ,)"
       fi
@@ -107,7 +122,7 @@ do_check ()
   # Simplified OCaml installer
   if ! command -v >/dev/null 2>&1 ocaml; then
     if is_windows; then
-      echo "No OCaml detected. Will fetch & install Jonathan's binaries."
+      magenta "No OCaml detected. Will fetch & install Jonathan's binaries."
       echo "Specifically: this will create c:/ocamlmgw64 and ~/.opam"
       if [ -e ~/.opam ]; then
         red "ERROR: stale ~/.opam; aborting"
@@ -118,8 +133,9 @@ do_check ()
       fi
       (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
       (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
+      (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
       if ! command -v flexlink >/dev/null 2>&1; then
-        echo "No flexdll found; downloading and running Alain's installer"
+        magenta "No flexdll found; downloading and running Alain's installer"
         wget -O flexdll.exe $FLEXDLL_URL && ./flexdll.exe
       fi
       red "DONE: you now need to customize your environment with the instructions below."
@@ -146,6 +162,7 @@ do_check ()
         exit 1
       end
 OCAML
+    echo "... ocaml minimum version requirements met"
   fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
