@@ -66,7 +66,6 @@ do_check ()
     if where.exe bash.exe | grep -v cygwin >/dev/null 2>&1; then
       red "ERROR: bash.exe has been found in a non-standard location!"
       echo "Please remove Bash for Windows and others (GNU for Windows, MSYS2, etc.)"
-      exit 1
     fi
     echo "... no suspicious bash"
     if [[ $(uname -m) != "x86_64" ]]; then
@@ -89,15 +88,16 @@ do_check ()
         for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup ./$cygsetup; do
           if [ -x "$s" ]; then
             found=true
-            cygsetup=$f
+            cygsetup=$s
           fi
         done
         if ! $found; then
           wget "https://cygwin.com/setup-x86_64.exe"
           cygsetup=./$cygsetup
         fi
+	echo "Cygwin setup is: $cygsetup"
         echo "Cygwin package $p is missing"
-        if_yes "$cygsetup $(cat cygwin-packages | xargs echo)"
+        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode \$(cat cygwin-packages | tr '\n' ,)"
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
