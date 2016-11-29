@@ -65,13 +65,13 @@ do_check ()
       exit 1
     fi
     echo "... 64-bit cygwin"
-    if ! which ocaml >/dev/null 2>&1 && echo 'if Sys.os_type <> Win32 then exit 1' | ocaml -noinit -stdin; then
+    if ! which ocaml >/dev/null 2>&1 || ! echo 'if Sys.os_type <> Win32 then exit 1' | ocaml -noinit -stdin; then
       red "ERROR: there's a weird OCaml hanging around"
       echo "I suspect you have a Cygwin OCaml in your path"
       exit 1
     fi
     echo "... the ocaml command seems legit"
-    if flexlink -where | grep cygwin >/dev/null 2>&1; then
+    if ! which flexlink >/dev/null 2>&1 || flexlink -where | grep cygwin >/dev/null 2>&1; then
       red "ERROR: there's a weird flexlink hanging around"
       echo "I suspect you have the Cygwin flexlink installed"
       exit 1
@@ -80,21 +80,18 @@ do_check ()
       if (( $(cygcheck -c -d $p | wc -l) < 3 )); then
         cygsetup="setup-x86_64.exe"
         found=false
-        for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup ./$cygsetup; do
+        for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup; do
           if [ -x "$s" ]; then
             found=true
             cygsetup=$f
           fi
         done
-        if found; then
-          echo "Cygwin package $p is missing"
-          if_yes "$cygsetup $(cat cygwin-packages)"
-        else
-          echo "Cygwin package $p is missing; install not found"
-          echo "Please type the cygwin path to cygwin's setup-x86_64.exe or C-c to abort"
-          read ans
-          $ans/$cygsetup $(cat cygwin-packages)
+        if ! found; then
+          wget "https://cygwin.com/setup-x86_64.exe"
+          cygsetup=./$cygsetup
         fi
+        echo "Cygwin package $p is missing"
+        if_yes "$cygsetup $(cat cygwin-packages)"
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
