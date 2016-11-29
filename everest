@@ -86,18 +86,18 @@ do_check ()
       if ! cygwin_has $p; then
         cygsetup="setup-x86_64.exe"
         found=false
-        for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup; do
+        for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup ./$cygsetup; do
           if [ -x "$s" ]; then
             found=true
             cygsetup=$f
           fi
         done
-        if ! found; then
+        if ! $found; then
           wget "https://cygwin.com/setup-x86_64.exe"
           cygsetup=./$cygsetup
         fi
         echo "Cygwin package $p is missing"
-        if_yes "$cygsetup $(cat cygwin-packages)"
+        if_yes "$cygsetup $(cat cygwin-packages | xargs echo)"
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
