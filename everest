@@ -51,6 +51,55 @@ do_check ()
     success_or "greadlink" "please run \"brew install coreutils\""
   fi
 
+  # Windows pre-requisites
+  if is_windows; then
+    if where.exe bash.exe | grep -v cygwin >/dev/null 2>&1; then
+      red "ERROR: bash.exe has been found in a non-standard location!"
+      echo "Please remove Bash for Windows and others (GNU for Windows, MSYS2, etc.)"
+      exit 1
+    fi
+    echo "... no suspicious bash"
+    if [[ $(uname -m) != "x86_64" ]]; then
+      red "ERROR: not a 64-bit Cygwin"
+      echo "We've experienced tons of issues with 32-bit Cygwin. Time to upgrade."
+      exit 1
+    fi
+    echo "... 64-bit cygwin"
+    if ! which ocaml >/dev/null 2>&1 && echo 'if Sys.os_type <> Win32 then exit 1' | ocaml -noinit -stdin; then
+      red "ERROR: there's a weird OCaml hanging around"
+      echo "I suspect you have a Cygwin OCaml in your path"
+      exit 1
+    fi
+    echo "... the ocaml command seems legit"
+    if flexlink -where | grep cygwin >/dev/null 2>&1; then
+      red "ERROR: there's a weird flexlink hanging around"
+      echo "I suspect you have the Cygwin flexlink installed"
+      exit 1
+    fi
+    for p in $(cat cygwin-packages); do
+      if (( $(cygcheck -c -d $p | wc -l) < 3 )); then
+        cygsetup="setup-x86_64.exe"
+        found=false
+        for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup ./$cygsetup; do
+          if [ -x "$s" ]; then
+            found=true
+            cygsetup=$f
+          fi
+        done
+        if found; then
+          echo "Cygwin package $p is missing"
+          if_yes "$cygsetup $(cat cygwin-packages)"
+        else
+          echo "Cygwin package $p is missing; install not found"
+          echo "Please type the cygwin path to cygwin's setup-x86_64.exe or C-c to abort"
+          read ans
+          $ans/$cygsetup $(cat cygwin-packages)
+        fi
+      fi
+    done
+    echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
+  fi
+
   # OCaml
   success_or "ocaml"
   ocaml -noinit -noprompt -stdin <<OCAML
@@ -63,13 +112,15 @@ OCAML
   # OCamlfind & extra packages. Required OPAM packages are stored in
   # [opam-packages] with one package name per line
   success_or "ocamlfind"
-  for p in $(cat opam-packages); do
-    if ! ocamlfind query $p >/dev/null 2>&1; then
-      red "ERROR: ocamlfind package $p is not installed"
-      if_yes "opam install $p"
+  cat opam-packages | while read line; do
+    ocamlfind_package=$(echo $line | cut -d " " -f 1)
+    opam_package=$(echo $line | cut -d " " -f 2)
+    if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
+      red "ERROR: ocamlfind package $ocamlfind_package is not installed"
+      if_yes "opam install $opam_package"
     fi
   done
-  echo "... all ocamlfind packages found"
+  echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
   # Test for the existence of fsc (windows) or fsharpc (other)
   if is_windows; then
@@ -77,11 +128,6 @@ OCAML
   else
     success_or "fsharpc"
   fi
-
-  # TODO: on Windows, check for all the quirks in my ocaml-installer wiki,
-  # including broken OCaml setups, and download binaries for my (own copy) of
-  # c:\ocamlmgw64 (which should not require any environment var tweak) and
-  # ~/.opam.
 }
 
 do_env ()
