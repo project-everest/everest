@@ -71,3 +71,7 @@ if_yes ()
       ;;
   esac
 }
+
+cygwin_has () {
+  (( $(cygcheck -c -d $1 | wc -l) > 2 ))
+}

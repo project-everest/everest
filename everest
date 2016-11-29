@@ -10,6 +10,10 @@ fi
 set -e
 # set -x # uncomment for debugging.
 
+OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
+OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
+FLEXDLL_URL=http://alain.frisch.fr/flexdll/flexdll-0.35-setup.exe
+
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
 # thing. Basically, this supports:
@@ -41,6 +45,11 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
+do_env ()
+{
+  echo "Not implemented"
+}
+
 do_check ()
 {
   blue "Checking environment"
@@ -53,6 +62,7 @@ do_check ()
 
   # Windows pre-requisites
   if is_windows; then
+    # A list of known causes for failure
     if where.exe bash.exe | grep -v cygwin >/dev/null 2>&1; then
       red "ERROR: bash.exe has been found in a non-standard location!"
       echo "Please remove Bash for Windows and others (GNU for Windows, MSYS2, etc.)"
@@ -65,19 +75,15 @@ do_check ()
       exit 1
     fi
     echo "... 64-bit cygwin"
-    if ! which ocaml >/dev/null 2>&1 || ! echo 'if Sys.os_type <> Win32 then exit 1' | ocaml -noinit -stdin; then
-      red "ERROR: there's a weird OCaml hanging around"
-      echo "I suspect you have a Cygwin OCaml in your path"
+    if cygwin_has "ocaml" || cygwin_has "flexdll"; then
+      red "ERROR: please remove the cygwin ocaml and/or flexdll packages"
       exit 1
     fi
-    echo "... the ocaml command seems legit"
-    if ! which flexlink >/dev/null 2>&1 || flexlink -where | grep cygwin >/dev/null 2>&1; then
-      red "ERROR: there's a weird flexlink hanging around"
-      echo "I suspect you have the Cygwin flexlink installed"
-      exit 1
-    fi
+    echo "... no suspicious cygwin packages"
+
+    # The list of required cygwin packages
     for p in $(cat cygwin-packages); do
-      if (( $(cygcheck -c -d $p | wc -l) < 3 )); then
+      if ! cygwin_has $p; then
         cygsetup="setup-x86_64.exe"
         found=false
         for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup; do
@@ -97,17 +103,54 @@ do_check ()
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
   fi
 
-  # OCaml
-  success_or "ocaml"
-  ocaml -noinit -noprompt -stdin <<OCAML
-    if Sys.ocaml_version < "4.02.2" then begin
-      print_endline "ERROR: Everest needs OCaml >= 4.02.2";
+
+  # Simplified OCaml installer
+  if ! command -v >/dev/null 2>&1 ocaml; then
+    if is_windows; then
+      echo "No OCaml detected. Will fetch & install Jonathan's binaries."
+      echo "Specifically: this will create c:/ocamlmgw64 and ~/.opam"
+      if [ -e ~/.opam ]; then
+        red "ERROR: stale ~/.opam; aborting"
+        exit 1
+      fi
+      if [ -e /cygdrive/c/ocamlmgw64 ]; then
+        red "ERROR: stale /cygdrive/c/ocamlmgw64"
+      fi
+      (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
+      (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
+      if ! command -v flexlink >/dev/null 2>&1; then
+        echo "No flexdll found; downloading and running Alain's installer"
+        wget -O flexdll.exe $FLEXDLL_URL && ./flexdll.exe
+      fi
+      red "DONE: you now need to customize your environment with the instructions below."
+      red "Please relaunch $0 check once this is done"
+      do_env
+      exit 0
+
+    else
+      red "ERROR: no ocaml found in PATH"
+      if is_osx; then
+        echo "Hint: brew install ocaml opam"
+      else
+        echo "Please use your distribution's package management system to install ocaml and opam"
+        echo "Note: on older ubuntus, see https://launchpad.net/~avsm/+archive/ubuntu/ppa"
+      fi
       exit 1
-    end
+    fi
+
+  else
+    # OCaml; if this exits, set -e means this is a hard error
+    ocaml -noinit -noprompt -stdin <<OCAML
+      if Sys.ocaml_version < "4.02.2" then begin
+        print_endline "ERROR: Everest needs OCaml >= 4.02.2";
+        exit 1
+      end
 OCAML
+  fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
   # [opam-packages] with one package name per line
+  success_or "opam"
   success_or "ocamlfind"
   cat opam-packages | while read line; do
     ocamlfind_package=$(echo $line | cut -d " " -f 1)
@@ -125,11 +168,6 @@ OCAML
   else
     success_or "fsharpc"
   fi
-}
-
-do_env ()
-{
-  echo "Not implemented"
 }
 
 do_pull ()
