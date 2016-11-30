@@ -16,6 +16,7 @@ FLEXDLL_URL=http://alain.frisch.fr/flexdll/flexdll-0.35-setup.exe
 Z3_VERSION=4.5.0
 Z3_NAME=z3-$Z3_VERSION-x64-win
 Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
+VS_BIN="$VS140COMNTOOLS"/../../VC/bin
 
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
@@ -47,6 +48,17 @@ cd_to_everest
 source lib.sh
 source repositories.sh
 source hashes.sh
+
+write_vs_bashrc () {
+  # Sigh.
+  vs_path=$(cygpath -m -d "$VS_BIN")
+  vs_path=$(cygpath "$vs_path")
+  str="
+    # This line automatically added by $0
+    export PATH=\"$vs_path\":\$PATH"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
+}
 
 write_z3_bashrc () {
   str="
@@ -178,8 +190,6 @@ do_check ()
       fi
       magenta "Automatically customize ~/.bashrc with the the magic variables you need?"
       prompt_yes write_ocaml_bashrc true
-      exit 0
-
     else
       red "ERROR: no ocaml found in PATH"
       if is_osx; then
@@ -250,6 +260,18 @@ OCAML
     prompt_yes write_fstar_kremlin_bashrc true
   fi
   echo "... fstar.exe and krml in PATH"
+
+  if is_windows && ! command -v nmake.exe >/dev/null 2>&1; then
+    red "ERROR: nmake not found in PATH (needed for Spartan)"
+    if [ -f "$VS_BIN"/nmake.exe ]; then
+      magenta "nmake found in $VS_BIN; add to PATH via ~/.bashrc?"
+      prompt_yes write_vs_bashrc true
+    else
+      red "nmake not found in $VS_BIN, bailing"
+      echo "Hint: try install VS2015"
+      exit 1
+    fi
+  fi
 }
 
 do_pull ()
