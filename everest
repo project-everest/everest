@@ -57,7 +57,7 @@ write_z3_bashrc () {
 }
 
 write_ocaml_bashrc () {
-  str ="
+  str="
     # These lines automatically added by $0
     export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
     export PATH=\$HOME/.opam/system/bin:\$PATH
@@ -233,12 +233,8 @@ OCAML
       magenta "Download it from the internet? [Yn]"
       prompt_yes true "exit 1"
       wget $Z3_URL
-      # Note: z3 ZIP files are weird and cannot be extracted by unzip --
-      # reported to Christoph
-      powershell.exe -nologo -noprofile -command "& { Add-Type -A \
-        'System.IO.Compression.FileSystem'; \
-        [IO.Compression.ZipFile]::ExtractToDirectory('$Z3_NAME.zip', '.'); }"
-      chmod a+x $Z3_NAME/bin/z3.exe
+      unzip $Z3_NAME
+      find $Z3_NAME -iname '*.dll' -or -iname '*.exe' -exec chmod a+x {} \;
       magenta "Automatically customize ~/.bashrc with the z3 path?"
       prompt_yes write_z3_bashrc true
     else
