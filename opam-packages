@@ -2,7 +2,6 @@ ppx_deriving ppx_deriving
 ppx_deriving_yojson ppx_deriving_yojson
 zarith zarith
 pprint pprint
-unix unix
 wasm wasm
 process process
 fileutils fileutils

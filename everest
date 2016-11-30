@@ -185,7 +185,7 @@ OCAML
     fi
   done < opam-packages
   if $missing; then
-    if_yes "opam install $opam_package"
+    if_yes "opam install $(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')"
   fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
