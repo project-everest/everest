@@ -10,6 +10,7 @@ fi
 set -e
 # set -x # uncomment for debugging.
 
+# Known URLs and directories
 OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
 OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
 FLEXDLL_URL=http://alain.frisch.fr/flexdll/flexdll-0.35-setup.exe
@@ -196,6 +197,13 @@ do_check ()
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
   fi
 
+  if ! ssh git@github.com 2>&1 | grep authenticated >/dev/null; then
+    red "ERROR: git client not configured with the proper ssh credentials"
+    echo "Hint: check which git you're running, and make sure you have the same SSH key in ~/.ssh and github.com"
+    exit 1
+  fi
+  echo "... github.com access ok"
+
   # OCaml detection
   if ! command -v >/dev/null 2>&1 ocaml; then
     # Offer to install and sed-setup a crappy snapshot
@@ -260,6 +268,10 @@ OCAML
     opam_package=$(echo $line | cut -d " " -f 2)
     if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
+      if [[ $ocamlfind_package == "wasm" ]]; then
+        red "ERROR: wasm needs manual intervention (for now); see https://github.com/FStarLang/kremlin"
+        exit 1
+      fi
       missing=true
     fi
   done < opam-packages
@@ -370,6 +382,9 @@ do_make ()
   echo
   blue "Rebuilding Spartan"
   (cd Spartan/tools/Spartan && nmake) | count "log/spartan"
+  echo
+  blue "Building the integration of everything, hold your breath!"
+  make -C FStar/examples/low-level krml-test.exe
 }
 
 do_snapshot ()
