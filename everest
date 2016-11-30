@@ -175,14 +175,18 @@ OCAML
   # [opam-packages] with one package name per line
   success_or "opam"
   success_or "ocamlfind"
-  cat opam-packages | while read line; do
+  missing=false
+  while read line; do
     ocamlfind_package=$(echo $line | cut -d " " -f 1)
     opam_package=$(echo $line | cut -d " " -f 2)
     if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
-      if_yes "opam install $opam_package"
+      missing=true
     fi
-  done
+  done < opam-packages
+  if $missing; then
+    if_yes "opam install $opam_package"
+  fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
   # Test for the existence of fsc (windows) or fsharpc (other)
