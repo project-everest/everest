@@ -55,9 +55,9 @@ export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
 export PATH=\$HOME/.opam/system/bin:\$PATH
 export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
 export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
-export PATH=$(pwd)/z3
-export PATH=$(pwd)/FStar/bin
-export PATH=$(pwd)/kremlin
+export PATH=$(pwd)/z3:$PATH
+export PATH=$(pwd)/FStar/bin:$PATH
+export PATH=$(pwd)/kremlin:$PATH
 export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)
 export CYGWIN='winsymlinks:native'
 INSTRUCTIONS
@@ -79,7 +79,7 @@ do_check ()
     if where.exe bash.exe | grep -v cygwin >/dev/null 2>&1; then
       red "ERROR: bash.exe has been found in a non-standard location!"
       echo "Please remove Bash for Windows and others (GNU for Windows, MSYS2, etc.)"
-      red "Are you sure you want to continue?"
+      red "Are you sure you want to continue? [Yn]"
       prompt_yes true "exit 1"
     fi
     echo "... no suspicious bash"
