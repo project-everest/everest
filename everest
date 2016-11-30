@@ -17,6 +17,7 @@ Z3_VERSION=4.5.0
 Z3_NAME=z3-$Z3_VERSION-x64-win
 Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
 VS_BIN="$VS140COMNTOOLS"/../../VC/bin
+FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
@@ -48,6 +49,17 @@ cd_to_everest
 source lib.sh
 source repositories.sh
 source hashes.sh
+
+write_fs_bashrc () {
+  # Sigh.
+  fs_path=$(cygpath -m -d "$FS_DIR")
+  fs_path=$(cygpath "$fs_path")
+  str="
+    # This line automatically added by $0
+    export PATH=\"$fs_path\":\$PATH"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
+}
 
 write_vs_bashrc () {
   # Sigh.
@@ -232,11 +244,22 @@ OCAML
 
   # Test for the existence of fsc (windows) or fsharpc (other)
   if is_windows; then
-    success_or "fsc"
+    if ! command -v fsc >/dev/null 2>&1; then
+      red "ERROR: fsc not found in PATH"
+      if [ -f "$FS_DIR"/fsc.exe ]; then
+        magenta "nmake found in $VS_BIN; add to PATH via ~/.bashrc?"
+        prompt_yes write_fs_bashrc true
+      else
+        red "fsc not found in $FS_DIR, bailing"
+        echo "Hint: try installing VS2015"
+      fi
+    fi
   else
-    success_or "fsharpc"
+    success_or "fsharpc" "brew install mono or use your favorite package manager"
   fi
+  echo "... fsc found in PATH"
 
+  # The exact z3 version
   if ! which z3 >/dev/null 2>&1 || [[ $(z3 --version | tr -d '\r\n') != "Z3 version $Z3_VERSION - 64 bit" ]]; then
     red "ERROR: the right version of z3 doesn't seem to be installed"
     if is_windows; then
@@ -255,12 +278,6 @@ OCAML
   fi
   echo "... correct z3 version detected"
 
-  if ! command -v fstar.exe >/dev/null 2>&1 || ! command -v krml >/dev/null 2>&1; then
-    magenta "I don't see any fstar.exe or krml in your path; add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH via ~/.bashrc?"
-    prompt_yes write_fstar_kremlin_bashrc true
-  fi
-  echo "... fstar.exe and krml in PATH"
-
   if is_windows && ! command -v nmake.exe >/dev/null 2>&1; then
     red "ERROR: nmake not found in PATH (needed for Spartan)"
     if [ -f "$VS_BIN"/nmake.exe ]; then
@@ -268,10 +285,17 @@ OCAML
       prompt_yes write_vs_bashrc true
     else
       red "nmake not found in $VS_BIN, bailing"
-      echo "Hint: try install VS2015"
+      echo "Hint: try installing VS2015"
       exit 1
     fi
   fi
+  echo "... found nmake"
+
+  if ! command -v fstar.exe >/dev/null 2>&1 || ! command -v krml >/dev/null 2>&1; then
+    magenta "I don't see any fstar.exe or krml in your path; add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH via ~/.bashrc?"
+    prompt_yes write_fstar_kremlin_bashrc true
+  fi
+  echo "... fstar.exe and krml in PATH"
 }
 
 do_pull ()
@@ -337,6 +361,9 @@ do_make ()
   echo
   blue "Rebuilding KreMLin"
   make -C kremlin -j 15 | count "log/kremlin"
+  echo
+  blue "Rebuilding Spartan"
+  (cd Spartan/tools/Spartan && nmake) | count "log/spartan"
 }
 
 do_snapshot ()
