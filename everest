@@ -96,7 +96,7 @@ do_pull ()
   for r in ${!repositories[@]}; do
     # Some sanity checks, and clone the repositories that aren't there already
     if [ ! -d $r ]; then
-      if [ -f $r ]; then
+      if [ -e $r ]; then
         red "$r exists but is not a directory, aborting"
         exit 1
       fi
