@@ -13,6 +13,9 @@ set -e
 OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
 OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
 FLEXDLL_URL=http://alain.frisch.fr/flexdll/flexdll-0.35-setup.exe
+Z3_VERSION=4.5.0
+Z3_NAME=z3-$Z3_VERSION-x64-win
+Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
 
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
@@ -45,22 +48,43 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
-do_env ()
-{
-  cat <<INSTRUCTIONS
-# These go in ~/.bashrc
-export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
-export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
-export PATH=\$HOME/.opam/system/bin:\$PATH
-export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
-export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
-export PATH=$(pwd)/z3:\$PATH
-export PATH=$(pwd)/FStar/bin:\$PATH
-export PATH=$(pwd)/kremlin:\$PATH
-export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
-export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)
-export CYGWIN='winsymlinks:native'
-INSTRUCTIONS
+write_z3_bashrc () {
+  str="
+    # This line automatically added by $0
+    export PATH=$(pwd)/$Z3_NAME:\$PATH"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
+}
+
+write_ocaml_bashrc () {
+  str ="
+    # These lines automatically added by $0
+    export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
+    export PATH=\$HOME/.opam/system/bin:\$PATH
+    export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
+    export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
+    export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
+    export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
+}
+
+write_cygwin_bashrc () {
+  str="
+    # These lines automatically added by $0
+    export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
+    export CYGWIN='winsymlinks:native'"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
+}
+
+write_fstar_kremlin_bashrc () {
+  str="
+    # These lines automatically added by $0
+    export PATH=$(pwd)/FStar/bin:\$PATH
+    export PATH=$(pwd)/kremlin:\$PATH"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
 }
 
 do_check ()
@@ -114,17 +138,25 @@ do_check ()
         fi
         echo "Cygwin package $p is missing"
         if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
+        magenta "Automatically customize ~/.bashrc with the x86_64-mingw32 path + native windows symlinks?"
+        prompt_yes write_cygwin_bashrc true
       fi
     done
+    # TODO modify ~/.bashrc here
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
   fi
 
-
-  # Simplified OCaml installer
+  # OCaml detection
   if ! command -v >/dev/null 2>&1 ocaml; then
+    # Offer to install and sed-setup a crappy snapshot
     if is_windows; then
       magenta "No OCaml detected. Will fetch & install Jonathan's binaries."
-      echo "Specifically: this will create c:/ocamlmgw64 and ~/.opam"
+      echo This will download and install a one-time OPAM snapshot\; this will \
+        create c:/ocamlmgw64 and ~/.opam\; you will  need to refresh it \
+        periodically via $0 update_opam. If you intend to do some serious \
+        development, you\'re probably better off using \
+        https://fdopen.github.io/opam-repository-mingw/. Proceed anyhow?
+      prompt_yes true "exit 1"
       if [ -e ~/.opam ]; then
         red "ERROR: stale ~/.opam; aborting"
         exit 1
@@ -144,9 +176,8 @@ do_check ()
         magenta "You need to double-click on the install and click through!"
         wget -O flexdll.exe $FLEXDLL_URL && chmod 755 flexdll.exe && explorer flexdll.exe
       fi
-      red "DONE: you now need to customize your environment with the instructions below."
-      red "Please relaunch $0 check once this is done"
-      do_env
+      magenta "Automatically customize ~/.bashrc with the the magic variables you need?"
+      prompt_yes write_ocaml_bashrc true
       exit 0
 
     else
@@ -155,7 +186,7 @@ do_check ()
         echo "Hint: brew install ocaml opam"
       else
         echo "Please use your distribution's package management system to install ocaml and opam"
-        echo "Note: on older ubuntus, see https://launchpad.net/~avsm/+archive/ubuntu/ppa"
+        echo "Note: on older Ubuntus, see https://launchpad.net/~avsm/+archive/ubuntu/ppa"
       fi
       exit 1
     fi
@@ -195,6 +226,34 @@ OCAML
   else
     success_or "fsharpc"
   fi
+
+  if ! which z3 >/dev/null 2>&1 || [[ $(z3 --version | tr -d '\r\n') != "Z3 version $Z3_VERSION - 64 bit" ]]; then
+    red "ERROR: the right version of z3 doesn't seem to be installed"
+    if is_windows; then
+      magenta "Download it from the internet? [Yn]"
+      prompt_yes true "exit 1"
+      wget $Z3_URL
+      # Note: z3 ZIP files are weird and cannot be extracted by unzip --
+      # reported to Christoph
+      powershell.exe -nologo -noprofile -command "& { Add-Type -A \
+        'System.IO.Compression.FileSystem'; \
+        [IO.Compression.ZipFile]::ExtractToDirectory('$Z3_NAME.zip', '.'); }"
+      chmod a+x $Z3_NAME/bin/z3.exe
+      magenta "Automatically customize ~/.bashrc with the z3 path?"
+      prompt_yes write_z3_bashrc true
+    else
+      echo "Hint: brew install z3 (OSX), apt-get install z3 (other)"
+      echo "Hint: most recent versions available at https://github.com/Z3Prover/z3/releases/tag/z3-$Z3_VERSION"
+      exit 1
+    fi
+  fi
+  echo "... correct z3 version detected"
+
+  if ! command -v fstar.exe >/dev/null 2>&1 || ! command -v krml >/dev/null 2>&1; then
+    magenta "I don't see any fstar.exe or krml in your path; add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH via ~/.bashrc?"
+    prompt_yes write_fstar_kremlin_bashrc true
+  fi
+  echo "... fstar.exe and krml in PATH"
 }
 
 do_pull ()
@@ -296,9 +355,8 @@ USAGE: $0 COMMAND
 
 COMMANDS:
   check     ensure that all the required programs are found in path, install
-            them if needed
-
-  env       print a set of environment variables that you should put in your ~/.bashrc
+            them if needed; offer to customize ~/.bashrc with proper env
+            variables
 
   pull      pull all projects and move them to the revisions specified by
             hashes.sh
@@ -316,10 +374,6 @@ HELP
 case "$1" in
   check)
     do_check
-    ;;
-
-  env)
-    do_env
     ;;
 
   pull)
