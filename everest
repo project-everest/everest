@@ -79,7 +79,8 @@ do_check ()
     if where.exe bash.exe | grep -v cygwin >/dev/null 2>&1; then
       red "ERROR: bash.exe has been found in a non-standard location!"
       echo "Please remove Bash for Windows and others (GNU for Windows, MSYS2, etc.)"
-      exit 1
+      red "Are you sure you want to continue?"
+      prompt_yes true "exit 1"
     fi
     echo "... no suspicious bash"
     if [[ $(uname -m) != "x86_64" ]]; then

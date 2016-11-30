@@ -61,9 +61,8 @@ success_or ()
 
 # [if_yes cmd] prompts the user, and runs [cmd] if user approved, and aborts
 # otherwise
-if_yes ()
+prompt_yes ()
 {
-  echo "Do you want to run: $1? [Y/n]"
   read ans
   case "$ans" in
     [Yy]|""|"yes")
@@ -71,9 +70,16 @@ if_yes ()
       ;;
 
     *)
-      exit 1
+      $2
       ;;
   esac
+}
+
+if_yes ()
+{
+  echo "Do you want to run: $1? [Y/n]"
+  read ans
+  prompt_yes "$1" "exit 1"
 }
 
 cygwin_has () {
