@@ -16,7 +16,16 @@ FLEXDLL_URL=http://alain.frisch.fr/flexdll/flexdll-0.35-setup.exe
 Z3_VERSION=4.5.0
 Z3_NAME=z3-$Z3_VERSION-x64-win
 Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
-VS_BIN="$VS140COMNTOOLS"/../../VC/bin
+VS_BIN=
+if [[ -v VS140COMNTOOLS ]]; then
+  VS_BIN="$VS140COMNTOOLS"/../../VC/bin
+elif [[ -v VS120COMNTOOLS ]]; then
+  VS_BIN="$VS120COMNTOOLS"/../../VC/bin
+elif [[ -v VS110COMNTOOLS ]]; then
+  VS_BIN="$VS110COMNTOOLS"/../../VC/bin
+else
+  VS_BIN=
+fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 
 # The whole script makes the assumption that we're in the everest directory;
@@ -50,26 +59,38 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
-write_fs_bashrc () {
-  # Sigh.
-  fs_path=$(cygpath -m -d "$FS_DIR")
-  fs_path=$(cygpath "$fs_path")
-  str="
-    # This line automatically added by $0
-    export PATH=\"$fs_path\":\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-}
 
-write_vs_bashrc () {
-  # Sigh.
-  vs_path=$(cygpath -m -d "$VS_BIN")
-  vs_path=$(cygpath "$vs_path")
-  str="
-    # This line automatically added by $0
-    export PATH=\"$vs_path\":\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
+# ------------------------------------------------------------------------------
+# A series of helpers
+# ------------------------------------------------------------------------------
+
+# Windows requires several tools that can be installed via Visual Studio, but
+# these usually aren't in the PATH. Check in the usual locations, then offer to
+# customize ~/.bashrc
+#   $1: name of command to check for
+#   $2: candidate directory where it may reside
+windows_check_or_modify_bashrc () {
+  if ! command -v $1 >/dev/null 2>&1; then
+    red "ERROR: $1 not found in PATH"
+    if [ -f "$2"/$1 ]; then
+      magenta "$1 found in $2; add to PATH via ~/.bashrc?"
+      if prompt_yes true false; then
+        path=$(cygpath -m -d "$2")
+        path=$(cygpath "$path")
+        str="
+          # This line automatically added by $0
+          export PATH=\"$path\":\$PATH"
+        eval "$str"
+        echo "$str" >> ~/.bashrc
+      fi
+    else
+      red "$1 not found in $2, bailing"
+      echo "Hint: try installing VS2015"
+      exit 1
+    fi
+  fi
+
+  echo "... found $1"
 }
 
 write_z3_bashrc () {
@@ -110,6 +131,11 @@ write_fstar_kremlin_bashrc () {
   eval "$str"
   echo "$str" >> ~/.bashrc
 }
+
+
+# ------------------------------------------------------------------------------
+# The functions that implement the main actions
+# ------------------------------------------------------------------------------
 
 do_check ()
 {
@@ -242,25 +268,17 @@ OCAML
   fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
-  # Test for the existence of fsc (windows) or fsharpc (other)
+  # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
-    if ! command -v fsc >/dev/null 2>&1; then
-      red "ERROR: fsc not found in PATH"
-      if [ -f "$FS_DIR"/fsc.exe ]; then
-        magenta "fsc found in $FS_BIN; add to PATH via ~/.bashrc?"
-        prompt_yes write_fs_bashrc true
-      else
-        red "fsc not found in $FS_DIR, bailing"
-        echo "Hint: try installing VS2015"
-      exit 1
-      fi
-    fi
+    windows_check_or_modify_bashrc "fsc.exe" "$FS_DIR"
+    windows_check_or_modify_bashrc "nmake.exe" "$VS_BIN"
+    windows_check_or_modify_bashrc "ml64.exe" "$VS_BIN/amd64"
   else
     success_or "fsharpc" "brew install mono or use your favorite package manager"
   fi
   echo "... fsc found in PATH"
 
-  # The exact z3 version
+  # The right z3 version
   if ! which z3 >/dev/null 2>&1 || [[ $(z3 --version | tr -d '\r\n') != "Z3 version $Z3_VERSION - 64 bit" ]]; then
     red "ERROR: the right version of z3 doesn't seem to be installed"
     if is_windows; then
@@ -278,19 +296,6 @@ OCAML
     fi
   fi
   echo "... correct z3 version detected"
-
-  if is_windows && ! command -v nmake.exe >/dev/null 2>&1; then
-    red "ERROR: nmake not found in PATH (needed for Spartan)"
-    if [ -f "$VS_BIN"/nmake.exe ]; then
-      magenta "nmake found in $VS_BIN; add to PATH via ~/.bashrc?"
-      prompt_yes write_vs_bashrc true
-    else
-      red "nmake not found in $VS_BIN, bailing"
-      echo "Hint: try installing VS2015"
-      exit 1
-    fi
-  fi
-  echo "... found nmake"
 
   if ! command -v fstar.exe >/dev/null 2>&1 || ! command -v krml >/dev/null 2>&1; then
     magenta "I don't see any fstar.exe or krml in your path; add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH via ~/.bashrc?"
@@ -392,6 +397,10 @@ must run commit and push.
 MSG
 }
 
+# ------------------------------------------------------------------------------
+# Usage and parsing arguments
+# ------------------------------------------------------------------------------
+
 print_usage ()
 {
   cat <<HELP
@@ -416,7 +425,6 @@ COMMANDS:
 HELP
 }
 
-# Parsing script arguments.
 case "$1" in
   check)
     do_check
