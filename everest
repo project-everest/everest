@@ -247,11 +247,12 @@ OCAML
     if ! command -v fsc >/dev/null 2>&1; then
       red "ERROR: fsc not found in PATH"
       if [ -f "$FS_DIR"/fsc.exe ]; then
-        magenta "nmake found in $VS_BIN; add to PATH via ~/.bashrc?"
+        magenta "fsc found in $FS_BIN; add to PATH via ~/.bashrc?"
         prompt_yes write_fs_bashrc true
       else
         red "fsc not found in $FS_DIR, bailing"
         echo "Hint: try installing VS2015"
+      exit 1
       fi
     fi
   else
