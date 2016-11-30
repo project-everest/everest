@@ -55,9 +55,9 @@ export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
 export PATH=\$HOME/.opam/system/bin:\$PATH
 export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
 export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
-export PATH=$(pwd)/z3:$PATH
-export PATH=$(pwd)/FStar/bin:$PATH
-export PATH=$(pwd)/kremlin:$PATH
+export PATH=$(pwd)/z3:\$PATH
+export PATH=$(pwd)/FStar/bin:\$PATH
+export PATH=$(pwd)/kremlin:\$PATH
 export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)
 export CYGWIN='winsymlinks:native'
 INSTRUCTIONS
