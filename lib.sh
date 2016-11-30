@@ -78,7 +78,6 @@ prompt_yes ()
 if_yes ()
 {
   echo "Do you want to run: $1? [Y/n]"
-  read ans
   prompt_yes "$1" "exit 1"
 }
 

@@ -48,8 +48,7 @@ source hashes.sh
 do_env ()
 {
   cat <<INSTRUCTIONS
-# These go in ~/.bashrc; you can possibly replace these by:
-# eval \$(everest env)
+# These go in ~/.bashrc
 export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
 export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
 export PATH=\$HOME/.opam/system/bin:\$PATH
@@ -58,6 +57,7 @@ export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
 export PATH=$(pwd)/z3:\$PATH
 export PATH=$(pwd)/FStar/bin:\$PATH
 export PATH=$(pwd)/kremlin:\$PATH
+export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
 export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)
 export CYGWIN='winsymlinks:native'
 INSTRUCTIONS
@@ -135,6 +135,10 @@ do_check ()
       (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
       (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
       (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
+      (cd ~/.opam/system/lib &&
+        echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
+        tail -n +3 findlib.conf >> findlib.conf.new &&
+        mv findlib.conf.new findlib.conf)
       if ! command -v flexlink >/dev/null 2>&1; then
         magenta "No flexdll found; downloading and running Alain's installer"
         magenta "You need to double-click on the install and click through!"
