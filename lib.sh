@@ -66,7 +66,7 @@ if_yes ()
   echo "Do you want to run: $1? [Y/n]"
   read ans
   case "$ans" in
-    [Yy]|"")
+    [Yy]|""|"yes")
       $1
       ;;
 

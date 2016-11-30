@@ -23,7 +23,7 @@ FLEXDLL_URL=http://alain.frisch.fr/flexdll/flexdll-0.35-setup.exe
 # - calling "../path/to/everest"
 # This bails for corner cases, e.g. "source everest" or "wget http://.../everest | bash"
 cd_to_everest () {
-  echo -n "Switching to the everest directory"
+  echo -n "# Switching to the everest directory"
   if [[ ${0##*/} != "everest" ]]; then
     echo -e "\nThis script must be called via ./everest"
     exit 1
@@ -50,11 +50,11 @@ do_env ()
   cat <<INSTRUCTIONS
 # These go in ~/.bashrc; you can possibly replace these by:
 # eval \$(everest env)
-export PATH=/cygdrive/c/ocamlmgw64/bin/:$PATH
-export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:$PATH
-export PATH=$HOME/.opam/system/bin:$PATH
-export PATH=$HOME/.opam/system/lib/stublibs:$PATH
-export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:$PATH
+export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
+export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
+export PATH=\$HOME/.opam/system/bin:\$PATH
+export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
+export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
 export PATH=$(pwd)/z3
 export PATH=$(pwd)/FStar/bin
 export PATH=$(pwd)/kremlin
@@ -112,7 +112,7 @@ do_check ()
           cygsetup=./$cygsetup
         fi
         echo "Cygwin package $p is missing"
-        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode \$(cat cygwin-packages | tr '\n' ,)"
+        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
@@ -136,7 +136,8 @@ do_check ()
       (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
       if ! command -v flexlink >/dev/null 2>&1; then
         magenta "No flexdll found; downloading and running Alain's installer"
-        wget -O flexdll.exe $FLEXDLL_URL && ./flexdll.exe
+        magenta "You need to double-click on the install and click through!"
+        wget -O flexdll.exe $FLEXDLL_URL && chmod 755 flexdll.exe && explorer flexdll.exe
       fi
       red "DONE: you now need to customize your environment with the instructions below."
       red "Please relaunch $0 check once this is done"
@@ -216,7 +217,7 @@ do_pull ()
     branch=$(git branch -r --color=never --contains $hash | grep -v -- '->' | head -n 1 | cut -c 3-)
 
     if [[ $branch == "" ]]; then
-      red "In $r, no know branch contains $hash! Seems like someone forgot to push a commit... trying anyhow"
+      magenta "In $r, no know branch contains $hash! Seems like someone forgot to push a commit... trying anyhow"
       git checkout $hash
 
     else
@@ -225,7 +226,7 @@ do_pull ()
       echo "Trying to switch to branch $short"
       git checkout $short
       if [[ $(git rev-parse --abbrev-ref --symbolic-full-name @{u}) != $branch ]]; then
-        red "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
+        magenta "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
         git checkout $hash
       elif ! git merge --ff $hash; then
         # Case where local branch has diverged from origin
@@ -285,7 +286,8 @@ OVERVIEW: $0, a high-level management script for Project Everest
 USAGE: $0 COMMAND
 
 COMMANDS:
-  check     ensure that all the required programs are found in path
+  check     ensure that all the required programs are found in path, install
+            them if needed
 
   env       print a set of environment variables that you should put in your ~/.bashrc
 
