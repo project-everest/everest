@@ -10,6 +10,10 @@ fi
 set -e
 # set -x # uncomment for debugging.
 
+OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
+OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
+FLEXDLL_URL=http://alain.frisch.fr/flexdll/flexdll-0.35-setup.exe
+
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
 # thing. Basically, this supports:
@@ -19,7 +23,7 @@ set -e
 # - calling "../path/to/everest"
 # This bails for corner cases, e.g. "source everest" or "wget http://.../everest | bash"
 cd_to_everest () {
-  echo -n "Switching to the everest directory"
+  echo -n "# Switching to the everest directory"
   if [[ ${0##*/} != "everest" ]]; then
     echo -e "\nThis script must be called via ./everest"
     exit 1
@@ -41,6 +45,24 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
+do_env ()
+{
+  cat <<INSTRUCTIONS
+# These go in ~/.bashrc
+export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
+export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
+export PATH=\$HOME/.opam/system/bin:\$PATH
+export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
+export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
+export PATH=$(pwd)/z3:\$PATH
+export PATH=$(pwd)/FStar/bin:\$PATH
+export PATH=$(pwd)/kremlin:\$PATH
+export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
+export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)
+export CYGWIN='winsymlinks:native'
+INSTRUCTIONS
+}
+
 do_check ()
 {
   blue "Checking environment"
@@ -51,25 +73,121 @@ do_check ()
     success_or "greadlink" "please run \"brew install coreutils\""
   fi
 
-  # OCaml
-  success_or "ocaml"
-  ocaml -noinit -noprompt -stdin <<OCAML
-    if Sys.ocaml_version < "4.02.2" then begin
-      print_endline "ERROR: Everest needs OCaml >= 4.02.2";
+  # Windows pre-requisites
+  if is_windows; then
+    # A list of known causes for failure
+    if where.exe bash.exe | grep -v cygwin >/dev/null 2>&1; then
+      red "ERROR: bash.exe has been found in a non-standard location!"
+      echo "Please remove Bash for Windows and others (GNU for Windows, MSYS2, etc.)"
+      red "Are you sure you want to continue? [Yn]"
+      prompt_yes true "exit 1"
+    fi
+    echo "... no suspicious bash"
+    if [[ $(uname -m) != "x86_64" ]]; then
+      red "ERROR: not a 64-bit Cygwin"
+      echo "We've experienced tons of issues with 32-bit Cygwin. Time to upgrade."
       exit 1
-    end
+    fi
+    echo "... 64-bit cygwin"
+    if cygwin_has "ocaml" || cygwin_has "flexdll"; then
+      red "ERROR: please remove the cygwin ocaml and/or flexdll packages"
+      exit 1
+    fi
+    echo "... no suspicious cygwin packages"
+
+    # The list of required cygwin packages
+    for p in $(cat cygwin-packages); do
+      if ! cygwin_has $p; then
+        cygsetup="setup-x86_64.exe"
+        found=false
+        for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup ./$cygsetup; do
+          if [ -x "$s" ]; then
+            echo "Found $cygsetup"
+            found=true
+            cygsetup=$s
+          fi
+        done
+        if ! $found; then
+          magenta "Cygwin setup not found, downloading it"
+          wget "https://cygwin.com/setup-x86_64.exe"
+          cygsetup=./$cygsetup
+        fi
+        echo "Cygwin package $p is missing"
+        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
+      fi
+    done
+    echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
+  fi
+
+
+  # Simplified OCaml installer
+  if ! command -v >/dev/null 2>&1 ocaml; then
+    if is_windows; then
+      magenta "No OCaml detected. Will fetch & install Jonathan's binaries."
+      echo "Specifically: this will create c:/ocamlmgw64 and ~/.opam"
+      if [ -e ~/.opam ]; then
+        red "ERROR: stale ~/.opam; aborting"
+        exit 1
+      fi
+      if [ -e /cygdrive/c/ocamlmgw64 ]; then
+        red "ERROR: stale /cygdrive/c/ocamlmgw64"
+      fi
+      (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
+      (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
+      (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
+      (cd ~/.opam/system/lib &&
+        echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
+        tail -n +3 findlib.conf >> findlib.conf.new &&
+        mv findlib.conf.new findlib.conf)
+      if ! command -v flexlink >/dev/null 2>&1; then
+        magenta "No flexdll found; downloading and running Alain's installer"
+        magenta "You need to double-click on the install and click through!"
+        wget -O flexdll.exe $FLEXDLL_URL && chmod 755 flexdll.exe && explorer flexdll.exe
+      fi
+      red "DONE: you now need to customize your environment with the instructions below."
+      red "Please relaunch $0 check once this is done"
+      do_env
+      exit 0
+
+    else
+      red "ERROR: no ocaml found in PATH"
+      if is_osx; then
+        echo "Hint: brew install ocaml opam"
+      else
+        echo "Please use your distribution's package management system to install ocaml and opam"
+        echo "Note: on older ubuntus, see https://launchpad.net/~avsm/+archive/ubuntu/ppa"
+      fi
+      exit 1
+    fi
+
+  else
+    # OCaml; if this exits, set -e means this is a hard error
+    ocaml -noinit -noprompt -stdin <<OCAML
+      if Sys.ocaml_version < "4.02.2" then begin
+        print_endline "ERROR: Everest needs OCaml >= 4.02.2";
+        exit 1
+      end
 OCAML
+    echo "... ocaml minimum version requirements met"
+  fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
   # [opam-packages] with one package name per line
+  success_or "opam"
   success_or "ocamlfind"
-  for p in $(cat opam-packages); do
-    if ! ocamlfind query $p >/dev/null 2>&1; then
-      red "ERROR: ocamlfind package $p is not installed"
-      if_yes "opam install $p"
+  missing=false
+  while read line; do
+    ocamlfind_package=$(echo $line | cut -d " " -f 1)
+    opam_package=$(echo $line | cut -d " " -f 2)
+    if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
+      red "ERROR: ocamlfind package $ocamlfind_package is not installed"
+      missing=true
     fi
-  done
-  echo "... all ocamlfind packages found"
+  done < opam-packages
+  if $missing; then
+    if_yes "opam install $opam_package"
+  fi
+  echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
   # Test for the existence of fsc (windows) or fsharpc (other)
   if is_windows; then
@@ -77,16 +195,6 @@ OCAML
   else
     success_or "fsharpc"
   fi
-
-  # TODO: on Windows, check for all the quirks in my ocaml-installer wiki,
-  # including broken OCaml setups, and download binaries for my (own copy) of
-  # c:\ocamlmgw64 (which should not require any environment var tweak) and
-  # ~/.opam.
-}
-
-do_env ()
-{
-  echo "Not implemented"
 }
 
 do_pull ()
@@ -118,7 +226,7 @@ do_pull ()
     branch=$(git branch -r --color=never --contains $hash | grep -v -- '->' | head -n 1 | cut -c 3-)
 
     if [[ $branch == "" ]]; then
-      red "In $r, no know branch contains $hash! Seems like someone forgot to push a commit... trying anyhow"
+      magenta "In $r, no know branch contains $hash! Seems like someone forgot to push a commit... trying anyhow"
       git checkout $hash
 
     else
@@ -127,7 +235,7 @@ do_pull ()
       echo "Trying to switch to branch $short"
       git checkout $short
       if [[ $(git rev-parse --abbrev-ref --symbolic-full-name @{u}) != $branch ]]; then
-        red "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
+        magenta "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
         git checkout $hash
       elif ! git merge --ff $hash; then
         # Case where local branch has diverged from origin
@@ -187,7 +295,8 @@ OVERVIEW: $0, a high-level management script for Project Everest
 USAGE: $0 COMMAND
 
 COMMANDS:
-  check     ensure that all the required programs are found in path
+  check     ensure that all the required programs are found in path, install
+            them if needed
 
   env       print a set of environment variables that you should put in your ~/.bashrc
 

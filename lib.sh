@@ -17,6 +17,10 @@ blue () {
   color "$1" 4
 }
 
+magenta () {
+  color "$1" 5
+}
+
 # [count log-file] displays the number of lines received so far in the terminal,
 # while writing its output in log-file
 count () {
@@ -57,17 +61,26 @@ success_or ()
 
 # [if_yes cmd] prompts the user, and runs [cmd] if user approved, and aborts
 # otherwise
-if_yes ()
+prompt_yes ()
 {
-  echo "Do you want to run: $1? [Y/n]"
   read ans
   case "$ans" in
-    [Yy]|"")
+    [Yy]|""|"yes")
       $1
       ;;
 
     *)
-      exit 1
+      $2
       ;;
   esac
+}
+
+if_yes ()
+{
+  echo "Do you want to run: $1? [Y/n]"
+  prompt_yes "$1" "exit 1"
+}
+
+cygwin_has () {
+  (( $(cygcheck -c -d $1 | wc -l) > 2 ))
 }
