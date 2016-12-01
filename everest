@@ -202,11 +202,11 @@ do_check ()
   fi
 
   if ! ssh git@github.com 2>&1 | grep authenticated >/dev/null; then
-    red "ERROR: git client not configured with the proper ssh credentials"
+    magenta "Warning: git client not configured with the proper ssh credentials"
     echo "Hint: check which git you're running, and make sure you have the same SSH key in ~/.ssh and github.com"
-    exit 1
+  else
+    echo "... github.com access ok"
   fi
-  echo "... github.com access ok"
 
   # OCaml detection
   if ! command -v >/dev/null 2>&1 ocaml; then
@@ -320,6 +320,15 @@ OCAML
   echo "... fstar.exe and krml in PATH"
 }
 
+try_git_clone () {
+  if ! git clone $1 $2; then
+    magenta "Proceed with https?"
+    prompt_yes true "exit 1"
+    $1=${1/:/\/}
+    $1=https://${1#*@}
+  fi
+}
+
 do_pull ()
 {
   blue "Pulling; this implies git pull in every tracked project"
@@ -336,7 +345,7 @@ do_pull ()
           cloned the repository elsewhere
         warned=true
       fi
-      if_yes "git clone ${repositories[$r]} $r"
+      if_yes "try_git_clone ${repositories[$r]} $r"
     fi
 
     # All sorts of git magic to try to figure out how to smartly checkout the
