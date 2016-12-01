@@ -217,7 +217,7 @@ do_check ()
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
   fi
 
-  if ! ssh git@github.com 2>&1 | grep authenticated >/dev/null; then
+  if ! (ssh git@github.com 2>&1 || true) | grep authenticated >/dev/null; then
     magenta "Warning: git client not configured with the proper ssh credentials"
     echo "Hint: check which git you're running, and make sure you have the same SSH key in ~/.ssh and github.com"
   else
@@ -480,24 +480,31 @@ COMMANDS:
 HELP
 }
 
-case "$1" in
-  check)
-    do_check
-    ;;
+while true; do
+  case "$1" in
+    check)
+      do_check
+      ;;
 
-  pull)
-    do_pull
-    ;;
+    pull)
+      do_pull
+      ;;
 
-  make)
-    do_make
-    ;;
+    make)
+      do_make
+      ;;
 
-  snapshot)
-    do_snapshot
-    ;;
+    snapshot)
+      do_snapshot
+      ;;
 
-  *)
-    print_usage
-    ;;
-esac
+    "")
+      break
+      ;;
+
+    *)
+      print_usage
+      ;;
+  esac
+  shift
+done
