@@ -74,7 +74,7 @@ windows_check_or_modify_bashrc () {
   if ! command -v $1 >/dev/null 2>&1; then
     red "ERROR: $1 not found in PATH"
     if [ -f "$2"/$1 ]; then
-      magenta "$1 found in $2; add to PATH via ~/.bashrc?"
+      magenta "$1 found in $2; add to PATH via ~/.bashrc? [Yn]"
       if prompt_yes true false; then
         path=$(cygpath -m -d "$2")
         path=$(cygpath "$path")
@@ -193,7 +193,7 @@ do_check ()
           cygsetup=./$cygsetup
         fi
         echo "Cygwin package $p is missing"
-        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
+        if_yes "\"$cygsetup\" --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
         magenta "Automatically customize ~/.bashrc with the x86_64-mingw32 path + native windows symlinks?"
         prompt_yes write_cygwin_bashrc true
       fi
@@ -217,14 +217,15 @@ do_check ()
         create c:/ocamlmgw64 and ~/.opam\; you will  need to refresh it \
         periodically via $0 update_opam. If you intend to do some serious \
         development, you\'re probably better off using \
-        https://fdopen.github.io/opam-repository-mingw/. Proceed anyhow?
+        https://fdopen.github.io/opam-repository-mingw/. Proceed anyhow [Yn]?
       prompt_yes true "exit 1"
       if [ -e ~/.opam ]; then
-        red "ERROR: stale ~/.opam; aborting"
-        exit 1
+        red "Warning: stale ~/.opam; continue? [Yn]"
+        prompt_yes true "exit 1"
       fi
       if [ -e /cygdrive/c/ocamlmgw64 ]; then
-        red "ERROR: stale /cygdrive/c/ocamlmgw64"
+        red "Warning: stale /cygdrive/c/ocamlmgw64; continue? [Yn]"
+        prompt_yes true "exit 1"
       fi
       (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
       (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
@@ -238,7 +239,7 @@ do_check ()
         magenta "You need to double-click on the install and click through!"
         wget -O flexdll.exe $FLEXDLL_URL && chmod 755 flexdll.exe && explorer flexdll.exe
       fi
-      magenta "Automatically customize ~/.bashrc with the the magic variables you need?"
+      magenta "Automatically customize ~/.bashrc with the the magic variables you need? [Yn]"
       prompt_yes write_ocaml_bashrc true
     else
       red "ERROR: no ocaml found in PATH"
@@ -303,7 +304,7 @@ OCAML
       wget $Z3_URL
       unzip $Z3_NAME
       find $Z3_NAME -iname '*.dll' -or -iname '*.exe' -exec chmod a+x {} \;
-      magenta "Automatically customize ~/.bashrc with the z3 path?"
+      magenta "Automatically customize ~/.bashrc with the z3 path? [Yn]"
       prompt_yes write_z3_bashrc true
     else
       echo "Hint: brew install z3 (OSX), apt-get install z3 (other)"
@@ -318,6 +319,9 @@ OCAML
     prompt_yes write_fstar_kremlin_bashrc true
   fi
   echo "... fstar.exe and krml in PATH"
+
+  echo
+  magenta "Remember to run source ~/.bashrc if it was modified!"
 }
 
 try_git_clone () {
