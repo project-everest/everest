@@ -197,16 +197,17 @@ do_check ()
           if [ -x "$s" ]; then
             echo "Found $cygsetup"
             found=true
-            cygsetup=$s
+            cygsetup=\"$s\"
           fi
         done
         if ! $found; then
           magenta "Cygwin setup not found, downloading it"
           wget "https://cygwin.com/setup-x86_64.exe"
-          cygsetup=./$cygsetup
+          chmod a+x setup-x86_64.exe
+          cygsetup=./setup-x86_64.exe
         fi
         echo "Cygwin package $p is missing"
-        if_yes "\"$cygsetup\" --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
+        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
         magenta "Automatically customize ~/.bashrc with the x86_64-mingw32 path + native windows symlinks?"
         prompt_yes write_cygwin_bashrc true
       fi
@@ -323,7 +324,7 @@ OCAML
       prompt_yes true "exit 1"
       wget $Z3_URL
       unzip $Z3_NAME
-      find $Z3_NAME -iname '*.dll' -or -iname '*.exe' -exec chmod a+x {} \;
+      find $Z3_NAME -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
       magenta "Automatically customize ~/.bashrc with the z3 path? [Yn]"
       prompt_yes write_z3_bashrc true
     else
