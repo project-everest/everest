@@ -8,6 +8,7 @@ fi
 
 # Any error is fatal.
 set -e
+set -o pipefail
 # set -x # uncomment for debugging.
 
 # Known URLs and directories
@@ -407,7 +408,6 @@ do_pull ()
 
 do_make ()
 {
-  set -o pipefail
   blue "Rebuilding all projects"
   mkdir -p log
   echo
