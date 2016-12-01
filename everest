@@ -405,6 +405,7 @@ do_pull ()
 
 do_make ()
 {
+  set -o pipefail
   blue "Rebuilding all projects"
   mkdir -p log
   echo
@@ -412,7 +413,7 @@ do_make ()
   make -C FStar/src/ocaml-output -j 15 | count "log/fstar"
   echo
   blue "Rebuilding miTLS"
-  make -C mitls-fstar/src/tls -j 15 tls-gen | count "log/mitls-gen"
+  make -C mitls-fstar/src/tls -j 15 mitls.exe | count "log/mitls-gen"
   echo
   blue "Rebuilding KreMLin"
   make -C kremlin -j 15 | count "log/kremlin"
