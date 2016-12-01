@@ -430,6 +430,12 @@ do_pull ()
 
 do_make ()
 {
+  if is_windows; then
+    export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
+  else
+    export FSTAR_HOME=$(pwd)/FStar
+  fi
+  magenta "exported FSTAR_HOME=$FSTAR_HOME"
   blue "Rebuilding all projects"
   mkdir -p log
   echo
@@ -437,7 +443,7 @@ do_make ()
   make -C FStar/src/ocaml-output -j 15 | count "log/fstar"
   echo
   blue "Rebuilding miTLS"
-  make -C mitls-fstar/src/tls -j 15 mitls-gen | count "log/mitls-gen"
+  make -C mitls-fstar/src/tls -j 15 tls-gen | count "log/mitls-gen"
   make -C mitls-fstar/src/tls -j 15 mitls.exe | count "log/mitls-exe"
   echo
   blue "Rebuilding KreMLin"
