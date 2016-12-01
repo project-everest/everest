@@ -100,7 +100,7 @@ windows_check_or_modify_bashrc () {
 write_z3_bashrc () {
   str="
     # This line automatically added by $0
-    export PATH=$(pwd)/$Z3_NAME:\$PATH"
+    export PATH=$(pwd)/$Z3_NAME/bin:\$PATH"
   eval "$str"
   echo "$str" >> ~/.bashrc
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
@@ -140,10 +140,18 @@ write_cygwin_bashrc () {
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
+write_fstar_home_bashrc () {
+  str="
+    # These lines automatically added by $0
+    export FSTAR_HOME=$(pwd)/FStar:\$PATH"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
+  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+}
+
 write_fstar_kremlin_bashrc () {
   str="
     # These lines automatically added by $0
-    export FSTAR_HOME=$(pwd)/FStar:\$PATH
     export PATH=$(pwd)/FStar/bin:\$PATH
     export PATH=$(pwd)/kremlin:\$PATH"
   eval "$str"
@@ -211,13 +219,13 @@ do_check ()
         fi
         echo "Cygwin package $p is missing"
         if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
-        magenta "Automatically customize ~/.bashrc with the x86_64-mingw32 path + native windows symlinks?"
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
 
     if ! command -v libsqlite3-0.dll >/dev/null 2>&1; then
-      red "Warning: libsqlite3-0.dll not found in PATH"
+      red "Warning: x86_64-mingw32 DLLs not in PATH"
+      magenta "Automatically customize ~/.bashrc with the x86_64-mingw32 path + native windows symlinks?"
       prompt_yes write_cygwin_bashrc true
     else
       echo "... proper mingw directory seems to be in PATH"
@@ -345,10 +353,16 @@ OCAML
   echo "... correct z3 version detected"
 
   if ! command -v fstar.exe >/dev/null 2>&1 || ! command -v krml >/dev/null 2>&1; then
-    magenta "I don't see any fstar.exe or krml in your path; add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH via ~/.bashrc?"
+    magenta "I don't see any fstar.exe or krml in your path; add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH via ~/.bashrc? [Yn]"
     prompt_yes write_fstar_kremlin_bashrc true
   fi
   echo "... fstar.exe and krml in PATH"
+
+  if [[ $FSTAR_HOME == "" ]]; then
+    magenta "FSTAR_HOME is not set... set it? [Yn]"
+    prompt_yes write_fstar_home_bashrc true
+  fi
+  echo "... FSTAR_HOME ok"
 
   echo
   magenta "Remember to run source ~/.bashrc if it was modified!"
