@@ -30,7 +30,6 @@ mingw64-x86_64-winpthreads
 mingw64-x86_64-zlib
 automake
 findutils
-git
 m4
 make
 patch
