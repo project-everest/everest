@@ -205,11 +205,11 @@ do_check ()
       if ! cygwin_has $p; then
         cygsetup="setup-x86_64.exe"
         found=false
-        for s in $USERPROFILE/Desktop/$cygsetup $USERPROFILE/Downloads/$cygsetup ./$cygsetup; do
+        for s in "$USERPROFILE/Desktop/$cygsetup" "$USERPROFILE/Downloads/$cygsetup" ./$cygsetup; do
           if [ -x "$s" ]; then
             echo "Found $cygsetup"
             found=true
-            cygsetup=\"$s\"
+            cygsetup="$s"
           fi
         done
         if ! $found; then
@@ -219,7 +219,7 @@ do_check ()
           cygsetup=./setup-x86_64.exe
         fi
         echo "Cygwin package $p is missing"
-        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
+        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode --packages=$(cat cygwin-packages | tr '\n' ,)"
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
@@ -373,8 +373,10 @@ try_git_clone () {
   if ! git clone $1 $2; then
     magenta "Proceed with https?"
     prompt_yes true "exit 1"
-    $1=${1/:/\/}
-    $1=https://${1#*@}
+    url=$1
+    url=${url/:/\/}
+    url=https://${url#*@}
+    git clone $url $2
   fi
 }
 
