@@ -144,7 +144,7 @@ write_fstar_home_bashrc () {
   path=$(cygpath -m "$(pwd)")
   str="
     # These lines automatically added by $0
-    export FSTAR_HOME=$path/FStar:\$PATH"
+    export FSTAR_HOME=$path/FStar"
   eval "$str"
   echo "$str" >> ~/.bashrc
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
@@ -437,7 +437,8 @@ do_make ()
   make -C FStar/src/ocaml-output -j 15 | count "log/fstar"
   echo
   blue "Rebuilding miTLS"
-  make -C mitls-fstar/src/tls -j 15 mitls.exe | count "log/mitls-gen"
+  make -C mitls-fstar/src/tls -j 15 mitls-gen | count "log/mitls-gen"
+  make -C mitls-fstar/src/tls -j 15 mitls.exe | count "log/mitls-exe"
   echo
   blue "Rebuilding KreMLin"
   make -C kremlin -j 15 | count "log/kremlin"
