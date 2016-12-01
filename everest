@@ -122,6 +122,7 @@ write_ocaml_bashrc () {
     export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
     export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
     export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
+    export MENHIRLIB=$(cygpath -m ~/.opam/system/share/menhir)
     export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)"
   eval "$str"
   echo "$str" >> ~/.bashrc
