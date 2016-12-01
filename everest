@@ -13,7 +13,8 @@ set -e
 # Known URLs and directories
 OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
 OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
-FLEXDLL_URL=http://alain.frisch.fr/flexdll/flexdll-0.35-setup.exe
+FLEXDLL_NAME=flexdll-bin-0.35
+FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
 Z3_VERSION=4.5.0
 Z3_NAME=z3-$Z3_VERSION-x64-win
 Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
@@ -104,6 +105,15 @@ write_z3_bashrc () {
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
+write_flexdll_bashrc () {
+  str="
+    # These lines automatically added by $0
+    export PATH=$(pwd)/flexdll:\$PATH"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
+  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+}
+
 write_ocaml_bashrc () {
   str="
     # These lines automatically added by $0
@@ -161,14 +171,17 @@ do_check ()
       echo "Please remove Bash for Windows and others (GNU for Windows, MSYS2, etc.)"
       red "Are you sure you want to continue? [Yn]"
       prompt_yes true "exit 1"
+    else
+      echo "... no suspicious bash"
     fi
-    echo "... no suspicious bash"
+
     if [[ $(uname -m) != "x86_64" ]]; then
       red "ERROR: not a 64-bit Cygwin"
       echo "We've experienced tons of issues with 32-bit Cygwin. Time to upgrade."
       exit 1
     fi
     echo "... 64-bit cygwin"
+
     if cygwin_has "ocaml" || cygwin_has "flexdll"; then
       red "ERROR: please remove the cygwin ocaml and/or flexdll packages"
       exit 1
@@ -234,11 +247,6 @@ do_check ()
         echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
         tail -n +3 findlib.conf >> findlib.conf.new &&
         mv findlib.conf.new findlib.conf)
-      if ! command -v flexlink >/dev/null 2>&1; then
-        magenta "No flexdll found; downloading and running Alain's installer"
-        magenta "You need to double-click on the install and click through!"
-        wget -O flexdll.exe $FLEXDLL_URL && chmod 755 flexdll.exe && explorer flexdll.exe
-      fi
       magenta "Automatically customize ~/.bashrc with the the magic variables you need? [Yn]"
       prompt_yes write_ocaml_bashrc true
     else
@@ -261,6 +269,18 @@ do_check ()
       end
 OCAML
     echo "... ocaml minimum version requirements met"
+  fi
+
+  # Flexlink detection (Windows-specific)
+  if is_windows && ! command -v flexlink >/dev/null 2>&1; then
+    magenta "No flexdll found; download? [Yn]"
+    prompt_yes true "exit 1"
+    wget $FLEXDLL_URL
+    mkdir -p flexdll && cd flexdll && unzip ../$FLEXDLL_NAME.zip && cd ..
+    magenta "Automatically customize ~/.bashrc with the the magic variables you need? [Yn]"
+    prompt_yes write_flexdll_bashrc true
+  elif is_windows; then
+    echo "... flexdll ok"
   fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
