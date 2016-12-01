@@ -143,6 +143,7 @@ write_cygwin_bashrc () {
 write_fstar_kremlin_bashrc () {
   str="
     # These lines automatically added by $0
+    export FSTAR_HOME=$(pwd)/FStar:\$PATH
     export PATH=$(pwd)/FStar/bin:\$PATH
     export PATH=$(pwd)/kremlin:\$PATH"
   eval "$str"
@@ -211,11 +212,17 @@ do_check ()
         echo "Cygwin package $p is missing"
         if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --quiet-mode --packages=\$(cat cygwin-packages | tr '\n' ,)"
         magenta "Automatically customize ~/.bashrc with the x86_64-mingw32 path + native windows symlinks?"
-        prompt_yes write_cygwin_bashrc true
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
-  fi
+
+    if ! command -v libsqlite3-0.dll >/dev/null 2>&1; then
+      red "Warning: libsqlite3-0.dll not found in PATH"
+      prompt_yes write_cygwin_bashrc true
+    else
+      echo "... proper mingw directory seems to be in PATH"
+    fi
+  fi # if is_windows
 
   if ! (ssh git@github.com 2>&1 || true) | grep authenticated >/dev/null; then
     magenta "Warning: git client not configured with the proper ssh credentials"
