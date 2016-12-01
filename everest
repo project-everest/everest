@@ -83,6 +83,7 @@ windows_check_or_modify_bashrc () {
           export PATH=\"$path\":\$PATH"
         eval "$str"
         echo "$str" >> ~/.bashrc
+        magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
       fi
     else
       red "$1 not found in $2, bailing"
@@ -100,6 +101,7 @@ write_z3_bashrc () {
     export PATH=$(pwd)/$Z3_NAME:\$PATH"
   eval "$str"
   echo "$str" >> ~/.bashrc
+  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
 write_ocaml_bashrc () {
@@ -113,6 +115,7 @@ write_ocaml_bashrc () {
     export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)"
   eval "$str"
   echo "$str" >> ~/.bashrc
+  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
 write_cygwin_bashrc () {
@@ -122,6 +125,7 @@ write_cygwin_bashrc () {
     export CYGWIN='winsymlinks:native'"
   eval "$str"
   echo "$str" >> ~/.bashrc
+  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
 write_fstar_kremlin_bashrc () {
@@ -131,6 +135,7 @@ write_fstar_kremlin_bashrc () {
     export PATH=$(pwd)/kremlin:\$PATH"
   eval "$str"
   echo "$str" >> ~/.bashrc
+  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
 
@@ -193,7 +198,6 @@ do_check ()
         prompt_yes write_cygwin_bashrc true
       fi
     done
-    # TODO modify ~/.bashrc here
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
   fi
 
