@@ -451,7 +451,8 @@ do_make ()
   echo
   blue "Rebuilding miTLS"
   make -C mitls-fstar/src/tls -j 15 tls-gen | count "log/mitls-gen"
-  make -C mitls-fstar/src/tls -j 15 mitls.exe | count "log/mitls-exe"
+  # Note: -B because dependencies currently disabled in the mitls.exe target
+  make -C mitls-fstar/src/tls -j 15 -B mitls.exe | count "log/mitls-exe"
   echo
   blue "Rebuilding KreMLin"
   make -C kremlin -j 15 | count "log/kremlin"
