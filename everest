@@ -89,7 +89,7 @@ windows_check_or_modify_bashrc () {
       fi
     else
       red "$1 not found in $2, bailing"
-      echo "Hint: try installing VS2015"
+      echo "Hint: try installing VS2015, running the custom installer, and choosing the C++ components"
       exit 1
     fi
   fi
@@ -244,12 +244,20 @@ do_check ()
   if ! command -v >/dev/null 2>&1 ocaml; then
     # Offer to install and sed-setup a crappy snapshot
     if is_windows; then
-      magenta "No OCaml detected. Will fetch & install Jonathan's binaries."
-      echo This will download and install a one-time OPAM snapshot\; this will \
-        create c:/ocamlmgw64 and ~/.opam\; you will  need to refresh it \
-        periodically via $0 update_opam. If you intend to do some serious \
-        development, you\'re probably better off using \
-        https://fdopen.github.io/opam-repository-mingw/. Proceed anyhow [Yn]?
+      magenta "No OCaml detected!"
+      cat <<MSG
+This script can download and install a binary snapshot of a working OCaml
+system.
+
+- If you intend to do some development work (e.g. try a 32-bit toolchain)
+  then you DO NOT want this. Instead; you want to abort this script and install
+  OCaml & OPAM from https://fdopen.github.io/opam-repository-mingw/
+
+- If you're ok with a system that can be setup automatically but that may or may
+  not work in the future, then you want the binary snapshot.
+
+Proceed with the binary snapshot?
+MSG
       prompt_yes true "exit 1"
       if [ -e ~/.opam ]; then
         red "Warning: stale ~/.opam; continue? [Yn]"
@@ -319,8 +327,13 @@ OCAML
       missing=true
     fi
   done < opam-packages
+  if is_windows; then
+    filter="grep -v wasm"
+  else
+    filter=cat
+  fi
   if $missing; then
-    if_yes "opam install $(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')"
+    if_yes "opam update && opam install $(cat opam-packages | $filter | cut -d ' ' -f 2 | tr '\n' ' ')"
   fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 

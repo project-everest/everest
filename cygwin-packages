@@ -13,7 +13,6 @@ mingw64-i686-winpthreads
 mingw64-i686-zlib
 mingw64-x86_64-binutils
 mingw64-x86_64-bzip2
-mingw64-x86_64-gcc-ada
 mingw64-x86_64-gcc-core
 mingw64-x86_64-gcc-g++
 mingw64-x86_64-gmp
