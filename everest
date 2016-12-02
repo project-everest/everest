@@ -410,7 +410,7 @@ do_pull ()
 
     if [[ $branch == "" ]]; then
       magenta "In $r, no know branch contains $hash! Seems like someone forgot to push a commit... trying anyhow"
-      git checkout $hash
+      git checkout $hash && git submodule update
 
     else
       echo "In $r, $branch contains $hash"
@@ -419,10 +419,10 @@ do_pull ()
       git checkout $short
       if [[ $(git rev-parse --abbrev-ref --symbolic-full-name @{u}) != $branch ]]; then
         magenta "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
-        git checkout $hash
+        git checkout $hash && git submodule update
       elif ! git merge --ff $hash; then
         # Case where local branch has diverged from origin
-        if_yes "git merge $hash"
+        if_yes "git merge $hash && git submodule update"
       fi
 
     fi
