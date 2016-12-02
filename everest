@@ -467,6 +467,7 @@ do_make ()
 do_clean ()
 {
   for d in FStar/{u,}lib/ml FStar/src \
+    FStar/ucontrib/CoreCrypto/ml/{,openssl} \
     FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
     make -C "$d" clean
   done
