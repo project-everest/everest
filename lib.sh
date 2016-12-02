@@ -32,7 +32,7 @@ count () {
     echo -ne "\r$i lines of output"
   done
   echo
-  green "Success! log is in $1"
+  blue "log written to $1"
 }
 
 # The return value of Bash function is the exit status of their last command;
@@ -77,7 +77,7 @@ prompt_yes ()
 
 if_yes ()
 {
-  echo "Do you want to run: $1? [Y/n]"
+  echo "Do you want to run: $1? [Yn]"
   prompt_yes "$1" "exit 1"
 }
 
