@@ -382,9 +382,9 @@ try_git_clone () {
 
 do_pull ()
 {
-  blue "Pulling; this implies git pull in every tracked project"
   warned=false
   for r in ${!repositories[@]}; do
+    blue "Pulling $r"
     # Some sanity checks, and clone the repositories that aren't there already
     if [ ! -d $r ]; then
       if [ -e $r ]; then
@@ -423,6 +423,8 @@ do_pull ()
       elif ! git merge --ff $hash; then
         # Case where local branch has diverged from origin
         if_yes "git merge $hash && git submodule update"
+      else
+        git submodule update
       fi
 
     fi
@@ -443,6 +445,9 @@ do_make ()
   echo
   blue "Rebuilding F*"
   make -C FStar/src/ocaml-output -j 15 | count "log/fstar"
+  echo
+  blue "Rebuilding F* / CoreCrypto"
+  make -C FStar/ucontrib/CoreCrypto/ml -j 15 | count "log/fstar-corecrypto"
   echo
   blue "Rebuilding miTLS"
   make -C mitls-fstar/src/tls -j 15 tls-gen | count "log/mitls-gen"
