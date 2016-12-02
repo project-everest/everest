@@ -1,6 +1,6 @@
 declare -A hashes
 hashes[mitls-fstar]=f4f632d373e74d59657cccc99664761f31d4cbb3
 hashes[Spartan]=4622e0a7740525b37c64dfc9697a3aa6e7ebd9c4
-hashes[FStar]=7455b9bdf4b3441c0a8ed2492776ee96c985a375
+hashes[FStar]=20b6fe3b98cb0cdb90bf86f1c85543740efd6f75
 hashes[hacl-star]=8b81fac33a95c43dbde3fae85fde93d1d3f0f0bb
 hashes[kremlin]=369a238ae5a9a923959cc7e80f05ff383970e267
