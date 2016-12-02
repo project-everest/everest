@@ -446,6 +446,12 @@ do_make ()
   blue "Rebuilding F*"
   make -C FStar/src/ocaml-output -j 15 | count "log/fstar"
   echo
+  blue "Rebuilding KreMLin"
+  make -C kremlin -j 15 | count "log/kremlin"
+  echo
+  blue "Rebuilding Spartan"
+  (cd Spartan/tools/Spartan && nmake) | count "log/spartan"
+  echo
   blue "Rebuilding F* / CoreCrypto"
   make -C FStar/ucontrib/CoreCrypto/ml -j 15 | count "log/fstar-corecrypto"
   echo
@@ -453,12 +459,6 @@ do_make ()
   make -C mitls-fstar/src/tls -j 15 tls-gen | count "log/mitls-gen"
   # Note: -B because dependencies currently disabled in the mitls.exe target
   make -C mitls-fstar/src/tls -j 15 -B mitls.exe | count "log/mitls-exe"
-  echo
-  blue "Rebuilding KreMLin"
-  make -C kremlin -j 15 | count "log/kremlin"
-  echo
-  blue "Rebuilding Spartan"
-  (cd Spartan/tools/Spartan && nmake) | count "log/spartan"
   echo
   blue "Building the integration of everything, hold your breath!"
   make -C FStar/examples/low-level krml-test.exe
