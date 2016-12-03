@@ -26,16 +26,9 @@ working setup, and will fetch or update the projects accordingly.
 
 ## Pre-setup (Windows)
 
-If you don't have a 64-bit Cygwin installed already, please run the
-`setup-cygwin.ps` PowerShell script, which will fetch Cygwin and ensure you have
-the right set of packages to start with. Please click through the various steps
-of the installer, then open a Cygwin terminal, and launch the Everest command
-from there.
+If you don't have a 64-bit Cygwin installed already, please download and run the
+CYgwin 64-bit installer, then launch this script from a Cygwin prompt.
 
 ## Usage
 
-- `./everest check`
-- `./everest env`
-- `./everest fetch`
-- `./everest make`
-- `./everest snapshot`
+See `./everest help`
