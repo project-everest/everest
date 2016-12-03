@@ -521,9 +521,9 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 COMMAND
+USAGE: $0 COMMANDS
 
-COMMANDS:
+COMMAND:
   check     ensure that all the required programs are found in path, install
             them if needed; offer to customize ~/.bashrc with proper env
             variables
@@ -541,6 +541,11 @@ COMMANDS:
   help      print the current message
 HELP
 }
+
+if [[ $1 == "" ]]; then
+  print_usage
+  exit 0
+fi
 
 while true; do
   case "$1" in
