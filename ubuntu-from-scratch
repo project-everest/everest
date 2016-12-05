@@ -6,6 +6,7 @@ set -o pipefail
 # This script contains a series of commands that, when run within a fresh Docker
 # Ubuntu container, setup the environment and build project everest, all the way
 # to the final (known) working test.
+cd $HOME
 
 # Known required packages
 export DEBIAN_FRONTEND=noninteractive

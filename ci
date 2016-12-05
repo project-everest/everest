@@ -80,6 +80,9 @@ ACTIONS:
   everest-ci
   everest-nightly-check
   everest-nightly-move
+
+REMARKS:
+  Read this script's source code for more explanations. It has comments.
 USAGE
     ;;
 esac
