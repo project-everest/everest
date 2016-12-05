@@ -8,8 +8,8 @@ set -o pipefail
 # to the final (known) working test.
 
 # Known required packages
-apt-get update
-apt-get install wget build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git fsharp
+yes | apt-get update
+yes | apt-get install wget build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git fsharp
 
 # Z3
 wget https://github.com/Z3Prover/z3/releases/download/z3-4.5.0/z3-4.5.0-x64-ubuntu-14.04.zip
