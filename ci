@@ -47,11 +47,13 @@ case "$1" in
   everest-nightly-check)
     # Start a fresh docker container that sets up everything, checks that
     # everything builds and runs on a fresh Ubuntu setup
-    out=$(docker -it ubuntu "wget $UBUNTU_SCRIPT -O - | bash")
-    echo "--- docker output"
-    $out
-    echo "--- end docker output"
-    if [[ $(echo $out | tail -n 1) != "EVEREST-SUCCESS" ]]; then
+    yes | \
+    docker run ubuntu bash -c "\
+      apt-get update && \
+      yes | apt-get install wget && \
+      wget $UBUNTU_SCRIPT -O - | bash" | \
+    tee docker-log
+    if [[ $(cat docker-log | tail -n 1) != "EVEREST-SUCCESS" ]]; then
       echo "Docker script did not reach completion -- failure"
       exit 1
     fi
