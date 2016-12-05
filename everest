@@ -160,6 +160,28 @@ write_fstar_kremlin_bashrc () {
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
+cygsetup="setup-x86_64.exe"
+cygsetup_args="--no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode"
+# Find Cygwin's setup utility, or downloads it from the internet.
+# Success: write the path to Cygwin's setup in $cygsetup
+# Failure: aborts.
+find_cygsetup () {
+  found=false
+  for s in "$USERPROFILE/Desktop/$cygsetup" "$USERPROFILE/Downloads/$cygsetup" ./$cygsetup; do
+    if [ -x "$s" ]; then
+      echo "Found $cygsetup"
+      found=true
+      cygsetup="$s"
+    fi
+  done
+  if ! $found; then
+    magenta "Cygwin setup not found, downloading it"
+    wget "https://cygwin.com/setup-x86_64.exe"
+    chmod a+x setup-x86_64.exe
+    cygsetup=./setup-x86_64.exe
+  fi
+}
+
 
 # ------------------------------------------------------------------------------
 # The functions that implement the main actions
@@ -173,6 +195,17 @@ do_check ()
   success_or "which" "please execute this script in a Unix environment"
   if is_osx; then
     success_or "greadlink" "please run \"brew install coreutils\""
+  fi
+
+  # Slightly suboptimal, since we may end up running Cygwin's setup twice.
+  if ! command -v git >/dev/null 2>&1; then
+    if is_windows; then
+      magenta "Git not found. Install Cygwin's git? [Yn]"
+      find_cygsetup
+      prompt_yes "$cygsetup $cygsetup_args --packages=git"
+    else
+      red "ERROR: git not found; install it via your favorite package manager"
+    fi
   fi
 
   # Windows pre-requisites
@@ -203,23 +236,9 @@ do_check ()
     # The list of required cygwin packages
     for p in $(cat cygwin-packages); do
       if ! cygwin_has $p; then
-        cygsetup="setup-x86_64.exe"
-        found=false
-        for s in "$USERPROFILE/Desktop/$cygsetup" "$USERPROFILE/Downloads/$cygsetup" ./$cygsetup; do
-          if [ -x "$s" ]; then
-            echo "Found $cygsetup"
-            found=true
-            cygsetup="$s"
-          fi
-        done
-        if ! $found; then
-          magenta "Cygwin setup not found, downloading it"
-          wget "https://cygwin.com/setup-x86_64.exe"
-          chmod a+x setup-x86_64.exe
-          cygsetup=./setup-x86_64.exe
-        fi
+        find_cygsetup
         echo "Cygwin package $p is missing"
-        if_yes "$cygsetup --no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode --packages=$(cat cygwin-packages | tr '\n' ,)"
+        if_yes "$cygsetup --packages=$(cat cygwin-packages | tr '\n' ,)"
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
@@ -233,6 +252,9 @@ do_check ()
     fi
   fi # if is_windows
 
+  # Note: ssh returns the exit code of the remote command (1 in this case),
+  # hence the || true -- the success of this step is determined by the presence
+  # of "authenticated".
   if ! (ssh git@github.com 2>&1 || true) | grep authenticated >/dev/null; then
     magenta "Warning: git client not configured with the proper ssh credentials"
     echo "Hint: check which git you're running, and make sure you have the same SSH key in ~/.ssh and github.com"
@@ -311,9 +333,13 @@ OCAML
   fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
-  # [opam-packages] with one package name per line
+  # [opam-packages], where each line is of the form:
+  #   <ocamlfind-package-name> <SPACE> <opam-package-name>
   success_or "opam"
-  success_or "ocamlfind"
+  if ! command -v ocamlfind >/dev/null 2>&1; then
+    magenta "ocamlfind not found!"
+    if_yes "opam install ocamlfind"
+  fi
   missing=false
   while read line; do
     ocamlfind_package=$(echo $line | cut -d " " -f 1)
@@ -333,7 +359,8 @@ OCAML
     filter=cat
   fi
   if $missing; then
-    if_yes "opam update && opam install $(cat opam-packages | $filter | cut -d ' ' -f 2 | tr '\n' ' ')"
+    if_yes "opam update"
+    if_yes "opam install $(cat opam-packages | $filter | cut -d ' ' -f 2 | tr '\n' ' ')"
   fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
