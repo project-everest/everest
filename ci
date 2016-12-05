@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+cat <<INFO
+This is the Everest CI script.
+... called as $0
+... working directory is $(pwd)
+... environment: $(uname -a)
+INFO
+
 # Sorry, everyone
 if (( ${BASH_VERSION%%.*} < 4 )); then
   echo "This script requires Bash >= 4. On OSX, try: brew install bash"
@@ -59,7 +66,21 @@ case "$1" in
     ;;
 
   *)
-    print_usage
+    cat <<USAGE
+$0: the Everest continuous integration script
+
+This script is meant to be called by the CI system.
+
+USAGE: $0 ACTION
+
+ACTIONS:
+  fstar-ci
+  fstar-nightly
+  mitls-ci
+  everest-ci
+  everest-nightly-check
+  everest-nightly-move
+USAGE
     ;;
 esac
 
