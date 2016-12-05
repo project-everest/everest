@@ -141,7 +141,11 @@ write_cygwin_bashrc () {
 }
 
 write_fstar_home_bashrc () {
-  path=$(cygpath -m "$(pwd)")
+  if is_windows; then
+    path=$(cygpath -m "$(pwd)")
+  else
+    path=$(pwd)
+  fi
   str="
     # These lines automatically added by $0
     export FSTAR_HOME=$path/FStar"

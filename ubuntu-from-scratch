@@ -3,10 +3,22 @@
 set -e
 set -o pipefail
 
+# Known required packages
 apt-get update
-apt-get install build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git
-git clone https://github.com/project-everest/everest
+apt-get install build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git fsharp
+
+# Z3
+wget https://github.com/Z3Prover/z3/releases/download/z3-4.5.0/z3-4.5.0-x64-ubuntu-14.04.zip
+unzip z3*
+export PATH=$(pwd)/z3-4.5.0-x64-ubuntu-14.04/bin:$PATH
+
 # Worksaround a bug in OPAM https://github.com/ocaml/opam/issues/2767
 export OPAMYES=true
+git clone https://github.com/project-everest/everest
+
+# Build everything
 yes | everest/everest check pull make
+
+# The "final" test
 everest/mitls-fstar/src/tls/mitls.exe
+echo "EVEREST-SUCCESS"

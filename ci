@@ -47,8 +47,14 @@ case "$1" in
   everest-nightly-check)
     # Start a fresh docker container that sets up everything, checks that
     # everything builds and runs on a fresh Ubuntu setup
-    check_pwd_ends_with "everest"
-    docker -it ubuntu "wget $UBUNTU_SCRIPT -O - | bash"
+    out=$(docker -it ubuntu "wget $UBUNTU_SCRIPT -O - | bash")
+    echo "--- docker output"
+    $out
+    echo "--- end docker output"
+    if [[ $(echo $out | tail -n 1) != "EVEREST-SUCCESS" ]]; then
+      echo "Docker script did not reach completion -- failure"
+      exit 1
+    fi
     ;;
 
   everest-nightly-move)
