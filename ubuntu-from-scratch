@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+
+apt-get update
+apt-get install build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git
+git clone https://github.com/project-everest/everest
+# Worksaround a bug in OPAM https://github.com/ocaml/opam/issues/2767
+export OPAMYES=true
+yes | everest/everest check pull make
+everest/mitls-fstar/src/tls/mitls.exe

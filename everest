@@ -255,7 +255,7 @@ do_check ()
   # Note: ssh returns the exit code of the remote command (1 in this case),
   # hence the || true -- the success of this step is determined by the presence
   # of "authenticated".
-  if ! (ssh git@github.com 2>&1 || true) | grep authenticated >/dev/null; then
+  if ! (ssh -oStrictHostKeyChecking=no git@github.com 2>&1 || true) | grep authenticated >/dev/null; then
     magenta "Warning: git client not configured with the proper ssh credentials"
     echo "Hint: check which git you're running, and make sure you have the same SSH key in ~/.ssh and github.com"
   else
@@ -336,6 +336,11 @@ OCAML
   # [opam-packages], where each line is of the form:
   #   <ocamlfind-package-name> <SPACE> <opam-package-name>
   success_or "opam"
+  if [ ! -d ~/.opam ]; then
+    if_yes "opam init"
+    eval $(opam config env)
+  fi
+
   if ! command -v ocamlfind >/dev/null 2>&1; then
     magenta "ocamlfind not found!"
     if_yes "opam install ocamlfind"
@@ -360,6 +365,7 @@ OCAML
   fi
   if $missing; then
     if_yes "opam update"
+    if_yes "opam depext $(cat opam-packages | $filter | cut -d ' ' -f 2 | tr '\n' ' ')"
     if_yes "opam install $(cat opam-packages | $filter | cut -d ' ' -f 2 | tr '\n' ' ')"
   fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"

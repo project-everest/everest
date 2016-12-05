@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+# Sorry, everyone
+if (( ${BASH_VERSION%%.*} < 4 )); then
+  echo "This script requires Bash >= 4. On OSX, try: brew install bash"
+  exit 1
+fi
+
+# Any error is fatal.
+set -e
+set -o pipefail
+# set -x # uncomment for debugging.
+
+# Checks that the current directory ends with $1
+check_pwd_ends_with () {
+  pwd=$(pwd)
+  if [[ ${pwd%$1} == $pwd ]]; then
+    echo "I don't seem to be in the right repository"
+    exit 1
+  fi
+}
+
+UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/ubuntu-from-scratch
+
+# Main commands.
+case "$1" in
+  fstar-ci)
+    # Run the test suite minus the long tests (e.g. crypto)
+    check_pwd_ends_with "FStar"
+    ;;
+
+  fstar-nightly)
+    # Run the test suite including the long tests and the examples directory
+    check_pwd_ends_with "FStar"
+    ;;
+
+  mitls-ci)
+    # Clone F* from the specified revision, set FSTAR_HOME, run miTLS CI
+    check_pwd_ends_with "mitls-fstar"
+    ;;
+
+  everest-ci)
+    # Clone all projects together and make sure they test and build together
+    check_pwd_ends_with "everest"
+    ;;
+
+  everest-nightly-check)
+    # Start a fresh docker container that sets up everything, checks that
+    # everything builds and runs on a fresh Ubuntu setup
+    check_pwd_ends_with "everest"
+    docker -it ubuntu "wget $UBUNTU_SCRIPT -O - | bash"
+    ;;
+
+  everest-nightly-move)
+    # Try to move the package to their last revision
+    ;;
+
+  *)
+    print_usage
+    ;;
+esac
+
