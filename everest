@@ -356,7 +356,7 @@ OCAML
     if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
       if [[ $ocamlfind_package == "wasm" ]]; then
-        red "ERROR: wasm needs manual intervention (for now); see https://github.com/FStarLang/kremlin"
+        red "ERROR: wasm needs manual intervention (for now); see https://github.com/FStarLang/kremlin and run $0 check again"
         exit 1
       fi
       missing=true
@@ -490,25 +490,29 @@ do_make ()
     export FSTAR_HOME=$(pwd)/FStar
   fi
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
-  blue "Rebuilding all projects"
   mkdir -p log
-  echo
   blue "Rebuilding F*"
   make -C FStar/src/ocaml-output -j 15 | count "log/fstar"
+
   echo
   blue "Rebuilding KreMLin"
   make -C kremlin -j 15 | count "log/kremlin"
+
   echo
   blue "Rebuilding Spartan"
+  export PLATFORM=X64
   (cd Spartan/tools/Spartan && nmake) | count "log/spartan"
+
   echo
   blue "Rebuilding F* / CoreCrypto"
   make -C FStar/ucontrib/CoreCrypto/ml -j 15 | count "log/fstar-corecrypto"
+
   echo
   blue "Rebuilding miTLS"
   make -C mitls-fstar/src/tls -j 15 tls-gen | count "log/mitls-gen"
   # Note: -B because dependencies currently disabled in the mitls.exe target
   make -C mitls-fstar/src/tls -j 15 -B mitls.exe | count "log/mitls-exe"
+
   echo
   blue "Building the integration of everything, hold your breath!"
   make -C FStar/examples/low-level krml-test.exe
@@ -516,7 +520,7 @@ do_make ()
 
 do_clean ()
 {
-  for d in FStar/{u,}lib/ml FStar/src \
+  for d in FStar/{u,}lib/ml FStar/src{,/ocaml-output} \
     FStar/ucontrib/CoreCrypto/ml/{,openssl} \
     FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
     make -C "$d" clean
