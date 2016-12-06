@@ -89,7 +89,10 @@ windows_check_or_modify_bashrc () {
       fi
     else
       red "$1 not found in $2, bailing"
-      echo "Hint: try installing VS2015, running the custom installer, and choosing the C++ components"
+      echo Hint: it looks like some VS2015 components are missing. We need \
+        VS2015, including the C++ components. You can run the VS2015 installer \
+        and choose a custom setup, to ensure you have both F# and the C++ \
+        components.
       exit 1
     fi
   fi
@@ -180,6 +183,9 @@ find_cygsetup () {
   done
   if ! $found; then
     magenta "Cygwin setup not found, downloading it"
+    if ! command -v wget >/dev/null 2>&1; then
+      red "ERROR: please either place cygwin's setup-x86_64.exe in your Downloads or Desktop folder, or install wget via cygwin's setup"
+    fi
     wget "https://cygwin.com/setup-x86_64.exe"
     chmod a+x setup-x86_64.exe
     cygsetup=./setup-x86_64.exe
@@ -447,7 +453,12 @@ do_pull ()
           cloned the repository elsewhere
         warned=true
       fi
-      if_yes "try_git_clone ${repositories[$r]} $r"
+      # This is for Spartan. We have yet to manage anyone to clone that beyond
+      # Building 99.
+      if ! if_yes "try_git_clone ${repositories[$r]} $r"; then
+        magenta "Warning: could not clone $r"
+        continue
+      fi
     fi
 
     # All sorts of git magic to try to figure out how to smartly checkout the
@@ -500,9 +511,13 @@ do_make ()
   make -C kremlin -j 15 | count "log/kremlin"
 
   echo
-  blue "Rebuilding Spartan"
-  export PLATFORM=X64
-  (cd Spartan/tools/Spartan && nmake) | count "log/spartan"
+  if [ -d Spartan ]; then
+    blue "Rebuilding Spartan"
+    export PLATFORM=X64
+    (cd Spartan/tools/Spartan && nmake) | count "log/spartan"
+  else
+    magenta "Warning: no Spartan..."
+  fi
 
   echo
   blue "Rebuilding F* / CoreCrypto"
