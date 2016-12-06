@@ -428,7 +428,7 @@ OCAML
 
 try_git_clone () {
   if ! git clone $1 $2; then
-    magenta "Proceed with https?"
+    magenta "Proceed with https? [Yn]"
     prompt_yes true "exit 1"
     url=$1
     url=${url/:/\/}
