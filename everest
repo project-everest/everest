@@ -349,16 +349,17 @@ OCAML
     magenta "ocamlfind not found!"
     if_yes "opam install ocamlfind"
   fi
+  if is_windows && ! ocamlfind query wasm >/dev/null 2>&1; then
+    red "ERROR: on Windows, wasm needs manual intervention (for now); see https://github.com/FStarLang/kremlin and run $0 check again"
+    exit 1
+  fi
+
   missing=false
   while read line; do
     ocamlfind_package=$(echo $line | cut -d " " -f 1)
     opam_package=$(echo $line | cut -d " " -f 2)
     if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
-      if [[ $ocamlfind_package == "wasm" ]]; then
-        red "ERROR: wasm needs manual intervention (for now); see https://github.com/FStarLang/kremlin and run $0 check again"
-        exit 1
-      fi
       missing=true
     fi
   done < opam-packages
