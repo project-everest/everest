@@ -449,6 +449,7 @@ do_pull ()
 {
   if [[ $EVEREST_CI != "" ]]; then
     export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
+    export GIT_TERMINAL_PROMPT=0
   fi
   warned=false
   for r in ${!repositories[@]}; do
