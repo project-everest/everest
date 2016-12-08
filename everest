@@ -500,8 +500,9 @@ do_make ()
   echo
   if [ -d Spartan ]; then
     blue "Rebuilding Spartan"
-    export PLATFORM=X64
-    (cd Spartan/tools/Spartan && nmake) | count "log/spartan"
+    VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
+    DIR=$(cygpath -d "$(pwd)"/Spartan)
+    $(cygpath -m "$COMSPEC") /C "cd $DIR && $VARS amd64 && nmake && nmake exes" | count "log/spartan"
   else
     magenta "Warning: no Spartan..."
   fi
