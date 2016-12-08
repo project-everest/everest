@@ -447,6 +447,9 @@ try_git_clone () {
 
 do_pull ()
 {
+  if [[ $EVEREST_CI != "" ]]; then
+    export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
+  fi
   warned=false
   for r in ${!repositories[@]}; do
     blue "Pulling $r"
