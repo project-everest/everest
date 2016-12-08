@@ -465,8 +465,8 @@ do_pull ()
           cloned the repository elsewhere
         warned=true
       fi
-      # This is for Spartan. We have yet to manage anyone to clone that beyond
-      # Building 99.
+      # This is for Spartan. We have yet to get anyone to clone that beyond
+      # Building 99. TODO remove once Spartan can be cloned by mere mortals
       if ! if_yes "try_git_clone ${repositories[$r]} $r"; then
         magenta "Warning: could not clone $r"
         continue
@@ -526,7 +526,7 @@ do_make ()
   fi
 
   echo
-  # Get rid of this when Spartan goes public
+  # TODO Get rid of this when Spartan goes public
   if [ -d Spartan ]; then
     blue "Rebuilding Spartan"
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
@@ -578,7 +578,10 @@ do_clean ()
     FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
     make -C "$d" clean
   done
-  (cd Spartan/tools/Spartan && nmake clean)
+  # TODO remove once Spartan is easily clonable
+  if [ -d Spartan ]; then
+    (cd Spartan/tools/Spartan && nmake clean)
+  fi
 }
 
 do_snapshot ()
