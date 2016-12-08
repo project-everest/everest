@@ -1,8 +1,12 @@
 # For pretty output
 color () {
-  tput setaf $2
-  echo $1
-  tput sgr0
+  if [ -t 1 ]; then
+    tput setaf $2
+    echo $1
+    tput sgr0
+  else
+    echo $1
+  fi
 }
 
 red () {
