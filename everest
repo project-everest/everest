@@ -144,27 +144,35 @@ write_cygwin_bashrc () {
 }
 
 write_fstar_home_bashrc () {
-  if is_windows; then
-    path=$(cygpath -m "$(pwd)")
+  if [[ $EVEREST_CI == "" ]]; then
+    if is_windows; then
+      path=$(cygpath -m "$(pwd)")
+    else
+      path=$(pwd)
+    fi
+    str="
+      # These lines automatically added by $0
+      export FSTAR_HOME=$path/FStar"
+    eval "$str"
+    echo "$str" >> ~/.bashrc
+    magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
   else
-    path=$(pwd)
+    magenta "Skipping ~/.bashrc customization because EVEREST_CI is set"
   fi
-  str="
-    # These lines automatically added by $0
-    export FSTAR_HOME=$path/FStar"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
 write_fstar_kremlin_bashrc () {
-  str="
-    # These lines automatically added by $0
-    export PATH=$(pwd)/FStar/bin:\$PATH
-    export PATH=$(pwd)/kremlin:\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  if [[ $EVEREST_CI == "" ]]; then
+    str="
+      # These lines automatically added by $0
+      export PATH=$(pwd)/FStar/bin:\$PATH
+      export PATH=$(pwd)/kremlin:\$PATH"
+    eval "$str"
+    echo "$str" >> ~/.bashrc
+    magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  else
+    magenta "Skipping ~/.bashrc customization because EVEREST_CI is set"
+  fi
 }
 
 cygsetup="setup-x86_64.exe"
