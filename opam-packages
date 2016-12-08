@@ -12,3 +12,4 @@ menhirLib menhir
 fix fix
 sedlex sedlex
 ctypes ctypes
+ulex ulex
