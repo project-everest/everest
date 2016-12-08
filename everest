@@ -258,7 +258,7 @@ do_check ()
       if ! cygwin_has $p; then
         find_cygsetup
         echo "Cygwin package $p is missing"
-        if_yes "$cygsetup --packages=$(cat cygwin-packages | tr '\n' ,)"
+        if_yes "$cygsetup $cygsetup_args --packages=$(cat cygwin-packages | tr '\n' ,)"
       fi
     done
     echo "... all $(cat cygwin-packages | wc -l) cygwin packages seem to be installed"
