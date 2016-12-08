@@ -483,6 +483,8 @@ do_pull ()
 
 do_make ()
 {
+  failed=""
+
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
   else
@@ -491,35 +493,54 @@ do_make ()
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   mkdir -p log
   blue "Rebuilding F*"
-  make -C FStar/src/ocaml-output -j 15 | count "log/fstar"
+  if ! make -C FStar/src/ocaml-output -j 15 | count "log/fstar"; then
+    failed="$failed  FStar\n"
+  fi
 
   echo
   blue "Rebuilding KreMLin"
-  make -C kremlin -j 15 | count "log/kremlin"
+  if ! make -C kremlin -j 15 | count "log/kremlin"; then
+    failed="$failed  KreMLin\n"
+  fi
 
   echo
+  # Get rid of this when Spartan goes public
   if [ -d Spartan ]; then
     blue "Rebuilding Spartan"
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
     DIR=$(cygpath -d "$(pwd)"/Spartan)
-    $(cygpath -m "$COMSPEC") /C "cd $DIR && $VARS amd64 && nmake && nmake exes" | count "log/spartan"
+    if ! $(cygpath -m "$COMSPEC") /C "cd $DIR && $VARS amd64 && nmake && nmake exes" | count "log/spartan"; then
+      failed="$failed  Spartan\n"
+    fi
   else
     magenta "Warning: no Spartan..."
   fi
 
   echo
   blue "Rebuilding F* / CoreCrypto"
-  make -C FStar/ucontrib/CoreCrypto/ml -j 15 | count "log/fstar-corecrypto"
+  if ! make -C FStar/ucontrib/CoreCrypto/ml -j 15 | count "log/fstar-corecrypto"; then
+    failed="$failed  CoreCrypto\n"
+  fi
+
+  echo
+  blue "Building mixed C/ASM Crypto"
+  if ! make -C FStar/examples/low-level krml-test.exe; then
+    failed="$failed krml-test\n"
+  fi
 
   echo
   blue "Rebuilding miTLS"
-  make -C mitls-fstar/src/tls -j 15 tls-gen | count "log/mitls-gen"
-  # Note: -B because dependencies currently disabled in the mitls.exe target
-  make -C mitls-fstar/src/tls -j 15 -B mitls.exe | count "log/mitls-exe"
+  if ! make -C mitls-fstar/src/tls -j 15 mitls.exe | count "log/mitls-exe"; then
+    failed="$failed  miTLS\n"
+  fi
 
-  echo
-  blue "Building the integration of everything, hold your breath!"
-  make -C FStar/examples/low-level krml-test.exe
+  if [[ $failed != "" ]]; then
+    red "ERROR: build failed for one or more projects"
+    echo -e $failed
+    exit 255
+  else
+    green "SUCCESS"
+  fi
 }
 
 do_clean ()
