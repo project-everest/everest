@@ -493,6 +493,16 @@ do_pull ()
   done
 }
 
+possibly_log () {
+  cmd=$1
+  log_file=$2
+  if [[ $EVEREST_CI != "" ]]; then
+    $cmd
+  else
+    $cmd | count "log/$log_file"
+  fi
+}
+
 do_make ()
 {
   failed=""
@@ -505,13 +515,13 @@ do_make ()
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   mkdir -p log
   blue "Rebuilding F*"
-  if ! make -C FStar/src/ocaml-output -j 15 | count "log/fstar"; then
+  if ! possibly_log "make -C FStar/src/ocaml-output -j 15" "fstar"; then
     failed="$failed  FStar\n"
   fi
 
   echo
   blue "Rebuilding KreMLin"
-  if ! make -C kremlin -j 15 | count "log/kremlin"; then
+  if ! possibly_log "make -C kremlin -j 15" "kremlin"; then
     failed="$failed  KreMLin\n"
   fi
 
@@ -521,7 +531,8 @@ do_make ()
     blue "Rebuilding Spartan"
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
     DIR=$(cygpath -d "$(pwd)"/Spartan)
-    if ! $(cygpath -m "$COMSPEC") /C "cd $DIR && $VARS amd64 && nmake && nmake exes" | count "log/spartan"; then
+    CMD=$(cygpath -d "$COMSPEC")
+    if ! possibly_log "$CMD /C \"cd $DIR && $VARS amd64 && nmake && nmake exes\"" "spartan"; then
       failed="$failed  Spartan\n"
     fi
   else
@@ -530,20 +541,20 @@ do_make ()
 
   echo
   blue "Rebuilding F* / CoreCrypto"
-  if ! make -C FStar/ucontrib/CoreCrypto/ml -j 15 | count "log/fstar-corecrypto"; then
+  if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml -j 15" "fstar-corecrypto"; then
     failed="$failed  CoreCrypto\n"
   fi
 
   echo
   blue "Building mixed C/ASM Crypto"
-  if ! make -C FStar/examples/low-level krml-test.exe; then
+  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe" "krml-test"; then
     failed="$failed krml-test\n"
   fi
 
   echo
   blue "Rebuilding miTLS"
-  if ! make -C mitls-fstar/src/tls -j 15 mitls.exe | count "log/mitls-exe"; then
-    failed="$failed  miTLS\n"
+  if ! possibly_log "make -C mitls-fstar/src/tls -j 15 mitls.exe" "mitls-exe"; then
+    failed="$failed miTLS\n"
   fi
 
   if [[ $failed != "" ]]; then
