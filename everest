@@ -543,6 +543,11 @@ do_make ()
   fi
 }
 
+do_test () {
+  FStar/examples/low-level/krml-test.exe
+  mitls-fstar/src/tls/mitls.exe
+}
+
 do_clean ()
 {
   for d in FStar/{u,}lib/ml FStar/src{,/ocaml-output} \
@@ -609,6 +614,8 @@ COMMAND:
 
   make      rebuild all projects
 
+  test      launch the test artifacts
+
   clean     clean all projets
 
   snapshot  make the current state a new known set of working revisions; this
@@ -639,6 +646,10 @@ while true; do
 
     clean)
       do_clean
+      ;;
+
+    test)
+      do_test
       ;;
 
     snapshot)
