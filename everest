@@ -9,7 +9,7 @@ fi
 # Any error is fatal.
 set -e
 set -o pipefail
-# set -x # uncomment for debugging.
+#set -x # uncomment for debugging.
 
 # Known URLs and directories
 OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
@@ -192,6 +192,16 @@ find_cygsetup () {
   fi
 }
 
+install_all_opam_packages () {
+  packages=$(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')
+  opam update
+  opam depext $packages
+  opam install $packages
+  if is_windows; then
+    opam install depext-cygwinports
+  fi
+}
+
 
 # ------------------------------------------------------------------------------
 # The functions that implement the main actions
@@ -355,10 +365,6 @@ OCAML
     magenta "ocamlfind not found!"
     if_yes "opam install ocamlfind"
   fi
-  if is_windows && ! ocamlfind query wasm >/dev/null 2>&1; then
-    red "ERROR: on Windows, wasm needs manual intervention (for now); see https://github.com/FStarLang/kremlin and run $0 check again"
-    exit 1
-  fi
 
   missing=false
   while read line; do
@@ -367,17 +373,11 @@ OCAML
     if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
       missing=true
+      break
     fi
   done < opam-packages
-  if is_windows; then
-    filter="grep -v wasm"
-  else
-    filter=cat
-  fi
   if $missing; then
-    if_yes "opam update"
-    if_yes "opam depext $(cat opam-packages | $filter | cut -d ' ' -f 2 | tr '\n' ' ')"
-    if_yes "opam install $(cat opam-packages | $filter | cut -d ' ' -f 2 | tr '\n' ' ')"
+    if_yes "install_all_opam_packages"
   fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
@@ -461,35 +461,22 @@ do_pull ()
       fi
     fi
 
-    # All sorts of git magic to try to figure out how to smartly checkout the
-    # listed reference
+    # Note: the snapshot command guarantees that the commit was pushed to a
+    # branch of the form origin/foo. So, we checkout foo, because there's a good
+    # chance it tracks origin/foo which contains the commit we want. If it's not
+    # the case it's a crazy setup and the user is on their own.
     cd $r
     git fetch
     hash=${hashes[$r]}
-
-    # Find the first remote branch that contains the desired commit
-    branch=$(git branch -r --color=never --contains $hash | grep -v -- '->' | head -n 1 | cut -c 3-)
-
-    if [[ $branch == "" ]]; then
-      magenta "In $r, no know branch contains $hash! Seems like someone forgot to push a commit... trying anyhow"
-      git checkout $hash && git submodule update
-
-    else
-      echo "In $r, $branch contains $hash"
-      short=${branch#*/}
-      echo "Trying to switch to branch $short"
-      git checkout $short
-      if [[ $(git rev-parse --abbrev-ref --symbolic-full-name @{u}) != $branch ]]; then
-        magenta "Argh! $short is actually not tracking $branch... going for DETACHED HEAD"
-        git checkout $hash && git submodule update
-      elif ! git merge --ff $hash; then
-        # Case where local branch has diverged from origin
-        if_yes "git merge $hash && git submodule update"
-      else
-        git submodule update
-      fi
-
+    branch=${branches[$r]}
+    git checkout $branch
+    upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+    if ! git branch -r --contains $hash | egrep "^ +$upstream$" >/dev/null 2>&1; then
+      red "ERROR: in repository $r, the hash $hash claims to belong to branch \
+        $branch, but $branch pulls from $upstream which does not contain $hash"
+      exit 1
     fi
+    git reset --hard $hash
     cd ..
   done
 }
@@ -548,15 +535,25 @@ do_snapshot ()
 {
   blue "Recording a new snapshot"
   echo "declare -A hashes" > new-hashes.sh
+  echo "declare -A branches" >> new-hashes.sh
   for r in ${!repositories[@]}; do
     cd $r
     head=$(git rev-parse HEAD)
-    if [[ $(git branch -r --contains $head) == "" ]]; then
-      red "WARNING: in repository $r, current revision $head has not been pushed!"
+    branch=$(git symbolic-ref HEAD)
+    branch=${branch##refs/heads/}
+    upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+    if [[ $upstream != "origin/$branch" ]]; then
+      red "ERROR: in repository $r, HEAD ($head) is on $branch which pushes to \
+        $upstream, not origin/$branch!"
+    fi
+    if ! git branch -r --contains $head | egrep "origin/$branch$" >/dev/null 2>&1; then
+      red "ERROR: in repository $r, HEAD ($head) is on $branch which has not
+        been pushed to $upstream"
     fi
     cd ..
-    echo "recording $r at revision $head"
+    echo "recording $r at revision $(echo $head | cut -c 1-8) ($branch)"
     echo "hashes[$r]=$head" >> new-hashes.sh
+    echo "branches[$r]=$branch" >> new-hashes.sh
   done
   mv new-hashes.sh hashes.sh
   cat <<MSG
