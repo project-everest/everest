@@ -174,7 +174,7 @@ cygsetup_args="--no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode"
 # Failure: aborts.
 find_cygsetup () {
   found=false
-  for s in "$USERPROFILE/Desktop/$cygsetup" "$USERPROFILE/Downloads/$cygsetup" ./$cygsetup; do
+  for s in "$USERPROFILE/Desktop/setup-x86_64.exe" "$USERPROFILE/Downloads/setup-x86_64.exe" "./setup-x86_64.exe"; do
     if [ -x "$s" ]; then
       echo "Found $cygsetup"
       found=true
