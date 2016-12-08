@@ -481,7 +481,7 @@ do_pull ()
     git fetch
     hash=${hashes[$r]}
     branch=${branches[$r]}
-    git checkout $branch
+    git checkout $branch || true # Error: already on branch ...
     upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
     if ! git branch -r --contains $hash | egrep "^ +$upstream$" >/dev/null 2>&1; then
       red "ERROR: in repository $r, the hash $hash claims to belong to branch \
