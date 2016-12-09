@@ -498,6 +498,7 @@ build_spartan () {
   DIR=$(cygpath -d "$(pwd)"/Spartan)
   CMD=$(cygpath -u "$COMSPEC")
   $CMD /C "cd $DIR && $VARS amd64 && nmake && nmake exes"
+  make -C FStar/examples/low-level/spartan_aes import
 }
 
 possibly_log () {
@@ -517,10 +518,13 @@ do_make ()
 
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
+    export SPARTAN_HOME=$(cygpath -m $(pwd)/Spartan)
   else
     export FSTAR_HOME=$(pwd)/FStar
+    export SPARTAN_HOME=$(pwd)/Spartan
   fi
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
+  magenta "exported SPARTAN_HOME=$SPARTAN_HOME"
   mkdir -p log
   blue "Rebuilding F*"
   if ! possibly_log "make -C FStar/src/ocaml-output -j 15" "fstar"; then
