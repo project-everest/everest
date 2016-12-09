@@ -494,6 +494,7 @@ do_pull ()
 }
 
 possibly_log () {
+  echo "Running $1"
   cmd=$1
   log_file=$2
   if [[ $EVEREST_CI != "" ]]; then
