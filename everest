@@ -493,6 +493,13 @@ do_pull ()
   done
 }
 
+build_spartan () {
+  VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
+  DIR=$(cygpath -d "$(pwd)"/Spartan)
+  CMD=$(cygpath -u "$COMSPEC")
+  $CMD /C "cd $DIR && $VARS amd64 && nmake && nmake exes"
+}
+
 possibly_log () {
   echo "Running $1"
   cmd=$1
@@ -530,10 +537,7 @@ do_make ()
   # TODO Get rid of this when Spartan goes public
   if [ -d Spartan ]; then
     blue "Rebuilding Spartan"
-    VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
-    DIR=$(cygpath -d "$(pwd)"/Spartan)
-    CMD=$(cygpath -d "$COMSPEC")
-    if ! possibly_log "$CMD /C \"cd $DIR && $VARS amd64 && nmake && nmake exes\"" "spartan"; then
+    if ! possibly_log "build_spartan" "spartan"; then
       failed="$failed  Spartan\n"
     fi
   else
