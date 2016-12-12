@@ -31,6 +31,12 @@ else
 fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 
+# No-interaction when this script is used for CI purposes
+if [[ $EVEREST_CI != "" ]]; then
+  export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
+  export GIT_TERMINAL_PROMPT=0
+fi
+
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
 # thing. Basically, this supports:
@@ -177,8 +183,8 @@ write_fstar_kremlin_bashrc () {
 
 cygsetup="setup-x86_64.exe"
 cygsetup_args="--no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode"
-# Find Cygwin's setup utility, or downloads it from the internet.
-# Success: write the path to Cygwin's setup in $cygsetup
+# Find Cygwin's setup utility, or download it from the internet.
+# Success: writes the path to Cygwin's setup in $cygsetup
 # Failure: aborts.
 find_cygsetup () {
   found=false
@@ -445,14 +451,28 @@ try_git_clone () {
   fi
 }
 
-do_pull ()
-{
-  if [[ $EVEREST_CI != "" ]]; then
-    export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
-    export GIT_TERMINAL_PROMPT=0
+self_update () {
+  old_revision=$(git rev-parse HEAD)
+  git pull
+  if [[ $(git rev-parse HEAD) != $old_revision ]]; then
+    blue "Self-updating to new everest revision $(git rev-parse HEAD | cut -c 1-8)"
+    $0 "$@"
+    exit 0
+  else
+    echo "No new everest revision available"
   fi
+}
+
+do_pull () {
+  self_update
+  do_reset
+}
+
+do_reset ()
+{
   warned=false
   for r in ${!repositories[@]}; do
+    echo
     blue "Pulling $r"
     # Some sanity checks, and clone the repositories that aren't there already
     if [ ! -d $r ]; then
@@ -481,7 +501,9 @@ do_pull ()
     git fetch
     hash=${hashes[$r]}
     branch=${branches[$r]}
-    git checkout $branch || true # Error: already on branch ...
+    if [[ $(git symbolic-ref HEAD) != $branch ]]; then
+      git checkout $branch
+    fi
     upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
     if ! git branch -r --contains $hash | egrep "^ +$upstream$" >/dev/null 2>&1; then
       red "ERROR: in repository $r, the hash $hash claims to belong to branch \
@@ -644,17 +666,20 @@ COMMAND:
             them if needed; offer to customize ~/.bashrc with proper env
             variables
 
-  pull      pull all projects and move them to the revisions specified by
+  pull      self-update the everest repository (i.e. the script and
+            hashes.sh) then run reset
+
+  reset     pull all projects and move them to the revisions specified by
             hashes.sh
+
+  snapshot  make the current state a new known set of working revisions; this
+            writes into hashes.sh
 
   make      rebuild all projects
 
   test      launch the test artifacts
 
   clean     clean all projets
-
-  snapshot  make the current state a new known set of working revisions; this
-            writes into hashes.sh
 
   help      print the current message
 HELP
@@ -673,6 +698,10 @@ while true; do
 
     pull)
       do_pull
+      ;;
+
+    reset)
+      do_reset
       ;;
 
     make)
