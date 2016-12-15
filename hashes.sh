@@ -1,12 +1,12 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=94d932735d3c07b5a16933850d325e2965c9defa
-branches[mitls-fstar]=adl_lowlevel_merge
-hashes[Spartan]=0e468a84c72b23d2283dcf3df4ecc83103d559d7
-branches[Spartan]=master
-hashes[FStar]=83f4e1906ff94886add178b3c785039968a579eb
-branches[FStar]=c_record_aead
-hashes[hacl-star]=0bdd09e379b66d8016f3579b2af00e4072e17479
-branches[hacl-star]=jk_low_level_crypto
-hashes[kremlin]=6051d1b35d823175a75854d917259ca304c79c1d
-branches[kremlin]=master
+hashes[mitls-fstar]=f08e35545565648e5a20dc0bd331885d3fbedd1e
+branches[mitls-fstar]=taramana_include_seq_lowlevel_merge
+hashes[Spartan]=b9260318ad4f1efc7cf641b3c72cb8aec762796b
+branches[Spartan]=taramana_include_seq
+hashes[FStar]=13175536acd0e770996cc06efbef8d4f8c9083b1
+branches[FStar]=taramana_include_seq_c_record_aead
+hashes[hacl-star]=e22b2a17467c716d160c7dbb619537519428eb58
+branches[hacl-star]=taramana_include_seq_low_level_crypto
+hashes[kremlin]=4305d000037c5a0290c691d3cac87e221425fe71
+branches[kremlin]=taramana_include_seq
