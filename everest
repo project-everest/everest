@@ -10,7 +10,7 @@ fi
 set -e
 set -o pipefail
 # set -x # uncomment for debugging.
-set -u
+# set -u
 
 # Known URLs and directories
 OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
