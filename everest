@@ -478,7 +478,14 @@ build_spartan () {
   DIR=$(cygpath -d "$(pwd)"/Spartan)
   CMD=$(cygpath -u "$COMSPEC")
   $CMD /C "cd $DIR && $VARS amd64 && nmake && nmake exes"
-  make -C FStar/examples/low-level/spartan_aes import
+
+  # Import fresh crypto from Spartan into F*
+  cd FStar
+  make -C examples/low-level/spartan_aes import
+  if ! git diff --exit-code; then
+    magenta "New assemblies from Spartan, diff is above"
+  fi
+  cd ..
 }
 
 possibly_log () {
