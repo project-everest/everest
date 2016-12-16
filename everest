@@ -149,38 +149,6 @@ write_cygwin_bashrc () {
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
-write_fstar_home_bashrc () {
-  if [[ $EVEREST_CI == "" ]]; then
-    if is_windows; then
-      path=$(cygpath -m "$(pwd)")
-    else
-      path=$(pwd)
-    fi
-    str="
-      # These lines automatically added by $0
-      export FSTAR_HOME=$path/FStar"
-    eval "$str"
-    echo "$str" >> ~/.bashrc
-    magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
-  else
-    magenta "Skipping ~/.bashrc customization because EVEREST_CI is set"
-  fi
-}
-
-write_fstar_kremlin_bashrc () {
-  if [[ $EVEREST_CI == "" ]]; then
-    str="
-      # These lines automatically added by $0
-      export PATH=$(pwd)/FStar/bin:\$PATH
-      export PATH=$(pwd)/kremlin:\$PATH"
-    eval "$str"
-    echo "$str" >> ~/.bashrc
-    magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
-  else
-    magenta "Skipping ~/.bashrc customization because EVEREST_CI is set"
-  fi
-}
-
 cygsetup="setup-x86_64.exe"
 cygsetup_args="--no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode"
 # Find Cygwin's setup utility, or download it from the internet.
@@ -424,20 +392,10 @@ OCAML
   fi
   echo "... correct z3 version detected"
 
-  if ! command -v fstar.exe >/dev/null 2>&1 || ! command -v krml >/dev/null 2>&1; then
-    magenta "I don't see any fstar.exe or krml in your path; add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH via ~/.bashrc? [Yn]"
-    prompt_yes write_fstar_kremlin_bashrc true
-  fi
-  echo "... fstar.exe and krml in PATH"
-
-  if [[ $FSTAR_HOME == "" ]]; then
-    magenta "FSTAR_HOME is not set... set it? [Yn]"
-    prompt_yes write_fstar_home_bashrc true
-  fi
-  echo "... FSTAR_HOME ok"
-
   echo
   magenta "Remember to run source ~/.bashrc if it was modified!"
+  magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH"
+  magenta "Note: you *may* want to export FSTAR_HOME=$(pwd)/FStar"
 }
 
 try_git_clone () {
@@ -547,6 +505,8 @@ do_make ()
   fi
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported SPARTAN_HOME=$SPARTAN_HOME"
+  export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
+
   mkdir -p log
   blue "Rebuilding F*"
   if ! possibly_log "make -C FStar/src/ocaml-output -j 15" "fstar"; then
