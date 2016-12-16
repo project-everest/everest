@@ -46,7 +46,7 @@ is_osx () {
 }
 
 is_windows () {
-  [[ $OS == "Windows_NT" ]]
+  [[ -n $OS ]] && [[ $OS == "Windows_NT" ]]
 }
 
 # If a command [cmd] is not found in path, then [success_or cmd msg] prints
