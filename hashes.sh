@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[mitls-fstar]=8086422f8fa44be4a5ab60131416287c3f52a37d
 branches[mitls-fstar]=adl_lowlevel_merge
-hashes[Spartan]=4a5b9dd28fb50ddf81d381f7e4d64dae393ef7c0
+hashes[Spartan]=0e468a84c72b23d2283dcf3df4ecc83103d559d7
 branches[Spartan]=master
 hashes[FStar]=398666d9b5cbfd8fdc0f8363c5b5396d74f53b97
 branches[FStar]=c_record_aead
