@@ -35,6 +35,7 @@ FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
 make_non_interactive () {
+  INTERACTIVE=false
   export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
   export GIT_TERMINAL_PROMPT=0
 }
