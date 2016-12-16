@@ -9,7 +9,8 @@ fi
 # Any error is fatal.
 set -e
 set -o pipefail
-set -x # uncomment for debugging.
+# set -x # uncomment for debugging.
+set -u
 
 # Known URLs and directories
 OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
@@ -32,10 +33,11 @@ fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 
 # No-interaction when this script is used for CI purposes
-if [[ $EVEREST_CI != "" ]]; then
+INTERACTIVE=true
+make_non_interactive () {
   export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
   export GIT_TERMINAL_PROMPT=0
-fi
+}
 
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
@@ -492,10 +494,10 @@ possibly_log () {
   echo "Running $1"
   cmd=$1
   log_file=$2
-  if [[ $EVEREST_CI != "" ]]; then
-    $cmd
-  else
+  if $INTERACTIVE; then
     $cmd | count "log/$log_file"
+  else
+    $cmd
   fi
 }
 
@@ -627,7 +629,7 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 COMMANDS
+USAGE: $0 [--yes] COMMANDS
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -660,6 +662,10 @@ fi
 
 while true; do
   case "$1" in
+    --yes)
+      make_non_interactive
+      ;;
+
     check)
       do_check
       ;;
