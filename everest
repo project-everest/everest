@@ -209,11 +209,11 @@ find_cygsetup () {
 install_all_opam_packages () {
   packages=$(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')
   opam update
-  opam depext $packages
-  opam install $packages
   if is_windows; then
     opam install depext-cygwinports
   fi
+  opam depext $packages
+  opam install $packages
 }
 
 
@@ -347,7 +347,7 @@ MSG
     # OCaml; if this exits, set -e means this is a hard error
     ocaml -noinit -noprompt -stdin <<OCAML
       if Sys.ocaml_version < "4.02.2" then begin
-        print_endline "ERROR: Everest needs OCaml >= 4.02.2";
+        print_endline "ERROR: Everest needs OCaml >= 4.02.3";
         exit 1
       end
 OCAML
