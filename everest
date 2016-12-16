@@ -9,7 +9,7 @@ fi
 # Any error is fatal.
 set -e
 set -o pipefail
-#set -x # uncomment for debugging.
+set -x # uncomment for debugging.
 
 # Known URLs and directories
 OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
@@ -566,7 +566,7 @@ do_make ()
 
 do_test () {
   FStar/examples/low-level/krml-test.exe
-  mitls-fstar/src/tls/test.out
+  (cd mitls-fstar/src/tls && test.out)
   mitls-fstar/src/tls/mitls.exe tls13.crypto.mozilla.org 443
 }
 
