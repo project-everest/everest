@@ -566,7 +566,7 @@ do_make ()
 
 do_test () {
   FStar/examples/low-level/krml-test.exe
-  (cd mitls-fstar/src/tls && test.out)
+  (cd mitls-fstar/src/tls && ./test.out)
   mitls-fstar/src/tls/mitls.exe tls13.crypto.mozilla.org 443
 }
 
