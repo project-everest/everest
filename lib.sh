@@ -31,13 +31,13 @@ count () {
   i=0
   echo -n > $1
   while read line; do
-    echo "$line" >> $1
-    if $VERBOSE ; then
-	echo "$line"
-    else
+   echo "$line" >> $1
+   if $VERBOSE ; then
+    echo "$line"
+   else
     i=$(($i+1))
     echo -ne "\r$i lines of output"
-    fi
+   fi
   done
   echo
   blue "log written to $1"
