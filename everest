@@ -502,10 +502,7 @@ possibly_log () {
   fi
 }
 
-do_make ()
-{
-  failed=""
-
+setup_env () {
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export SPARTAN_HOME=$(cygpath -m $(pwd)/Spartan)
@@ -516,6 +513,24 @@ do_make ()
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported SPARTAN_HOME=$SPARTAN_HOME"
   export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
+
+  local openssl_home=$(pwd)/FStar/ucontrib/CoreCrypto/ml/openssl
+  if is_windows; then
+    export PATH=$openssl_home:$PATH
+  elif [[ $(uname) == "Darwin" ]]; then
+    export DYLD_LIBRARY_PATH=$openssl_home:$DYLD_LIBRARY_PATH
+    magenta "exported DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+  else
+    export LD_LIBRARY_PATH=$openssl_home:$LD_LIBRARY_PATH
+    magenta "exported LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+  fi
+  magenta "exported PATH=$PATH"
+}
+
+do_make ()
+{
+  setup_env
+  failed=""
 
   mkdir -p log
   blue "Rebuilding F*"
@@ -568,6 +583,8 @@ do_make ()
 }
 
 do_test () {
+  setup_env
+
   FStar/examples/low-level/krml-test.exe
   FStar/examples/low-level/test-perf.exe
   (cd mitls-fstar/src/tls && ./test.out)
