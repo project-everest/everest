@@ -548,7 +548,7 @@ do_make ()
 
   echo
   blue "Building mixed C/ASM Crypto"
-  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe" "krml-test"; then
+  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe" "krml-test"; then
     failed="$failed krml-test\n"
   fi
 
@@ -569,6 +569,7 @@ do_make ()
 
 do_test () {
   FStar/examples/low-level/krml-test.exe
+  FStar/examples/low-level/test-perf.exe
   (cd mitls-fstar/src/tls && ./test.out)
   mitls-fstar/src/tls/mitls.exe tls13.crypto.mozilla.org 443
 }
