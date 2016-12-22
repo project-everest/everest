@@ -8,5 +8,5 @@ hashes[FStar]=398666d9b5cbfd8fdc0f8363c5b5396d74f53b97
 branches[FStar]=c_record_aead
 hashes[hacl-star]=0bdd09e379b66d8016f3579b2af00e4072e17479
 branches[hacl-star]=jk_low_level_crypto
-hashes[kremlin]=e22124b4f83d53e2fa740263fdab700df5205d47
+hashes[kremlin]=7db65c47e0881cc0d5736d05aedb15e4548e7948
 branches[kremlin]=master
