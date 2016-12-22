@@ -571,6 +571,8 @@ do_test () {
   FStar/examples/low-level/krml-test.exe
   FStar/examples/low-level/test-perf.exe
   (cd mitls-fstar/src/tls && ./test.out)
+  # The two tests below are broken
+  mitls-fstar/src/tls/mitls.exe www.google.com 443 -v 1.2
   mitls-fstar/src/tls/mitls.exe tls13.crypto.mozilla.org 443
 }
 
