@@ -506,9 +506,11 @@ setup_env () {
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export SPARTAN_HOME=$(cygpath -m $(pwd)/Spartan)
+    export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
   else
     export FSTAR_HOME=$(pwd)/FStar
     export SPARTAN_HOME=$(pwd)/Spartan
+    export KREMLIN_HOME=$(pwd)/kremlin
   fi
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported SPARTAN_HOME=$SPARTAN_HOME"
