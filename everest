@@ -395,6 +395,21 @@ OCAML
   fi
   echo "... correct z3 version detected"
 
+  # We bundle SCons in Spartan, so Windows just needs a Python, while other
+  # platforms want a system installation of Scons
+  if is_windows; then
+    if ! [ -d "/cygdrive/c/Python27" ]; then
+      red "ERROR: C:\\Python27 not found -- please install a *WINDOWS* Python 2.7"
+      exit 1
+    fi
+    echo "... Python 2.7 found"
+  elif ! command -v scons >/dev/null 2>&1; then
+    red "ERROR: scons not installed -- please install"
+    exit 1
+  else
+    echo "... scons found in PATH"
+  fi
+
   echo
   magenta "Remember to run source ~/.bashrc if it was modified!"
   magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH"
@@ -477,14 +492,20 @@ do_reset ()
 }
 
 build_spartan () {
-  VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
-  DIR=$(cygpath -d "$(pwd)"/Spartan)
-  CMD=$(cygpath -u "$COMSPEC")
-  $CMD /C "cd $DIR && $VARS amd64 && nmake && nmake exes"
+  # This function is called in a subshell in a test context (via possibly_log)
+  # which means that -e is not inherited. Explicit failures here.
+  if is_windows; then
+    VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
+    DIR=$(cygpath -d "$(pwd)"/Spartan)
+    CMD=$(cygpath -u "$COMSPEC")
+    $CMD /C "cd $DIR && scons.bat" || return 1
+  else
+    scons -C Spartan || return 1
+  fi
 
   # Import fresh crypto from Spartan into F*
   cd FStar
-  make -C examples/low-level/spartan_aes import
+  make -C examples/low-level/spartan_aes import || return 1
   if ! git diff --exit-code; then
     magenta "New assemblies from Spartan, diff is above"
   fi
@@ -496,6 +517,9 @@ possibly_log () {
   cmd=$1
   log_file=$2
   if $INTERACTIVE; then
+    # As far as I understand, the "pipefail" option is inherited, so this
+    # line, even though run inside of a subshell (because of the "if"), will
+    # correctly fail
     $cmd | count "log/$log_file"
   else
     $cmd
