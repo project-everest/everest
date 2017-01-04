@@ -498,7 +498,7 @@ build_spartan () {
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
     DIR=$(cygpath -d "$(pwd)"/Spartan)
     CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "cd $DIR && scons.bat" || return 1
+    $CMD /C "cd $DIR && $VARS amd64 && scons.bat" || return 1
   else
     scons -C Spartan || return 1
   fi
