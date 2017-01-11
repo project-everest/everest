@@ -553,24 +553,33 @@ setup_env () {
   magenta "exported PATH=$PATH"
 }
 
+separator () {
+  echo -e "================================================================================"
+}
+
 do_make ()
 {
   setup_env
   failed=""
-
   mkdir -p log
+
+  separator
   blue "Rebuilding F*"
   if ! possibly_log "make -C FStar/src/ocaml-output -j 15" "fstar"; then
     failed="$failed  FStar\n"
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   blue "Rebuilding KreMLin"
   if ! possibly_log "make -C kremlin -j 15" "kremlin"; then
     failed="$failed  KreMLin\n"
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   # TODO Get rid of this when Spartan goes public
   if [ -d Spartan ]; then
     blue "Rebuilding Spartan"
@@ -580,24 +589,32 @@ do_make ()
   else
     magenta "Warning: no Spartan..."
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   blue "Rebuilding F* / CoreCrypto"
   if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml -j 15" "fstar-corecrypto"; then
     failed="$failed  CoreCrypto\n"
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   blue "Building mixed C/ASM Crypto"
   if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe" "krml-test"; then
     failed="$failed krml-test\n"
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   blue "Rebuilding miTLS"
   if ! possibly_log "make -C mitls-fstar/src/tls mitls.exe" "mitls-exe"; then
     failed="$failed miTLS\n"
   fi
+  separator
+  echo -e "\n\n"
 
   if [[ $failed != "" ]]; then
     red "ERROR: build failed for one or more projects"
@@ -611,12 +628,17 @@ do_make ()
 do_test () {
   setup_env
 
+  separator
+  blue "Running tests (commands shown below)"
+  set -x
   FStar/examples/low-level/krml-test.exe
   FStar/examples/low-level/test-perf.exe
   (cd mitls-fstar/src/tls && ./test.out)
   mitls-fstar/src/tls/mitls.exe www.google.com 443 -v 1.2 -tlsapi
   # The test below is broken
   # mitls-fstar/src/tls/mitls.exe tls13.crypto.mozilla.org 443
+  set +x
+  separator
 }
 
 do_clean ()
