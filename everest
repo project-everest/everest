@@ -696,7 +696,7 @@ COMMAND:
 
   test      launch the test artifacts
 
-  clean     clean all projets
+  clean     clean all projects
 
   help      print the current message
 HELP
