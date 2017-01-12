@@ -366,6 +366,24 @@ OCAML
   fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
+  # Check for caveats using my OCaml installer
+  if ! (cd test && ocamlbuild test.native -use-ocamlfind >/dev/null 2>&1); then
+    red "Cannot compile the test OCaml program"
+    red "Maybe you've been using the OCaml installer for windows"
+    echo Suggestion: check \
+      https://github.com/protz/ocaml-installer/wiki#package-specific-hints and \
+      follow instructions for ppx deriving and friends
+    exit 1
+  fi
+  echo "... sample ocamlbuild project compiles successfully"
+
+  if is_windows && [ -d "/cygdrive/c/OCaml/lib/camlp4" ]; then
+    red "Warning: seems like you're using the OCaml installer for windows"
+    echo There is a bug in the installer -- please see \
+      https://github.com/protz/ocaml-installer/wiki#configure-your-initial-opam-setup \
+      and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your ~/.bashrc
+  fi
+
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
     windows_check_or_modify_bashrc "fsc.exe" "$FS_DIR"
