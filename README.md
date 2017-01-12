@@ -6,9 +6,18 @@ See [the website](https://project-everest.github.io)!
 
 ## The `everest` script
 
-This repository contains a script, `everest`, and a known working set of
-revisions for all the sub-projects in Everest. The script will check that you
-have a good working setup, and will fetch or update the projects accordingly.
+The role of this script is to:
+- check that your development environment is sane;
+- fetch known good revisions of miTLS, F\*, KreMLin, Vale and HACL
+- run the voodoo series of commands that will lead to a successful build
+- run whatever is known to be working tests.
+
+For developers, this script also allows you to:
+- record a new known set of good revisions.
+
+This script is used heavily by [continuous
+integration](https://github.com/project-everest/everest-ci) to pull, build &
+test project everest.
 
 ## Pre-setup (Windows)
 
@@ -19,3 +28,12 @@ Cygwin prompt.
 ## Usage
 
 See `./everest help`
+
+## Contributing
+
+We welcome pull requests to this script, using the usual fork project + pull
+request GitHub model. For members of Everest, Sreekanth Kannepali has the keys
+to the everest project on GitHub and can grant write permissions on this
+repository so that you can develop your feature in a branch directly. Jonathan
+watches pull requests and will provide timely feedback unless he's on vacations
+or in another timezone.
