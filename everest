@@ -661,8 +661,9 @@ do_test () {
   set -x
   FStar/examples/low-level/krml-test.exe
   FStar/examples/low-level/test-perf.exe
+  # These tests assume the current working directory is src/tls
   (cd mitls-fstar/src/tls && ./test.out)
-  mitls-fstar/src/tls/mitls.exe www.google.com 443 -v 1.2 -tlsapi
+  (cd mitls-fstar/src/tls && ./mitls.exe www.google.com 443 -v 1.2)
   # The test below is broken
   # mitls-fstar/src/tls/mitls.exe tls13.crypto.mozilla.org 443
   set +x
