@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=469b56021afaec1c2442d49166c43652cb9b3c93
+hashes[mitls-fstar]=b5a102b7e3cff593da0f55df720843770ea61563
 branches[mitls-fstar]=adl_lowlevel_merge
 hashes[Spartan]=0c02c5d360432d0eefd37fd90574a23a5ea72db1
 branches[Spartan]=master
