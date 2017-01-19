@@ -413,7 +413,7 @@ OCAML
   fi
   echo "... correct z3 version detected"
 
-  # We bundle SCons in Spartan, so Windows just needs a Python, while other
+  # We bundle SCons in Vale, so Windows just needs a Python, while other
   # platforms want a system installation of Scons
   if is_windows; then
     if ! [ -d "/cygdrive/c/Python27" ]; then
@@ -479,12 +479,7 @@ do_reset ()
           cloned the repository elsewhere
         warned=true
       fi
-      # This is for Spartan. We have yet to get anyone to clone that beyond
-      # Building 99. TODO remove once Spartan can be cloned by mere mortals
-      if ! if_yes "try_git_clone ${repositories[$r]} $r"; then
-        magenta "Warning: could not clone $r"
-        continue
-      fi
+      try_git_clone ${repositories[$r]} $r
     fi
 
     # Note: the snapshot command guarantees that the commit was pushed to a
@@ -516,17 +511,17 @@ run_scons () {
   cmd=$1
   if is_windows; then
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
-    DIR=$(cygpath -d "$(pwd)"/Spartan)
+    DIR=$(cygpath -d "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
     $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd" || return 1
   else
-    scons -C Spartan $cmd || return 1
+    scons -C vale $cmd || return 1
   fi
 }
 
 build_spartan () {
   run_scons # no arg if we're building.
- 
+
   # Import fresh crypto from Spartan into F*
   cd FStar
   make -C examples/low-level/spartan_aes import || return 1
@@ -557,11 +552,11 @@ possibly_log () {
 setup_env () {
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
-    export SPARTAN_HOME=$(cygpath -m $(pwd)/Spartan)
+    export SPARTAN_HOME=$(cygpath -m $(pwd)/vale)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
   else
     export FSTAR_HOME=$(pwd)/FStar
-    export SPARTAN_HOME=$(pwd)/Spartan
+    export SPARTAN_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
   fi
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
@@ -608,14 +603,9 @@ do_make ()
   echo -e "\n\n"
 
   separator
-  # TODO Get rid of this when Spartan goes public
-  if [ -d Spartan ]; then
-    blue "Rebuilding Spartan"
-    if ! possibly_log "build_spartan" "spartan"; then
-      failed="$failed  Spartan\n"
-    fi
-  else
-    magenta "Warning: no Spartan..."
+  blue "Rebuilding Spartan"
+  if ! possibly_log "build_spartan" "spartan"; then
+    failed="$failed  Spartan\n"
   fi
   separator
   echo -e "\n\n"
@@ -674,10 +664,7 @@ do_clean ()
     FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
     make -C "$d" clean
   done
-  # TODO call to "Vale clean" once Vale is easily clonable
-  if [ -d Spartan ]; then
-    clean_spartan
-  fi
+  clean_spartan
 }
 
 do_snapshot ()
