@@ -538,26 +538,28 @@ run_nuget () {
 
 }
 
+# OS-independent scons. Passes $1 to scons.
+# The return status is that of the last command.
 run_scons () {
-  # This function is called in a subshell in a test context (via possibly_log)
-  # which means that -e is not inherited. Explicit failures here.
-  # OS-independent scons. Pass $1 to scons.
-  cmd=$1
+  cmd="$1"
+
   if is_windows; then
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
     DIR=$(cygpath -d "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd" || return 1
+    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd"
   else
     scons -C vale $cmd
   fi
 }
 
 build_vale () {
-  run_nuget
-  run_scons # no arg if we're building.
+  # This function is called in a subshell in a test context (via possibly_log)
+  # which means that -e is not inherited. Explicit failures here via || return.
+  run_nuget || return 1
+  run_scons || return 1 # no arg if we're building.
 
-  # Import fresh crypto from Vale into F*
+  # Import fresh crypto from Spartan into F*
   cd FStar
   make -C examples/low-level/spartan_aes import || return 1
   if ! git diff --exit-code; then
