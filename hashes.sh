@@ -1,12 +1,12 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=f08e35545565648e5a20dc0bd331885d3fbedd1e
-branches[mitls-fstar]=taramana_include_seq_lowlevel_merge
+hashes[mitls-fstar]=a16b666fdad2f37f13eefd638ac81ddad4944575
+branches[mitls-fstar]=taramana_include_seq
 hashes[Spartan]=b9260318ad4f1efc7cf641b3c72cb8aec762796b
 branches[Spartan]=taramana_include_seq
-hashes[FStar]=13175536acd0e770996cc06efbef8d4f8c9083b1
-branches[FStar]=taramana_include_seq_c_record_aead
-hashes[hacl-star]=e22b2a17467c716d160c7dbb619537519428eb58
-branches[hacl-star]=taramana_include_seq_low_level_crypto
-hashes[kremlin]=4305d000037c5a0290c691d3cac87e221425fe71
+hashes[FStar]=a9096edcf6015413b5e1c89b1460f6a08d1cac9a
+branches[FStar]=taramana_include_seq
+hashes[hacl-star]=e40b44dae65349b937bc3f0932ffd91c35519717
+branches[hacl-star]=taramana_include_seq
+hashes[kremlin]=f9cbd1241ef8eb72270e8bd58b7a1eb63b94b922
 branches[kremlin]=taramana_include_seq
