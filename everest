@@ -425,12 +425,12 @@ OCAML
   echo "... correct z3 version detected"
 
   # We need Nuget for Vale
-  if ! which nuget >/dev/null 2>&1 || [[ $(nuget | tr -d '\r\n'| sed s/Version.*//g) != "NuGet " ]]; then
+  if ! which nuget >/dev/null 2>&1 ; then
     red "ERROR: nuget doesn't seem to be installed"
     if is_windows; then
       magenta "Download it from the internet? [Yn]"
       prompt_yes true "exit 1"
-      mkdir -p nuget/bin && cd nuget/bin && wget $NUGET_URL && cd ../..
+      mkdir -p nuget/bin && cd nuget/bin && wget $NUGET_URL && chmod a+x nuget.exe && cd ../..
       magenta "Automatically customize ~/.bashrc with the nuget path? [Yn]"
       prompt_yes write_nuget_bashrc true
     else
@@ -537,11 +537,8 @@ run_nuget () {
   # which means that -e is not inherited. Explicit failures here.
   # OS-independnt scons. Pass $1 to scons.
   cmd=$1
-  if is_windows; then
-    cd vale && nuget.exe restore ./tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc $cmd || return 1
-  else
-    cd vale && nuget restore ./tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc $cmd || return 1
-  fi
+  cd vale && nuget restore ./tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc $cmd || return 1
+
 }
 
 run_scons () {
