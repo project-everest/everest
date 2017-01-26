@@ -1,34 +1,39 @@
 # Project Everest
 
-Project Everest is made up of the following components.
-- F\*, a verification language inspired by ML.
-- miTLS, an implementation of the TLS protocol written in F*.
-- hacl-star, a library of verified cryptography.
-- KreMLin, a tool which extracts F\* programs to readable C.
-- Spartan, a tool to generate verified assembly routines.
-- Dafny, a verification language used by Spartan.
+A verified, efficient TLS implementation, in C.
 
-Furthermore, Project Everest depends on a variety of external projects.
-- The Z3 theorem prover, an automated SMT solver.
-- OCaml, a functional programming language, along with OPAM and a variety of
-  associated packages.
-- A working .NET setup (possibly with Mono).
-- Currently, OpenSSL, to provide certain cryptographic routines needed by miTLS
-  and no yet implemented by hacl-star.
-- A working toolchain; currently, gcc (with the mingw port on Windows).
-- Boogie, an intermediate verification language.
+See [the website](https://project-everest.github.io)!
 
 ## The `everest` script
 
-This repository contains a script, `everest`, and a known working set of
-revisions for all the projects above. The script will check that you have a good
-working setup, and will fetch or update the projects accordingly.
+The role of this script is to:
+- check that your development environment is sane;
+- fetch known good revisions of miTLS, F\*, KreMLin, Vale and HACL
+- run the voodoo series of commands that will lead to a successful build
+- run whatever is known to be working tests.
+
+For developers, this script also allows you to:
+- record a new known set of good revisions.
+
+This script is used heavily by [continuous
+integration](https://github.com/project-everest/everest-ci) to pull, build &
+test project everest.
 
 ## Pre-setup (Windows)
 
 If you don't have a 64-bit Cygwin installed already, please download and run the
-Cygwin 64-bit installer, then launch this script from a Cygwin prompt.
+Cygwin 64-bit installer (along with Cygwin git), then launch this script from a
+Cygwin prompt.
 
 ## Usage
 
 See `./everest help`
+
+## Contributing
+
+We welcome pull requests to this script, using the usual fork project + pull
+request GitHub model. For members of Everest, Sreekanth Kannepali has the keys
+to the everest project on GitHub and can grant write permissions on this
+repository so that you can develop your feature in a branch directly. Jonathan
+watches pull requests and will provide timely feedback unless he's on vacations
+or in another timezone.

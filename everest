@@ -9,7 +9,8 @@ fi
 # Any error is fatal.
 set -e
 set -o pipefail
-#set -x # uncomment for debugging.
+# set -x # uncomment for debugging.
+# set -u
 
 # Known URLs and directories
 OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
@@ -32,10 +33,12 @@ fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 
 # No-interaction when this script is used for CI purposes
-if [[ $EVEREST_CI != "" ]]; then
+INTERACTIVE=true
+make_non_interactive () {
+  INTERACTIVE=false
   export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
   export GIT_TERMINAL_PROMPT=0
-fi
+}
 
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
@@ -149,38 +152,6 @@ write_cygwin_bashrc () {
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
 }
 
-write_fstar_home_bashrc () {
-  if [[ $EVEREST_CI == "" ]]; then
-    if is_windows; then
-      path=$(cygpath -m "$(pwd)")
-    else
-      path=$(pwd)
-    fi
-    str="
-      # These lines automatically added by $0
-      export FSTAR_HOME=$path/FStar"
-    eval "$str"
-    echo "$str" >> ~/.bashrc
-    magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
-  else
-    magenta "Skipping ~/.bashrc customization because EVEREST_CI is set"
-  fi
-}
-
-write_fstar_kremlin_bashrc () {
-  if [[ $EVEREST_CI == "" ]]; then
-    str="
-      # These lines automatically added by $0
-      export PATH=$(pwd)/FStar/bin:\$PATH
-      export PATH=$(pwd)/kremlin:\$PATH"
-    eval "$str"
-    echo "$str" >> ~/.bashrc
-    magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
-  else
-    magenta "Skipping ~/.bashrc customization because EVEREST_CI is set"
-  fi
-}
-
 cygsetup="setup-x86_64.exe"
 cygsetup_args="--no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode"
 # Find Cygwin's setup utility, or download it from the internet.
@@ -209,11 +180,11 @@ find_cygsetup () {
 install_all_opam_packages () {
   packages=$(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')
   opam update
-  opam depext $packages
-  opam install $packages
   if is_windows; then
     opam install depext-cygwinports
   fi
+  opam depext $packages
+  opam install $packages
 }
 
 
@@ -347,7 +318,7 @@ MSG
     # OCaml; if this exits, set -e means this is a hard error
     ocaml -noinit -noprompt -stdin <<OCAML
       if Sys.ocaml_version < "4.02.2" then begin
-        print_endline "ERROR: Everest needs OCaml >= 4.02.2";
+        print_endline "ERROR: Everest needs OCaml >= 4.02.3";
         exit 1
       end
 OCAML
@@ -395,6 +366,24 @@ OCAML
   fi
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
+  # Check for caveats using my OCaml installer
+  if ! (cd test && ocamlbuild test.native -use-ocamlfind >/dev/null 2>&1); then
+    red "Cannot compile the test OCaml program"
+    red "Maybe you've been using the OCaml installer for windows"
+    echo Suggestion: check \
+      https://github.com/protz/ocaml-installer/wiki#package-specific-hints and \
+      follow instructions for ppx deriving and friends
+    exit 1
+  fi
+  echo "... sample ocamlbuild project compiles successfully"
+
+  if is_windows && [ -d "/cygdrive/c/OCaml/lib/camlp4" ]; then
+    red "Warning: seems like you're using the OCaml installer for windows"
+    echo There is a bug in the installer -- please see \
+      https://github.com/protz/ocaml-installer/wiki#configure-your-initial-opam-setup \
+      and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your ~/.bashrc
+  fi
+
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
     windows_check_or_modify_bashrc "fsc.exe" "$FS_DIR"
@@ -424,20 +413,25 @@ OCAML
   fi
   echo "... correct z3 version detected"
 
-  if ! command -v fstar.exe >/dev/null 2>&1 || ! command -v krml >/dev/null 2>&1; then
-    magenta "I don't see any fstar.exe or krml in your path; add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH via ~/.bashrc? [Yn]"
-    prompt_yes write_fstar_kremlin_bashrc true
+  # We bundle SCons in Spartan, so Windows just needs a Python, while other
+  # platforms want a system installation of Scons
+  if is_windows; then
+    if ! [ -d "/cygdrive/c/Python27" ]; then
+      red "ERROR: C:\\Python27 not found -- please install a *WINDOWS* Python 2.7"
+      exit 1
+    fi
+    echo "... Python 2.7 found"
+  elif ! command -v scons >/dev/null 2>&1; then
+    red "ERROR: scons not installed -- please install"
+    exit 1
+  else
+    echo "... scons found in PATH"
   fi
-  echo "... fstar.exe and krml in PATH"
-
-  if [[ $FSTAR_HOME == "" ]]; then
-    magenta "FSTAR_HOME is not set... set it? [Yn]"
-    prompt_yes write_fstar_home_bashrc true
-  fi
-  echo "... FSTAR_HOME ok"
 
   echo
   magenta "Remember to run source ~/.bashrc if it was modified!"
+  magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH"
+  magenta "Note: you *may* want to export FSTAR_HOME=$(pwd)/FStar"
 }
 
 try_git_clone () {
@@ -515,51 +509,105 @@ do_reset ()
   done
 }
 
+run_scons () {
+  # This function is called in a subshell in a test context (via possibly_log)
+  # which means that -e is not inherited. Explicit failures here.
+  # OS-independnt scons. Pass $1 to scons.
+  cmd=$1
+  if is_windows; then
+    VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
+    DIR=$(cygpath -d "$(pwd)"/Spartan)
+    CMD=$(cygpath -u "$COMSPEC")
+    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd" || return 1
+  else
+    scons -C Spartan $cmd || return 1
+  fi
+}
+
 build_spartan () {
-  VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
-  DIR=$(cygpath -d "$(pwd)"/Spartan)
-  CMD=$(cygpath -u "$COMSPEC")
-  $CMD /C "cd $DIR && $VARS amd64 && nmake && nmake exes"
-  make -C FStar/examples/low-level/spartan_aes import
+  run_scons # no arg if we're building.
+ 
+  # Import fresh crypto from Spartan into F*
+  cd FStar
+  make -C examples/low-level/spartan_aes import || return 1
+  if ! git diff --exit-code; then
+    magenta "New assemblies from Spartan, diff is above"
+  fi
+  cd ..
+}
+
+clean_spartan () {
+  run_scons "--clean"
 }
 
 possibly_log () {
   echo "Running $1"
   cmd=$1
   log_file=$2
-  if [[ $EVEREST_CI != "" ]]; then
-    $cmd
-  else
+  if $INTERACTIVE; then
+    # As far as I understand, the "pipefail" option is inherited, so this
+    # line, even though run inside of a subshell (because of the "if"), will
+    # correctly fail
     $cmd | count "log/$log_file"
+  else
+    $cmd
   fi
+}
+
+setup_env () {
+  if is_windows; then
+    export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
+    export SPARTAN_HOME=$(cygpath -m $(pwd)/Spartan)
+    export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
+  else
+    export FSTAR_HOME=$(pwd)/FStar
+    export SPARTAN_HOME=$(pwd)/Spartan
+    export KREMLIN_HOME=$(pwd)/kremlin
+  fi
+  magenta "exported FSTAR_HOME=$FSTAR_HOME"
+  magenta "exported SPARTAN_HOME=$SPARTAN_HOME"
+  export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
+
+  local openssl_home=$(pwd)/FStar/ucontrib/CoreCrypto/ml/openssl
+  if is_windows; then
+    export PATH=$openssl_home:$PATH
+  elif [[ $(uname) == "Darwin" ]]; then
+    export DYLD_LIBRARY_PATH=$openssl_home:$DYLD_LIBRARY_PATH
+    magenta "exported DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+  else
+    export LD_LIBRARY_PATH=$openssl_home:$LD_LIBRARY_PATH
+    magenta "exported LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+  fi
+  magenta "exported PATH=$PATH"
+}
+
+separator () {
+  echo "================================================================================"
 }
 
 do_make ()
 {
+  setup_env
   failed=""
-
-  if is_windows; then
-    export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
-    export SPARTAN_HOME=$(cygpath -m $(pwd)/Spartan)
-  else
-    export FSTAR_HOME=$(pwd)/FStar
-    export SPARTAN_HOME=$(pwd)/Spartan
-  fi
-  magenta "exported FSTAR_HOME=$FSTAR_HOME"
-  magenta "exported SPARTAN_HOME=$SPARTAN_HOME"
   mkdir -p log
+
+  separator
   blue "Rebuilding F*"
   if ! possibly_log "make -C FStar/src/ocaml-output -j 15" "fstar"; then
     failed="$failed  FStar\n"
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   blue "Rebuilding KreMLin"
   if ! possibly_log "make -C kremlin -j 15" "kremlin"; then
     failed="$failed  KreMLin\n"
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   # TODO Get rid of this when Spartan goes public
   if [ -d Spartan ]; then
     blue "Rebuilding Spartan"
@@ -569,24 +617,32 @@ do_make ()
   else
     magenta "Warning: no Spartan..."
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   blue "Rebuilding F* / CoreCrypto"
   if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml -j 15" "fstar-corecrypto"; then
     failed="$failed  CoreCrypto\n"
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   blue "Building mixed C/ASM Crypto"
-  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe" "krml-test"; then
+  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe" "krml-test"; then
     failed="$failed krml-test\n"
   fi
+  separator
+  echo -e "\n\n"
 
-  echo
+  separator
   blue "Rebuilding miTLS"
-  if ! possibly_log "make -C mitls-fstar/src/tls -j 15 mitls.exe" "mitls-exe"; then
+  if ! possibly_log "make -C mitls-fstar/src/tls mitls.exe" "mitls-exe"; then
     failed="$failed miTLS\n"
   fi
+  separator
+  echo -e "\n\n"
 
   if [[ $failed != "" ]]; then
     red "ERROR: build failed for one or more projects"
@@ -598,20 +654,29 @@ do_make ()
 }
 
 do_test () {
+  setup_env
+
+  separator
+  blue "Running tests (commands shown below)"
+  set -x
   FStar/examples/low-level/krml-test.exe
-  mitls-fstar/src/tls/mitls.exe tls13.crypto.mozilla.org 443
+  FStar/examples/low-level/test-perf.exe
+  # These tests assume the current working directory is src/tls
+  (cd mitls-fstar/src/tls && make test)
+  set +x
+  separator
 }
 
 do_clean ()
 {
-  for d in FStar/{u,}lib/ml FStar/src{,/ocaml-output} \
+  for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     FStar/ucontrib/CoreCrypto/ml/{,openssl} \
     FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
     make -C "$d" clean
   done
-  # TODO remove once Spartan is easily clonable
+  # TODO call to "Vale clean" once Vale is easily clonable
   if [ -d Spartan ]; then
-    (cd Spartan/tools/Spartan && nmake clean)
+    clean_spartan
   fi
 }
 
@@ -659,7 +724,7 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 COMMANDS
+USAGE: $0 [--yes] COMMANDS
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -679,7 +744,7 @@ COMMAND:
 
   test      launch the test artifacts
 
-  clean     clean all projets
+  clean     clean all projects
 
   help      print the current message
 HELP
@@ -692,6 +757,10 @@ fi
 
 while true; do
   case "$1" in
+    --yes)
+      make_non_interactive
+      ;;
+
     check)
       do_check
       ;;

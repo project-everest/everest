@@ -1,0 +1,4 @@
+# Reinstate @39 once https://github.com/whitequark/ppx_deriving_yojson/issues/21
+# is fixed
+# Reinstate @3 once we move to 4.03.0
+true: package(ppx_deriving.std), package(ppx_deriving_yojson)

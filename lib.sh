@@ -67,16 +67,20 @@ success_or ()
 # otherwise
 prompt_yes ()
 {
-  read ans
-  case "$ans" in
-    [Yy]|""|"yes")
-      $1
-      ;;
+  if $INTERACTIVE; then
+    read ans
+    case "$ans" in
+      [Yy]|""|"yes")
+        $1
+        ;;
 
-    *)
-      $2
-      ;;
-  esac
+      *)
+        $2
+        ;;
+    esac
+  else
+    $1
+  fi
 }
 
 if_yes ()
