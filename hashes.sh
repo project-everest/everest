@@ -8,5 +8,5 @@ hashes[FStar]=a9096edcf6015413b5e1c89b1460f6a08d1cac9a
 branches[FStar]=taramana_include_seq
 hashes[hacl-star]=e40b44dae65349b937bc3f0932ffd91c35519717
 branches[hacl-star]=taramana_include_seq
-hashes[kremlin]=f9cbd1241ef8eb72270e8bd58b7a1eb63b94b922
+hashes[kremlin]=5be326704017f27077501e5f0ec56ba41730b234
 branches[kremlin]=taramana_include_seq
