@@ -20,7 +20,6 @@ FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
 Z3_VERSION=4.5.0
 Z3_NAME=z3-$Z3_VERSION-x64-win
 Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
-NUGET_NAME=nuget
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 VS_BIN=
 if [[ -v VS140COMNTOOLS ]]; then
