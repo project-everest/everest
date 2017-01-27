@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=a16b666fdad2f37f13eefd638ac81ddad4944575
+hashes[mitls-fstar]=1ee488b2877ec6f3d9ece778d184a72452094c1f
 branches[mitls-fstar]=taramana_include_seq
 hashes[Spartan]=b9260318ad4f1efc7cf641b3c72cb8aec762796b
 branches[Spartan]=taramana_include_seq
