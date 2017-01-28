@@ -534,7 +534,6 @@ do_reset ()
 run_nuget () {
   # This function is called in a subshell in a test context (via possibly_log)
   # which means that -e is not inherited. Explicit failures here.
-  # OS-independnt scons. Pass $1 to scons.
   cmd=$1
   cd vale && nuget restore ./tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc $cmd || return 1
 
@@ -543,7 +542,7 @@ run_nuget () {
 run_scons () {
   # This function is called in a subshell in a test context (via possibly_log)
   # which means that -e is not inherited. Explicit failures here.
-  # OS-independnt scons. Pass $1 to scons.
+  # OS-independent scons. Pass $1 to scons.
   cmd=$1
   if is_windows; then
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
