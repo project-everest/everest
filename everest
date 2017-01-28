@@ -20,6 +20,7 @@ FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
 Z3_VERSION=4.5.0
 Z3_NAME=z3-$Z3_VERSION-x64-win
 Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
+NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 VS_BIN=
 if [[ -v VS140COMNTOOLS ]]; then
   VS_BIN="$VS140COMNTOOLS"/../../VC/bin
@@ -113,6 +114,15 @@ write_z3_bashrc () {
   str="
     # This line automatically added by $0
     export PATH=$(pwd)/$Z3_NAME/bin:\$PATH"
+  eval "$str"
+  echo "$str" >> ~/.bashrc
+  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+}
+
+write_nuget_bashrc () {
+  str="
+    # This line automatically added by $0
+    export PATH=$(pwd)/nuget/bin:\$PATH"
   eval "$str"
   echo "$str" >> ~/.bashrc
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
@@ -413,7 +423,24 @@ OCAML
   fi
   echo "... correct z3 version detected"
 
-  # We bundle SCons in Spartan, so Windows just needs a Python, while other
+  # We need Nuget for Vale
+  if ! which nuget >/dev/null 2>&1 ; then
+    red "ERROR: nuget doesn't seem to be installed"
+    if is_windows; then
+      magenta "Download it from the internet? [Yn]"
+      prompt_yes true "exit 1"
+      mkdir -p nuget/bin && cd nuget/bin && wget $NUGET_URL && chmod a+x nuget.exe && cd ../..
+      magenta "Automatically customize ~/.bashrc with the nuget path? [Yn]"
+      prompt_yes write_nuget_bashrc true
+    else
+      echo "Hint: brew install nuget (OSX)"
+      echo "Hint: most recent versions available at https://dist.nuget.org"
+      exit 1
+    fi
+  fi
+  echo "... nuget found in PATH"
+
+  # We bundle SCons in Vale, so Windows just needs a Python, while other
   # platforms want a system installation of Scons
   if is_windows; then
     if ! [ -d "/cygdrive/c/Python27" ]; then
@@ -479,12 +506,7 @@ do_reset ()
           cloned the repository elsewhere
         warned=true
       fi
-      # This is for Spartan. We have yet to get anyone to clone that beyond
-      # Building 99. TODO remove once Spartan can be cloned by mere mortals
-      if ! if_yes "try_git_clone ${repositories[$r]} $r"; then
-        magenta "Warning: could not clone $r"
-        continue
-      fi
+      try_git_clone ${repositories[$r]} $r
     fi
 
     # Note: the snapshot command guarantees that the commit was pushed to a
@@ -509,34 +531,43 @@ do_reset ()
   done
 }
 
+run_nuget () {
+  # This function is called in a subshell in a test context (via possibly_log)
+  # which means that -e is not inherited. Explicit failures here.
+  cmd=$1
+  nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc $cmd || return 1
+
+}
+
 run_scons () {
   # This function is called in a subshell in a test context (via possibly_log)
   # which means that -e is not inherited. Explicit failures here.
-  # OS-independnt scons. Pass $1 to scons.
+  # OS-independent scons. Pass $1 to scons.
   cmd=$1
   if is_windows; then
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
-    DIR=$(cygpath -d "$(pwd)"/Spartan)
+    DIR=$(cygpath -d "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
     $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd" || return 1
   else
-    scons -C Spartan $cmd || return 1
+    scons -C vale $cmd || return 1
   fi
 }
 
-build_spartan () {
+build_vale () {
+  run_nuget
   run_scons # no arg if we're building.
- 
-  # Import fresh crypto from Spartan into F*
+
+  # Import fresh crypto from Vale into F*
   cd FStar
   make -C examples/low-level/spartan_aes import || return 1
   if ! git diff --exit-code; then
-    magenta "New assemblies from Spartan, diff is above"
+    magenta "New assemblies from Vale, diff is above"
   fi
   cd ..
 }
 
-clean_spartan () {
+clean_vale () {
   run_scons "--clean"
 }
 
@@ -557,15 +588,15 @@ possibly_log () {
 setup_env () {
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
-    export SPARTAN_HOME=$(cygpath -m $(pwd)/Spartan)
+    export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
   else
     export FSTAR_HOME=$(pwd)/FStar
-    export SPARTAN_HOME=$(pwd)/Spartan
+    export VALE_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
   fi
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
-  magenta "exported SPARTAN_HOME=$SPARTAN_HOME"
+  magenta "exported VALE_HOME=$VALE_HOME"
   export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
 
   local openssl_home=$(pwd)/FStar/ucontrib/CoreCrypto/ml/openssl
@@ -608,14 +639,9 @@ do_make ()
   echo -e "\n\n"
 
   separator
-  # TODO Get rid of this when Spartan goes public
-  if [ -d Spartan ]; then
-    blue "Rebuilding Spartan"
-    if ! possibly_log "build_spartan" "spartan"; then
-      failed="$failed  Spartan\n"
-    fi
-  else
-    magenta "Warning: no Spartan..."
+  blue "Rebuilding Vale"
+  if ! possibly_log "build_vale" "vale"; then
+    failed="$failed  Vale\n"
   fi
   separator
   echo -e "\n\n"
@@ -674,10 +700,7 @@ do_clean ()
     FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
     make -C "$d" clean
   done
-  # TODO call to "Vale clean" once Vale is easily clonable
-  if [ -d Spartan ]; then
-    clean_spartan
-  fi
+  clean_vale
 }
 
 do_snapshot ()
