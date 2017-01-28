@@ -535,7 +535,7 @@ run_nuget () {
   # This function is called in a subshell in a test context (via possibly_log)
   # which means that -e is not inherited. Explicit failures here.
   cmd=$1
-  cd vale && nuget restore ./tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc $cmd || return 1
+  nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc $cmd || return 1
 
 }
 
