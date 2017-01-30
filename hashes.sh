@@ -2,9 +2,9 @@ declare -A hashes
 declare -A branches
 hashes[vale]=e783004993829397955241d49b41ec0ee97c3560
 branches[vale]=taramana_include_seq
-hashes[mitls-fstar]=1ee488b2877ec6f3d9ece778d184a72452094c1f
+hashes[mitls-fstar]=e4037c19a3ebdfa67d201e3f984e9244816605c3
 branches[mitls-fstar]=taramana_include_seq
-hashes[FStar]=db8ae71266fd6edbcb85481c4d212d3ce01fed46
+hashes[FStar]=fea7cdefde1719e3345e0fd608a1a77634a05b69
 branches[FStar]=taramana_include_seq
 hashes[hacl-star]=bfe2a1bca43094a0673b5e4972b49f553b9cf78d
 branches[hacl-star]=taramana_include_seq
