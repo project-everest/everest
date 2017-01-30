@@ -559,7 +559,7 @@ build_vale () {
   run_nuget || return 1
   run_scons || return 1 # no arg if we're building.
 
-  # Import fresh crypto from Spartan into F*
+  # Import fresh crypto from Vale into F*
   cd FStar
   make -C examples/low-level/spartan_aes import || return 1
   if ! git diff --exit-code; then
