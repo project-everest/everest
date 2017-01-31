@@ -2,11 +2,11 @@ declare -A hashes
 declare -A branches
 hashes[vale]=e783004993829397955241d49b41ec0ee97c3560
 branches[vale]=taramana_include_seq
-hashes[mitls-fstar]=e4037c19a3ebdfa67d201e3f984e9244816605c3
-branches[mitls-fstar]=taramana_include_seq
-hashes[FStar]=fea7cdefde1719e3345e0fd608a1a77634a05b69
-branches[FStar]=taramana_include_seq
-hashes[hacl-star]=bfe2a1bca43094a0673b5e4972b49f553b9cf78d
-branches[hacl-star]=taramana_include_seq
+hashes[mitls-fstar]=2319fca63dc54c8dd763e69454226804bc750925
+branches[mitls-fstar]=taramana_include_seq_lists
+hashes[FStar]=a1354f26b804d7c7dd27b1003f70f4418035ad6f
+branches[FStar]=taramana_include_seq_lists
+hashes[hacl-star]=b11e54af453ab3ba01a21fe7f39b21a571732c84
+branches[hacl-star]=taramana_include_seq_lists
 hashes[kremlin]=5be326704017f27077501e5f0ec56ba41730b234
 branches[kremlin]=taramana_include_seq
