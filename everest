@@ -440,8 +440,7 @@ OCAML
   fi
   echo "... nuget found in PATH"
 
-  # We bundle SCons in Vale, so Windows just needs a Python, while other
-  # platforms want a system installation of Scons
+  # We need Scons for Vale
   if is_windows; then
     if ! [ -d "/cygdrive/c/Python27" ]; then
       red "ERROR: C:\\Python27 not found -- please install a *WINDOWS* Python 2.7"
@@ -535,28 +534,30 @@ run_nuget () {
   # This function is called in a subshell in a test context (via possibly_log)
   # which means that -e is not inherited. Explicit failures here.
   cmd=$1
-  nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc $cmd || return 1
+  nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc $cmd
 
 }
 
+# OS-independent scons. Passes $1 to scons.
+# The return status is that of the last command.
 run_scons () {
-  # This function is called in a subshell in a test context (via possibly_log)
-  # which means that -e is not inherited. Explicit failures here.
-  # OS-independent scons. Pass $1 to scons.
-  cmd=$1
+  cmd="$1"
+
   if is_windows; then
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
     DIR=$(cygpath -d "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd" || return 1
+    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd"
   else
-    scons -C vale $cmd || return 1
+    scons -C vale $cmd
   fi
 }
 
 build_vale () {
-  run_nuget
-  run_scons # no arg if we're building.
+  # This function is called in a subshell in a test context (via possibly_log)
+  # which means that -e is not inherited. Explicit failures here via || return.
+  run_nuget || return 1
+  run_scons || return 1 # no arg if we're building.
 
   # Import fresh crypto from Vale into F*
   cd FStar
