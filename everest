@@ -640,6 +640,14 @@ do_make ()
   echo -e "\n\n"
 
   separator
+  blue "Rebuilding HACL*"
+  if ! possibly_log "make -C hacl-star/code extract-c -j 15" "hacl"; then
+    failed="$failed  HACL*\n"
+  fi
+  separator
+  echo -e "\n\n"
+
+  separator
   blue "Rebuilding Vale"
   if ! possibly_log "build_vale" "vale"; then
     failed="$failed  Vale\n"
