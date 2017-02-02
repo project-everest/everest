@@ -702,6 +702,16 @@ do_test () {
   separator
 }
 
+do_verify () {
+  setup_env
+
+  separator
+  blue "Running verification"
+  # TODO: HACL* too
+  make -C mitls-fstar/src/tls all-ver -j 24
+  separator
+}
+
 do_clean ()
 {
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
@@ -776,6 +786,8 @@ COMMAND:
 
   test      launch the test artifacts
 
+  verify    run verification for all projects
+
   clean     clean all projects
 
   help      print the current message
@@ -811,6 +823,10 @@ while true; do
 
     clean)
       do_clean
+      ;;
+
+    verify)
+      do_verify
       ;;
 
     test)
