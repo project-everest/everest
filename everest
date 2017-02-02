@@ -387,7 +387,7 @@ OCAML
   fi
   echo "... sample ocamlbuild project compiles successfully"
 
-  if is_windows && [ -d "/cygdrive/c/OCaml/lib/camlp4" ]; then
+  if is_windows && [ -d "/cygdrive/c/OCaml/lib/camlp4" ] && [[ $CAMLP4LIB == "" ]]; then
     red "Warning: seems like you're using the OCaml installer for windows"
     echo There is a bug in the installer -- please see \
       https://github.com/protz/ocaml-installer/wiki#configure-your-initial-opam-setup \
