@@ -1,10 +1,10 @@
 declare -A hashes
 declare -A branches
-hashes[vale]=e783004993829397955241d49b41ec0ee97c3560
+hashes[vale]=f45627f3157a9a7d1932a2663c640f63f2f317d0
 branches[vale]=master
-hashes[mitls-fstar]=bd58f0f38ca3423d8d3c694d5e9a2b88a8e15a0b
+hashes[mitls-fstar]=843d0d1ae2c970bfad19861cefaa8974c4b5a1d3
 branches[mitls-fstar]=master
-hashes[FStar]=89a9007dacd675c16c012bbc5f6dda31a5698a26
+hashes[FStar]=15810381908235c6d9e65248fcb16c8fc2d07ffa
 branches[FStar]=master
 hashes[hacl-star]=73b5cb4aff6ed23b9345b996284a36c9998b5ede
 branches[hacl-star]=master
