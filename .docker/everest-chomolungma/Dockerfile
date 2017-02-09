@@ -93,5 +93,11 @@ RUN git clone https://github.com/project-everest/everest.git everest
 WORKDIR ${MYHOME}/everest
 RUN ./everest --yes check pull
 
-# Provide the default command when a container is created from this image
-CMD /bin/bash --login
+# Provide the default command prefix when a container is created from this image, by `docker run`
+ENTRYPOINT ["/bin/bash", "--login", "-c"]
+
+# Provide the default command when a container is created from this image, by `docker attach`
+CMD ["/bin/bash", "--login"]
+
+# Kitematic GUI does not seem to honor ENTRYPOINT/CMD above, and instead relies on the SHELL environment variable:
+ENV SHELL "/bin/bash --login"
