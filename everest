@@ -65,6 +65,9 @@ cd_to_everest () {
   echo " ... now in $(pwd)"
   echo
 }
+# Save the initial working directory, to switch to when $0 pull calls
+# the new version of $0
+initial_pwd="$(pwd)"
 cd_to_everest
 
 # "Modularity": include other files (requires us to be in the right directory)
@@ -471,11 +474,22 @@ try_git_clone () {
   fi
 }
 
+# The array of all options passed to $0 (--yes, etc.)
+declare -a options
+
+# The array of remaining arguments starting from 'pull'.  Necessary
+# because self_update will actually transfer execution to the
+# potentially new version of the everest script
+declare -a remaining_args
+
 self_update () {
   old_revision=$(git rev-parse HEAD)
   git pull
   if [[ $(git rev-parse HEAD) != $old_revision ]]; then
     blue "Self-updating to new everest revision $(git rev-parse HEAD | cut -c 1-8)"
+    # Now, we transfer execution to the new version of $0
+    cd "$initial_pwd"
+    exec "$0" "${options[@]}" "${remaining_args[@]}"
   else
     echo "No new everest revision available"
   fi
@@ -483,6 +497,7 @@ self_update () {
 
 do_pull () {
   self_update
+  echo Reset working copies
   do_reset
 }
 
@@ -801,6 +816,9 @@ fi
 while true; do
   case "$1" in
     --yes)
+      # Save the option so that it can be used by $0 pull once calling
+      # the new version of $0
+      options=("${options[@]}" "$1")
       make_non_interactive
       ;;
 
@@ -809,6 +827,9 @@ while true; do
       ;;
 
     pull)
+      # Save the remaining options (including pull) for calling the
+      # new version of $0
+      remaining_args=("$@")
       do_pull
       ;;
 
