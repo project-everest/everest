@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[vale]=e858066598bb3101a5980f1a0b191912fa26758c
+hashes[vale]=d34c33ab0d54ad84d9ce2ae2f143cfd6ed950084
 branches[vale]=taramana_gcc_linux
 hashes[mitls-fstar]=7fcf71bf0dd6dfd76a5b69567d5941846548de45
 branches[mitls-fstar]=master
