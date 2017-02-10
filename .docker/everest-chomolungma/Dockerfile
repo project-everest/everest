@@ -100,7 +100,7 @@ RUN fetch v8
 WORKDIR ${MYHOME}/v8
 RUN gclient sync
 RUN tools/dev/v8gen.py x64.release
-RUN ninja -C out.gn/x64.release
+RUN ninja -C out.gn/x64.release d8
 RUN echo "export PATH=$(pwd)/out.gn/x64.release:\$PATH" >> ~/.bashrc
 
 # Prepare everest repository
