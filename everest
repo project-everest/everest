@@ -67,7 +67,7 @@ cd_to_everest () {
 }
 # Save the initial working directory, to switch to when $0 pull calls
 # the new version of $0
-initial_pwd=$(pwd)
+initial_pwd="$(pwd)"
 cd_to_everest
 
 # "Modularity": include other files (requires us to be in the right directory)
