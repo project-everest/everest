@@ -476,8 +476,6 @@ self_update () {
   git pull
   if [[ $(git rev-parse HEAD) != $old_revision ]]; then
     blue "Self-updating to new everest revision $(git rev-parse HEAD | cut -c 1-8)"
-    $0 "$@"
-    exit 0
   else
     echo "No new everest revision available"
   fi
