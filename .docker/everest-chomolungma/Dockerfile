@@ -53,10 +53,10 @@ RUN until apt-get install --no-install-recommends --yes \
   ca-certificates \
  ; do apt-get --yes update ; done
 
-# Create user everest. 
+# Create user everest.
 # We define a home directory by ourselves, because there is no way to have the HOME variable caught by WORKDIR.
 # So, to make it consistent, we explicitly make this directory home when creating the user.
-ENV MYHOME /home/everest 
+ENV MYHOME /home/everest
 RUN useradd --shell /bin/bash --create-home --home-dir ${MYHOME} everest
 RUN echo "everest ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 
@@ -83,25 +83,6 @@ ENV OPAMYES 1
 # Install OCaml
 ENV ocamlv 4.04.0
 RUN opam init --auto-setup --compiler=${ocamlv}
-
-# The wasm backend of KreMLin is better tested from the command-line using d8,
-# the debug shell of v8. https://github.com/v8/v8/wiki/Building%20from%20Source
-# has all the instructions. This fetches Google's set of tools.
-RUN git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-# Note: depot_tools has a bug in their latest version... revert to the last
-# known good version.
-RUN cd depot_tools && git reset --hard 6db8ac71
-ENV DEPOT_TOOLS_UPDATE 0
-RUN echo "export PATH=$(pwd)/depot_tools:\$PATH" >> ${MYHOME}/.profile
-RUN gclient
-RUN fetch v8
-
-# Then, these are the instructions for building an x64 release of v8
-WORKDIR ${MYHOME}/v8
-RUN gclient sync
-RUN tools/dev/v8gen.py x64.release
-RUN ninja -C out.gn/x64.release d8
-RUN echo "export PATH=$(pwd)/out.gn/x64.release:\$PATH" >> ~/.bashrc
 
 # Prepare everest repository
 WORKDIR ${MYHOME}
