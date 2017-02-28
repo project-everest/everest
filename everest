@@ -577,7 +577,7 @@ build_vale () {
   # This function is called in a subshell in a test context (via possibly_log)
   # which means that -e is not inherited. Explicit failures here via || return.
   run_nuget || return 1
-  run_scons "-j 4" || return 1
+  run_scons "-j 4 --NOVERIFY" || return 1
 
   # Import fresh crypto from Vale into F*
   cd FStar
@@ -726,7 +726,12 @@ do_verify () {
   setup_env
 
   separator
-  blue "Running verification"
+  blue "Running verification for: Vale"
+  run_scons "-j 4"
+  separator
+
+  separator
+  blue "Running verification for: miTLS"
   # TODO: HACL* too
   make -C mitls-fstar/src/tls all-ver -j 24
   separator
