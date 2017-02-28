@@ -748,6 +748,8 @@ do_clean ()
     make -C "$d" clean
   done
   clean_vale
+  # Also clean the test directory
+  (cd test && ocamlbuild -clean)
 }
 
 do_snapshot ()
