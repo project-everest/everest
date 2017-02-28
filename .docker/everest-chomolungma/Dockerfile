@@ -15,6 +15,11 @@ RUN echo "Acquire::Retries \"16\";" > /etc/apt/apt.conf.d/99acquire-retries
 # Commit changes
 RUN apt-get --yes update
 
+# Configure new PPA for gcc-6
+RUN apt-get install --no-install-recommends --yes software-properties-common
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+RUN apt-get --yes update
+
 # Install required packages
 # Do not install recommended packages, so as not to install OCaml here, thus guaranteeing that the only OCaml will be the one compiled by opam init later
 # Loop until success (hash sum mismatches will often entail failure)
@@ -23,11 +28,13 @@ RUN apt-get --yes update
 # git: needed by opam (if not specified, then opam will install without any way to retrieve packages)
 # python, python3: Vale needs 2.7, others need 3.5
 # pandoc: needed by F* documentation
+# cmake, libtool, automake: needed by hacl-star
+# gcc-6 instead of gcc-5: needed by hacl-star
 RUN until apt-get install --no-install-recommends --yes \
   libssl-dev \
   libsqlite3-dev \
-  g++-5 \
-  gcc-5 \
+  g++-6 \
+  gcc-6 \
   build-essential \
   m4 \
   make \
@@ -51,6 +58,9 @@ RUN until apt-get install --no-install-recommends --yes \
   nuget \
   pandoc \
   ca-certificates \
+  cmake \
+  libtool \
+  autoconf \
  ; do apt-get --yes update ; done
 
 # Create user everest.
