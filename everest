@@ -661,7 +661,7 @@ do_make ()
 
   separator
   blue "Rebuilding HACL*"
-  if ! possibly_log "make -C hacl-star/code extract-c -j 15" "hacl"; then
+  if ! possibly_log "make -C hacl-star extract-c -j 15" "hacl"; then
     failed="$failed  HACL*\n"
   fi
   separator
@@ -716,6 +716,7 @@ do_test () {
   set -x
   FStar/examples/low-level/krml-test.exe
   FStar/examples/low-level/test-perf.exe
+  make -C hacl-star/test/snapshot test
   # These tests assume the current working directory is src/tls
   (cd mitls-fstar/src/tls && make test)
   set +x
@@ -726,9 +727,13 @@ do_verify () {
   setup_env
 
   separator
-  blue "Running verification"
-  # TODO: HACL* too
+  blue "Running verification for: miTLS"
   make -C mitls-fstar/src/tls all-ver -j 24
+  separator
+
+  separator
+  blue "Running verification for: HACL*"
+  make -C hacl-star verify -j 24
   separator
 }
 
