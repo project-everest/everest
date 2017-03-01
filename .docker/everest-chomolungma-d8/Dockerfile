@@ -22,5 +22,8 @@ RUN gclient sync
 RUN tools/dev/v8gen.py x64.release
 RUN ninja -C out.gn/x64.release d8
 RUN echo "export PATH=$(pwd)/out.gn/x64.release:\$PATH" >> ${MYHOME}/.profile
+# Remove un-needed object files to keep the image size under control.
+RUN git ls-files --others | grep -v x64.release | xargs rm -rf
+RUN rm -rf out.gn/x64.release/obj
 
 WORKDIR ${MYHOME}/everest
