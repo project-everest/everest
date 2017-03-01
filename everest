@@ -41,6 +41,12 @@ make_non_interactive () {
   export GIT_TERMINAL_PROMPT=0
 }
 
+# Verbosity may still be enabled while logging
+VERBOSE=false
+make_verbose () {
+  VERBOSE=true
+}
+
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
 # thing. Basically, this supports:
@@ -792,7 +798,7 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 [--yes] COMMANDS
+USAGE: $0 [--yes] [--verbose] COMMANDS
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -832,6 +838,10 @@ while true; do
       # the new version of $0
       options=("${options[@]}" "$1")
       make_non_interactive
+      ;;
+
+    --verbose)
+      make_verbose
       ;;
 
     check)
