@@ -693,7 +693,7 @@ do_make ()
 
   separator
   blue "Rebuilding miTLS"
-  if ! possibly_log "make -C mitls-fstar/src/tls mitls.exe" "mitls-exe"; then
+  if ! possibly_log "make -C mitls-fstar/src/tls build" "mitls-exe"; then
     failed="$failed miTLS\n"
   fi
   separator
@@ -733,7 +733,7 @@ do_verify () {
   separator
   blue "Running verification for: miTLS"
   # TODO: HACL* too
-  make -C mitls-fstar/src/tls all-ver -j 24
+  make -C mitls-fstar/src/tls verify -j 24
   separator
 }
 
