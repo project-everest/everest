@@ -41,6 +41,13 @@ make_non_interactive () {
   export GIT_TERMINAL_PROMPT=0
 }
 
+# The parallel option, either empty (by default), or -j n,
+# as specified on the command line.
+# WARNING: in the latter case, it MUST be interpreted as two words, so
+# NEVER quote it as "$parallel_opt"
+# Use $parallel_opt instead
+unset parallel_opt
+
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
 # thing. Basically, this supports:
@@ -577,7 +584,7 @@ build_vale () {
   # This function is called in a subshell in a test context (via possibly_log)
   # which means that -e is not inherited. Explicit failures here via || return.
   run_nuget || return 1
-  run_scons "-j 4 --NOVERIFY" || return 1
+  run_scons "$parallel_opt --NOVERIFY" || return 1
 
   # Import fresh crypto from Vale into F*
   cd FStar
@@ -645,7 +652,7 @@ do_make ()
 
   separator
   blue "Rebuilding F*"
-  if ! possibly_log "make -C FStar/src/ocaml-output -j 15" "fstar"; then
+  if ! possibly_log "make -C FStar/src/ocaml-output $parallel_opt" "fstar"; then
     failed="$failed  FStar\n"
   fi
   separator
@@ -653,7 +660,7 @@ do_make ()
 
   separator
   blue "Rebuilding KreMLin"
-  if ! possibly_log "make -C kremlin -j 15" "kremlin"; then
+  if ! possibly_log "make -C kremlin $parallel_opt" "kremlin"; then
     failed="$failed  KreMLin\n"
   fi
   separator
@@ -661,7 +668,7 @@ do_make ()
 
   separator
   blue "Rebuilding HACL*"
-  if ! possibly_log "make -C hacl-star/code extract-c -j 15" "hacl"; then
+  if ! possibly_log "make -C hacl-star/code extract-c $parallel_opt" "hacl"; then
     failed="$failed  HACL*\n"
   fi
   separator
@@ -677,7 +684,7 @@ do_make ()
 
   separator
   blue "Rebuilding F* / CoreCrypto"
-  if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml -j 15" "fstar-corecrypto"; then
+  if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt" "fstar-corecrypto"; then
     failed="$failed  CoreCrypto\n"
   fi
   separator
@@ -685,6 +692,8 @@ do_make ()
 
   separator
   blue "Building mixed C/ASM Crypto"
+  # NOTE: here, parallelism MUST BE disabled, because
+  # building test-perf.exe needs objects produced by running krml-test.exe
   if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe" "krml-test"; then
     failed="$failed krml-test\n"
   fi
@@ -693,7 +702,7 @@ do_make ()
 
   separator
   blue "Rebuilding miTLS"
-  if ! possibly_log "make -C mitls-fstar/src/tls build" "mitls-exe"; then
+  if ! possibly_log "make -C mitls-fstar/src/tls $parallel_opt build" "mitls-exe"; then
     failed="$failed miTLS\n"
   fi
   separator
@@ -717,7 +726,7 @@ do_test () {
   FStar/examples/low-level/krml-test.exe
   FStar/examples/low-level/test-perf.exe
   # These tests assume the current working directory is src/tls
-  (cd mitls-fstar/src/tls && make test)
+  (cd mitls-fstar/src/tls && make $parallel_opt test)
   set +x
   separator
 }
@@ -727,13 +736,14 @@ do_verify () {
 
   separator
   blue "Running verification for: Vale"
-  run_scons "-j 4"
+  # NOTE: all arguments to be passed to scons must appear as one single word here
+  run_scons "$parallel_opt"
   separator
 
   separator
   blue "Running verification for: miTLS"
   # TODO: HACL* too
-  make -C mitls-fstar/src/tls verify -j 24
+  make -C mitls-fstar/src/tls verify $parallel_opt
   separator
 }
 
@@ -792,7 +802,12 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 [--yes] COMMANDS
+USAGE: $0 [OPTIONS] COMMANDS
+
+OPTION:
+  --yes     Non-interactive mode (answer y to all questions, verbose)
+
+  -j n      Set max number of parallel jobs to n (default 1)
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -832,6 +847,14 @@ while true; do
       # the new version of $0
       options=("${options[@]}" "$1")
       make_non_interactive
+      ;;
+
+    -j)
+      # The -j option is in two parts: -j n, where n is the parallel factor
+      # (max number of parallel jobs)
+      shift
+      options=("${options[@]}" "-j" "$1")
+      parallel_opt="-j $1"
       ;;
 
     check)
