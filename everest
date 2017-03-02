@@ -684,6 +684,8 @@ do_make ()
 
   separator
   blue "Rebuilding F* / CoreCrypto"
+  echo -n "Using git: "
+  which git
   if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt" "fstar-corecrypto"; then
     failed="$failed  CoreCrypto\n"
   fi
@@ -692,6 +694,8 @@ do_make ()
 
   separator
   blue "Building mixed C/ASM Crypto"
+  echo -n "Using git: "
+  which git
   # NOTE: here, parallelism MUST BE disabled, because
   # building test-perf.exe needs objects produced by running krml-test.exe
   if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe" "krml-test"; then
