@@ -34,8 +34,7 @@ See `./everest help`
 ## Contributing
 
 We welcome pull requests to this script, using the usual fork project + pull
-request GitHub model. For members of Everest, Sreekanth Kannepali has the keys
+request GitHub model. For members of Everest, Jonathan Protzenko has the keys
 to the everest project on GitHub and can grant write permissions on this
-repository so that you can develop your feature in a branch directly. Jonathan
-watches pull requests and will provide timely feedback unless he's on vacations
+repository so that you can develop your feature in a branch directly. To be a member of the Everest team with access to the build system, please contact Jonathan for more info. Jonathan watches pull requests and will provide timely feedback unless he's on vacations
 or in another timezone.
