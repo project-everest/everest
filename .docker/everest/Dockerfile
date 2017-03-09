@@ -1,8 +1,8 @@
 FROM projecteverest/everest-chomolungma
 
-# parallel_opt is either empty, or -j n, where n is
+# PARALLEL_OPT is either empty, or -j n, where n is
 # the max number of parallel jobs when building the image
 # (by default 1)
-ARG parallel_opt
+ARG PARALLEL_OPT
 
-RUN ./everest --yes check pull $parallel_opt make test verify
+RUN ./everest --yes check pull $PARALLEL_OPT make test verify
