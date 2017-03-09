@@ -660,7 +660,7 @@ do_merge ()
 
 do_forall ()
 {
-  blue Executing on toplevel
+  blue "Executing on toplevel"
   "${remaining_args[@]}"
   for r in ${!repositories[@]}; do
     echo
@@ -1010,6 +1010,7 @@ while true; do
       shift
       remaining_args=("$@")
       do_forall
+      break
       ;;
 
     reset)
