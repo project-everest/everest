@@ -658,15 +658,15 @@ do_merge ()
   done
 }
 
-do_push ()
+do_forall ()
 {
-  blue Pushing toplevel
-  git push
+  blue Executing on toplevel
+  "${remaining_args[@]}"
   for r in ${!repositories[@]}; do
     echo
-    blue "Pushing $r"
+    blue "Executing in $r"
     cd $r
-    git push
+    ${remaining_args[@]}
     cd ..
   done
 }
@@ -943,9 +943,10 @@ COMMAND:
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
-  merge     pull all projects, merging and rebasing local changes
+  merge     pull all projects, merging and rebasing local changes; does NOT
+            reset to known to be good version, but preserves your changes
 
-  push      push changes in all directories to upstream
+  forall    execute command in all git repository directories
 
   reset     pull all projects and move them to the revisions specified by
             hashes.sh
@@ -1005,8 +1006,10 @@ while true; do
       do_merge
       ;;
 
-    push)
-      do_push
+    forall)
+      shift
+      remaining_args=("$@")
+      do_forall
       ;;
 
     reset)
