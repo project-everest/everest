@@ -456,7 +456,7 @@ OCAML
   if is_windows; then
     if ! [ -d "/cygdrive/c/Python27" ]; then
       red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
-      if prompt_yes true false; then
+      if prompt_yes true "exit 1"; then
         wget $PYTHON_INSTALL_POINT
         chmod a+x python-2.7.msi
         msiexec /i python-2.7.msi /quiet
@@ -464,29 +464,29 @@ OCAML
         source ~/.bashrc
       fi
     else
-        echo "... Python 2.7 found"
+      echo "... Python 2.7 found"
     fi
     
     if ! command -v scons.bat >/dev/null 2>&1; then
       red "ERROR: scons.bat not found -- install it? (y/n)"
-      if prompt_yes true false; then
-          wget $SCONS_INSTALL_POINT
-          chmod a+x scons-2.5.0-setup.exe
-          ./scons-2.5.0-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
-          # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
-          windows_check_or_modify_bashrc "scons.bat" "C:\\Python27\\Scripts"
-          source ~/.bashrc
+      if prompt_yes true "exit 1"; then
+        wget $SCONS_INSTALL_POINT
+        chmod a+x scons-2.5.0-setup.exe
+        ./scons-2.5.0-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
+        # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
+        windows_check_or_modify_bashrc "scons.bat" "C:\\Python27\\Scripts"
+        source ~/.bashrc
       fi
     else
       echo "... scons.bat found in PATH"
-    fi  
-  else # *nix 
+    fi
+  else # *nix
     if ! command -v scons >/dev/null 2>&1; then
-        red "ERROR: scons not installed -- please install"
-        exit 1
+      red "ERROR: scons not installed -- please install"
+      exit 1
     else
-        echo "... scons found in PATH"
-    fi    
+      echo "... scons found in PATH"
+    fi
   fi
 
   echo
