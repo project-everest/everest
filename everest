@@ -32,6 +32,8 @@ else
   VS_BIN=
 fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
+PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/2.7/python-2.7.msi
+SCONS_INSTALL_POINT=http://prdownloads.sourceforge.net/scons/scons-2.5.0-setup.exe
 
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
@@ -450,25 +452,41 @@ OCAML
   fi
   echo "... nuget found in PATH"
 
-  # We need Scons for Vale
+  # We need Scons for Vale which needs Python 2.7
   if is_windows; then
     if ! [ -d "/cygdrive/c/Python27" ]; then
-      red "ERROR: C:\\Python27 not found -- please install a *WINDOWS* Python 2.7 and add to PATH"
-      exit 1
-    fi
-    echo "... Python 2.7 found"
-    if ! which scons.bat >/dev/null 2>&1; then
-	red "ERROR: scons.bat not installed -- please install"
-	exit 1
-    fi
-    echo "... scons.bat found in PATH"
-  else # *nix
-    if ! command -v scons >/dev/null 2>&1; then
-	red "ERROR: scons not installed -- please install"
-	exit 1
+      red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
+      if prompt_yes true false; then
+        wget $PYTHON_INSTALL_POINT
+        chmod a+x python-2.7.msi
+        msiexec /i python-2.7.msi /quiet
+        windows_check_or_modify_bashrc "python.exe" "C:\\Python27"
+        source ~/.bashrc
+      fi
     else
-	echo "... scons found in PATH"
+        echo "... Python 2.7 found"
     fi
+    
+    if ! command -v scons.bat >/dev/null 2>&1; then
+      red "ERROR: scons.bat not found -- install it? (y/n)"
+      if prompt_yes true false; then
+          wget $SCONS_INSTALL_POINT
+          chmod a+x scons-2.5.0-setup.exe
+          ./scons-2.5.0-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
+          # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
+          windows_check_or_modify_bashrc "scons.bat" "C:\\Python27\\Scripts"
+          source ~/.bashrc
+      fi
+    else
+      echo "... scons.bat found in PATH"
+    fi  
+  else # *nix 
+    if ! command -v scons >/dev/null 2>&1; then
+        red "ERROR: scons not installed -- please install"
+        exit 1
+    else
+        echo "... scons found in PATH"
+    fi    
   fi
 
   echo
