@@ -468,7 +468,9 @@ OCAML
     fi
     
     if ! command -v scons.bat >/dev/null 2>&1; then
-      red "ERROR: scons.bat not found -- install it? (y/n)"
+      red "ERROR: scons.bat was not found so scons will need to be installed."
+      red "NOTE: scons requires Python 2.7. Choose Python 2.7 in the second page of the scons install wizard."
+      red "Start the install wizard for scons (Y/n)?"
       if prompt_yes true "exit 1"; then
         wget $SCONS_INSTALL_POINT
         chmod a+x scons-2.5.0-setup.exe
