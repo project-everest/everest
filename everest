@@ -764,8 +764,12 @@ do_verify () {
 
   separator
   blue "Running verification for: miTLS"
-  # TODO: HACL* too
   make -C mitls-fstar/src/tls verify $parallel_opt
+  separator
+
+  separator
+  blue "Running everything for: HACL*"
+  make -C hacl-star/test $parallel_opt
   separator
 }
 
