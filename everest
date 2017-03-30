@@ -651,7 +651,7 @@ setup_env () {
   export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
 
   if is_windows; then
-    export PATH=$OPENSSL_HOME:$PATH
+    export PATH=$(cygpath -u $OPENSSL_HOME):$PATH
   elif [[ $(uname) == "Darwin" ]]; then
     export DYLD_LIBRARY_PATH=$OPENSSL_HOME:$DYLD_LIBRARY_PATH
     magenta "exported DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
