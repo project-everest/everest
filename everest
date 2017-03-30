@@ -466,7 +466,7 @@ OCAML
     else
       echo "... Python 2.7 found"
     fi
-    
+
     if ! command -v scons.bat >/dev/null 2>&1; then
       red "ERROR: scons.bat was not found so scons will need to be installed."
       red "NOTE: scons requires Python 2.7. Choose Python 2.7 in the second page of the scons install wizard."
@@ -643,18 +643,20 @@ setup_env () {
     export VALE_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
   fi
+  export OPENSSL_HOME=$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
+  magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
+  magenta "exported KREMLIN_HOME=$KREMLIN_HOME"
   magenta "exported VALE_HOME=$VALE_HOME"
   export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
 
-  local openssl_home=$(pwd)/FStar/ucontrib/CoreCrypto/ml/openssl
   if is_windows; then
-    export PATH=$openssl_home:$PATH
+    export PATH=$OPENSSL_HOME:$PATH
   elif [[ $(uname) == "Darwin" ]]; then
-    export DYLD_LIBRARY_PATH=$openssl_home:$DYLD_LIBRARY_PATH
+    export DYLD_LIBRARY_PATH=$OPENSSL_HOME:$DYLD_LIBRARY_PATH
     magenta "exported DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
   else
-    export LD_LIBRARY_PATH=$openssl_home:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=$OPENSSL_HOME:$LD_LIBRARY_PATH
     magenta "exported LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
   fi
   magenta "exported PATH=$PATH"
