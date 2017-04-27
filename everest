@@ -222,6 +222,7 @@ do_check ()
   success_or "which" "please execute this script in a Unix environment"
   if is_osx; then
     success_or "greadlink" "please run \"brew install coreutils\""
+    success_or "gsed" "please run \"brew install gnu-sed\""
   fi
 
   # Slightly suboptimal, since we may end up running Cygwin's setup twice.
