@@ -583,6 +583,7 @@ run_nuget () {
   # which means that -e is not inherited. Explicit failures here.
   cmd=$1
   nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc $cmd
+
 }
 
 # OS-independent scons. Passes $1 to scons.
@@ -594,7 +595,7 @@ run_scons () {
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
     DIR=$(cygpath -d "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "cd $DIR && $VARS amd64 && where libgmp-10.dll && scons.bat $cmd"
+    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd"
   else
     scons -C vale $cmd
   fi
