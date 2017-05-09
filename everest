@@ -365,7 +365,13 @@ OCAML
   #   <ocamlfind-package-name> <SPACE> <opam-package-name>
   success_or "opam"
   if [ ! -d ~/.opam ]; then
-    if_yes "opam init"
+    if is_windows; then
+      echo "This is a Windows environment; not running opam init."
+      echo "Please follow instructions for the installer you picked."
+      echo "Hint: https://github.com/protz/ocaml-installer/wiki or https://fdopen.github.io/opam-repository-mingw/"
+    else
+      if_yes "opam init"
+    fi
     eval $(opam config env)
   fi
 
