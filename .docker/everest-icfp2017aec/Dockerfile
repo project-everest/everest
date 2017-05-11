@@ -1,13 +1,10 @@
 FROM projecteverest/everest-chomolungma
 
-# Switch to the ICFP 2017 branch
+# Switch to the ICFP 2017 AEC branch
 WORKDIR ${MYHOME}/everest
 RUN git fetch
-RUN git checkout icfp2017
+RUN git checkout icfp2017aec
 RUN ./everest pull
-
-# Remove Vale, to avoid spurious dependencies
-RUN rm -rf vale
 
 # Install all HACL* prerequisites
 # (see INSTALL.md on the HACL* jk_snap branch)
