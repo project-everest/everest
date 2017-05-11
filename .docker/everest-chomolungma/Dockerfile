@@ -1,6 +1,9 @@
 # The image built from this file is to be named everest-chomolungma, as the "Holy Mother" (Tibetan) of all everest images.
 
-FROM ubuntu:xenial
+# FIXME: more recent Ubuntu images make nuget fail to validate certificates
+# Revert to xenial once the Ubuntu image is fixed upstream
+# (see https://github.com/tianon/docker-brew-ubuntu-core/issues/86 )
+FROM ubuntu:xenial-20170214
 
 LABEL maintainer "Irina Spiridonova <irinasp@microsoft.com>; Darren Gehring <darrenge@microsoft.com>; Tahina Ramananandro <taramana@microsoft.com>"
 # created based on original script from fstar branch writen by Benjamin Beurdouche and Daniel Fabian
