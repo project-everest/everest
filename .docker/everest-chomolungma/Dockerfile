@@ -120,6 +120,12 @@ RUN make
 RUN sudo make install
 ENV LD_LIBRARY_PATH "/usr/local/lib"
 
+# Switch to the ICFP 2017 AEC branch
+WORKDIR ${MYHOME}/everest
+RUN git fetch
+RUN git checkout icfp2017aec
+RUN ./everest pull
+
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
 
