@@ -124,7 +124,7 @@ ENV LD_LIBRARY_PATH "/usr/local/lib"
 WORKDIR ${MYHOME}/everest
 RUN git fetch
 RUN git checkout icfp2017aec
-RUN ./everest pull
+RUN ./everest --yes pull check make test verify
 
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
