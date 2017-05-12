@@ -106,6 +106,23 @@ RUN git clone https://github.com/project-everest/everest.git everest
 WORKDIR ${MYHOME}/everest
 RUN ./everest --yes check pull
 
+# Install all HACL* prerequisites
+# (see INSTALL.md on the HACL* jk_snap branch)
+WORKDIR hacl-star/other_providers
+RUN git submodule update --init
+WORKDIR openssl
+RUN ./config no-asm
+RUN make
+WORKDIR ../libsodium
+RUN ./autogen.sh
+RUN ./configure --disable-asm --enable-opt
+RUN make
+RUN sudo make install
+ENV LD_LIBRARY_PATH "/usr/local/lib"
+
+# Set the final directory entrypoint
+WORKDIR ${MYHOME}/everest
+
 # Provide the default command prefix when a container is created from this image, by `docker run`
 ENTRYPOINT ["/bin/bash", "--login", "-c"]
 
