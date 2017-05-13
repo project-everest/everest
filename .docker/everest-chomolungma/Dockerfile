@@ -121,10 +121,15 @@ RUN sudo make install
 ENV LD_LIBRARY_PATH "/usr/local/lib"
 
 # Switch to the ICFP 2017 AEC branch
+# PARALLEL_OPT is either empty, or -j n, where n is
+# the max number of parallel jobs when building the image
+# (by default 1)
+ARG PARALLEL_OPT
 WORKDIR ${MYHOME}/everest
 RUN git fetch
 RUN git checkout icfp2017aec
-RUN ./everest --yes pull check make test verify
+RUN echo ${PARALLEL_OPT}
+RUN ./everest --yes pull check ${PARALLEL_OPT} make test verify
 
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
