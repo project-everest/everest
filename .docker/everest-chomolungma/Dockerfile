@@ -134,6 +134,11 @@ RUN ./everest --yes pull check ${PARALLEL_OPT} make test verify
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
 
+# Set up environment variables
+ENV FSTAR_HOME ${MYHOME}/everest/FStar
+ENV KREMLIN_HOME ${MYHOME}/everest/kremlin
+ENV PATH ${KREMLIN_HOME}:${FSTAR_HOME}/bin:$PATH
+
 # Provide the default command prefix when a container is created from this image, by `docker run`
 ENTRYPOINT ["/bin/bash", "--login", "-c"]
 
