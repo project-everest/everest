@@ -10,6 +10,18 @@ compilation and test run of:
 - miTLS, the in-progress, verified implementation of the TLS protocol
 - HACL\*, the High Assurance Cryptographic Library
 
+To run this Docker image, first install Docker on your machine
+following platform-specific instructions at https://docs.docker.com/engine/installation/
+
+Then, just run:
+```
+docker run -t -i projecteverest/everest-icfp2017aec
+```
+
+to open a Docker container based on this Docker image with a
+command-line prompt. From now one, the commands proposed in this file
+are assumed run from within such a Docker container (except for the
+*Regenerating this artifact* section, of course.)
 
 ## Finding the proofs
 
@@ -93,29 +105,32 @@ include:
 ### With GCC
 
 One can extract HACL\* to a releasable set of C files, then run a
-performance benchmark using GCC, via:
+performance benchmark using GCC, then show the performance results,
+via:
 
 ```
 make -C hacl-star/test snapshot-gcc
-LIBSODIUM_HOME=/usr/local LD_LIBRARY_PATH=/usr/local/lib make -C hacl-star/test perf-gcc
+make -C hacl-star/test perf-gcc
+cat hacl-star/test/benchmark-gcc.txt
 ```
+
+In the above sequence, `gcc` can be replaced with `gcc-unrolled` to have
+KreMLin unroll some loops when extracting the C code.
 
 ### With CompCert
 
 Due to licensing reasons, we do not believe we can safely redistribute CompCert
-in this artefact evaluation image. We believe, however, one can easily install
+in this artefact evaluation image. However, one can easily install
 CompCert via:
 
 ```
-opam repo add coq-released http://coq.inria.fr/opam/released
-opam install -j 8 coq.8.6
-
 wget http://compcert.inria.fr/release/compcert-3.0.1.tgz
 tar xzvf compcert-3.0.1.tgz
 cd CompCert-3.0.1
 ./configure x86_64-linux
 make -j 8
 sudo make install
+cd ..
 ```
 
 One this is done, the following series of commands will run performance
@@ -123,7 +138,8 @@ benchmarks for CompCert:
 
 ```
 make -C hacl-star/test snapshot-ccomp
-LIBSODIUM_HOME=/usr/local LD_LIBRARY_PATH=/usr/local/lib make -C hacl-star/test perf-ccomp
+make -C hacl-star/test perf-ccomp
+cat hacl-star/test/benchmark-ccomp.txt
 ```
 
 ### Via the OpenSSL engine
@@ -146,18 +162,24 @@ These tests can be run via `make -C hacl-star/test/openssl-engine test`.
 
 One can replay the proofs by running the high-level command: `./everest verify
 -j 8` where `8` is a suggested number of cores to use. One may want to allocate
-more cores to their Docker instance.
+more cores and more memory to their Docker instance.
 
 
 # Regenerating this artefact
 
-One can easily reconstruct this artefact from scratch, via:
+One can easily reconstruct this artefact from scratch, by running the
+following sequence of commands from a machine with Docker installed:
 
 ```
-git clone git@github.com:project-everest/everest
+git clone https://github.com/project-everest/everest.git everest
+cd everest
 git checkout icfp2017aec
-cd everest/.docker/everest
-docker build
+docker build --tag projecteverest/everest-icfp2017aec .docker/everest-chomolungma
 ```
 
-This takes a couple hours on a powerful machine.
+This takes a couple hours on a powerful machine. To speed up this process, the
+last command can be replaced with:
+```
+docker build --build-arg PARALLEL_OPT='-j 4' --tag projecteverest/everest-icfp2017aec .docker/everest-chomolungma
+```
+to build and verify everything using `4` cores.
