@@ -1,6 +1,9 @@
 # The image built from this file is to be named everest-chomolungma, as the "Holy Mother" (Tibetan) of all everest images.
 
-FROM ubuntu:xenial
+# FIXME: more recent Ubuntu images make nuget fail to validate certificates
+# Revert to xenial once the Ubuntu image is fixed upstream
+# (see https://github.com/tianon/docker-brew-ubuntu-core/issues/86 )
+FROM ubuntu:xenial-20170214
 
 LABEL maintainer "Irina Spiridonova <irinasp@microsoft.com>; Darren Gehring <darrenge@microsoft.com>; Tahina Ramananandro <taramana@microsoft.com>"
 # created based on original script from fstar branch writen by Benjamin Beurdouche and Daniel Fabian
@@ -102,6 +105,23 @@ RUN git clone https://github.com/project-everest/everest.git everest
 # then retrieve the latest version
 WORKDIR ${MYHOME}/everest
 RUN ./everest --yes check pull
+
+# Install all HACL* prerequisites
+# (see INSTALL.md on the HACL* jk_snap branch)
+WORKDIR hacl-star/other_providers
+RUN git submodule update --init
+WORKDIR openssl
+RUN ./config no-asm
+RUN make
+WORKDIR ../libsodium
+RUN ./autogen.sh
+RUN ./configure --disable-asm --enable-opt
+RUN make
+RUN sudo make install
+ENV LD_LIBRARY_PATH "/usr/local/lib"
+
+# Set the final directory entrypoint
+WORKDIR ${MYHOME}/everest
 
 # Provide the default command prefix when a container is created from this image, by `docker run`
 ENTRYPOINT ["/bin/bash", "--login", "-c"]

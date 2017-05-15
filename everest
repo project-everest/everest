@@ -222,6 +222,7 @@ do_check ()
   success_or "which" "please execute this script in a Unix environment"
   if is_osx; then
     success_or "greadlink" "please run \"brew install coreutils\""
+    success_or "gsed" "please run \"brew install gnu-sed\""
   fi
 
   # Slightly suboptimal, since we may end up running Cygwin's setup twice.
@@ -364,7 +365,13 @@ OCAML
   #   <ocamlfind-package-name> <SPACE> <opam-package-name>
   success_or "opam"
   if [ ! -d ~/.opam ]; then
-    if_yes "opam init"
+    if is_windows; then
+      echo "This is a Windows environment; not running opam init."
+      echo "Please follow instructions for the installer you picked."
+      echo "Hint: https://github.com/protz/ocaml-installer/wiki or https://fdopen.github.io/opam-repository-mingw/"
+    else
+      if_yes "opam init"
+    fi
     eval $(opam config env)
   fi
 
@@ -493,8 +500,17 @@ OCAML
 
   echo
   magenta "Remember to run source ~/.bashrc if it was modified!"
-  magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH"
-  magenta "Note: you *may* want to export FSTAR_HOME=$(pwd)/FStar"
+  if is_windows; then
+    magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your Cygwin PATH"
+    magenta "Note: you *may* want to export FSTAR_HOME=$(cygpath -m $(pwd))/FStar"
+    magenta "Note: you *may* want to export KREMLIN_HOME=$(cygpath -m $(pwd))/kremlin"
+    magenta "Note: you *may* want to export HACL_HOME=$(cygpath -m $(pwd))/hacl-star"
+  else
+    magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH"
+    magenta "Note: you *may* want to export FSTAR_HOME=$(pwd)/FStar"
+    magenta "Note: you *may* want to export KREMLIN_HOME=$(pwd)/kremlin"
+    magenta "Note: you *may* want to export HACL_HOME=$(pwd)/hacl-star"
+  fi
 }
 
 try_git_clone () {
