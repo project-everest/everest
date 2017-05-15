@@ -113,12 +113,14 @@ RUN git submodule update --init
 WORKDIR openssl
 RUN ./config no-asm
 RUN make
+ENV OPENSSL_HOME ${MYHOME}/everest/hacl-star/other_providers/openssl
 WORKDIR ../libsodium
 RUN ./autogen.sh
 RUN ./configure --disable-asm --enable-opt
 RUN make
 RUN sudo make install
 ENV LD_LIBRARY_PATH "/usr/local/lib"
+ENV LIBSODIUM_HOME /usr/local
 
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
