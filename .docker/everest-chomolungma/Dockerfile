@@ -122,6 +122,11 @@ RUN sudo make install
 ENV LD_LIBRARY_PATH "/usr/local/lib"
 ENV LIBSODIUM_HOME /usr/local
 
+# Install Coq
+ENV coqv 8.6
+RUN opam repo add coq-released http://coq.inria.fr/opam/released
+RUN opam install -j 8 coq.${coqv} && opam pin add coq ${coqv}
+
 # Switch to the ICFP 2017 AEC branch
 # PARALLEL_OPT is either empty, or -j n, where n is
 # the max number of parallel jobs when building the image
