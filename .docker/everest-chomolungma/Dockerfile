@@ -106,6 +106,39 @@ RUN git clone https://github.com/project-everest/everest.git everest -b icfp2017
 WORKDIR ${MYHOME}/everest
 RUN ./everest --yes check pull
 
+# Install all HACL* prerequisites
+# (see INSTALL.md on the HACL* jk_snap branch)
+WORKDIR hacl-star/other_providers
+RUN git submodule update --init
+WORKDIR openssl
+RUN ./config no-asm
+RUN make
+WORKDIR ../libsodium
+RUN ./autogen.sh
+RUN ./configure --disable-asm --enable-opt
+RUN make
+RUN sudo make install
+ENV LD_LIBRARY_PATH "/usr/local/lib"
+
+# Switch to the ICFP 2017 AEC branch
+# PARALLEL_OPT is either empty, or -j n, where n is
+# the max number of parallel jobs when building the image
+# (by default 1)
+ARG PARALLEL_OPT
+WORKDIR ${MYHOME}/everest
+RUN git fetch
+RUN git checkout icfp2017aec
+RUN echo ${PARALLEL_OPT}
+RUN ./everest --yes pull check ${PARALLEL_OPT} make test verify
+
+# Set the final directory entrypoint
+WORKDIR ${MYHOME}/everest
+
+# Set up environment variables
+ENV FSTAR_HOME ${MYHOME}/everest/FStar
+ENV KREMLIN_HOME ${MYHOME}/everest/kremlin
+ENV PATH ${KREMLIN_HOME}:${FSTAR_HOME}/bin:$PATH
+
 # Provide the default command prefix when a container is created from this image, by `docker run`
 ENTRYPOINT ["/bin/bash", "--login", "-c"]
 
