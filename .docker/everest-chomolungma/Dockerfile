@@ -99,7 +99,7 @@ RUN opam init --auto-setup --compiler=${ocamlv}
 
 # Prepare everest repository
 WORKDIR ${MYHOME}
-RUN git clone https://github.com/project-everest/everest.git everest
+RUN git clone https://github.com/project-everest/everest.git everest -b icfp2017aec
 
 # Install opam packages required by everest (to avoid duplicating the list of opam packages here),
 # then retrieve the latest version
