@@ -139,7 +139,7 @@ benchmarks for CompCert:
 ```
 make -C hacl-star/test snapshot-ccomp
 make -C hacl-star/test perf-ccomp
-cat hacl-star/test/benchmark-ccomp.txt
+cat hacl-star/test/benchmark-compcert.txt
 ```
 
 ### Via the OpenSSL engine
@@ -155,7 +155,8 @@ the OpenSSL ones, but due to some minor API differences, there remains some work
 to ensure we compute the right result (e.g. detect when to perform the call to
 Poly1305_Finalize according to the state machine of OpenSSL).
 
-These tests can be run via `make -C hacl-star/test/openssl-engine test`.
+After regenerating the GCC snapshot by `make -C hacl-star/test snapshot-gcc`,
+these OpenSSL engine tests can be run via `make -C hacl-star/test/openssl-engine test`.
 
 
 ## Replaying the proofs
