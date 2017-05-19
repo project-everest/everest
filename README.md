@@ -15,7 +15,7 @@ following platform-specific instructions at https://docs.docker.com/engine/insta
 
 Then, just run:
 ```
-docker run -t -i projecteverest/everest-ccs2017
+docker run -t -i ccs2017s558/image
 ```
 
 to open a Docker container based on this Docker image with a
@@ -149,12 +149,12 @@ following sequence of commands from a machine with Docker installed:
 git clone https://github.com/project-everest/everest.git everest
 cd everest
 git checkout ccs2017
-docker build --tag projecteverest/everest-ccs2017 .docker/everest-chomolungma
+docker build --tag ccs2017s558/image .docker/everest-chomolungma
 ```
 
 This takes a couple hours on a powerful machine. To speed up this process, the
 last command can be replaced with:
 ```
-docker build --build-arg PARALLEL_OPT='-j 4' --tag projecteverest/everest-ccs2017 .docker/everest-chomolungma
+docker build --build-arg PARALLEL_OPT='-j 4' --tag ccs2017s558/image .docker/everest-chomolungma
 ```
 to build and verify everything using `4` cores.
