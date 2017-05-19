@@ -99,7 +99,7 @@ RUN opam init --auto-setup --compiler=${ocamlv}
 
 # Prepare everest repository
 WORKDIR ${MYHOME}
-RUN git clone https://github.com/project-everest/everest.git everest -b icfp2017aec
+RUN git clone https://github.com/project-everest/everest.git everest -b ccs2017
 
 # Install opam packages required by everest (to avoid duplicating the list of opam packages here),
 # then retrieve the latest version
@@ -134,7 +134,7 @@ RUN opam install -j 8 coq.${coqv} && opam pin add coq ${coqv}
 ARG PARALLEL_OPT
 WORKDIR ${MYHOME}/everest
 RUN git fetch
-RUN git checkout icfp2017aec
+RUN git checkout ccs2017
 RUN echo ${PARALLEL_OPT}
 RUN ./everest --yes pull check ${PARALLEL_OPT} make test verify
 
