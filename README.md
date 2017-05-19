@@ -1,4 +1,4 @@
-# ICFP2017 Artifact for: Low-Level Programming Embedded in F*
+# CCS2017 Artefact for: HACL*, a verified modern cryptographic library
 
 
 ## This Docker Image
@@ -15,7 +15,7 @@ following platform-specific instructions at https://docs.docker.com/engine/insta
 
 Then, just run:
 ```
-docker run -t -i projecteverest/everest-icfp2017aec
+docker run -t -i projecteverest/everest-ccs2017
 ```
 
 to open a Docker container based on this Docker image with a
@@ -25,50 +25,24 @@ are assumed run from within such a Docker container (except for the
 
 ## Finding the proofs
 
-In order of appearance in the paper:
-- **Fig. 2, "A snippet from Chacha20"**:
-  `hacl-star/code/salsa-family/Hacl.Impl.Chacha20.fst`:777 for the
-  implementation, and `hacl-star/code/salsa-family/Chacha20.fsti` for the
-  interface
-- **2.2, Low\* heap model**:
-  + `FStar/ulib/FStar.HyperHeap.fst`, for the definition of `rid`,
-    `root`, etc.
-  + `FStar/ulib/FStar.HyperStack.fst`, for the definition of
-    `is_stack_region`, `sid`, the `mem` type, etc.
-  + `FStar/ulib/hyperstack/FStar.ST.fst`, for the definition of
-    `push_frame`, the allocation functions, the `Stack` and `StackInline`
-    effects, etc.
-- **2.2, Modeling arrays:**
-  in `FStar/ulib/FStar.Buffer.fst`
-- **2.2, Modeling structs:**
-  in `FStar/ulib/FStar.Struct.fst`
-- **2.2, Modeling structs, in-progress unified model of flat, inline arrays within
-  structs:**
-  in `FStar/ulib/FStar.StructNG.fst`
-- **2.3, abstract limb type:**
-  in `hacl-star/code/bignum/Hacl.Bignum.Limb.fst`, including the the definition
-  of `v` and `eq_mask`
-- **Fig. 3, Poly1305 bigint:**
-  + since the paper was written, our Poly1305 version was ported to 64-bits; the
-    new normalization functions are in `hacl-star/code/poly1305/Hacl.Bignum.Modulo.fst`, and
-    the closest equivalent of `poly1305_mac` is `poly1305_last_pass_` in
-    `hacl-star/code/poly1305/Hacl.Impl.Poly1305_64.fst`
-  + we also include an older version of our codebase for reference purposes; the
-    `normalize` function is in
-    `FStar/examples/low-level/crypto/Crypto.Symmetric.Poly1305.Bignum.fst` and
-    is called `finalize`; the `poly1305_mac` function is in
-    `FStar/examples/low-level/crypto/Crypto.Symmetric.Poly1305.fst`:1083. 
-    **Note:** this code no longer verifies, as this directory has been phased
-    out in favor of the new, improved proofs in HACL\*
-- **2.4, AEAD security proof:**
-  the AEAD development has been integrated with the HACL* library; the
-  top-level AEAD proof statement, `encrypt`, is in
-  `hacl-star/secure-api/aead/Crypto.AEAD.Encrypt.fst`
-- **2.4, StackInline**
-  see `hacl-star/secure_api/uf1cma/Crypto.Symmetric.MAC.fst`:216, including an
-  example of multiplexing, where we deal with different types of MACs depending
-  on which algorithm is used. This pattern also extracts to C.
+The directory structure is relatively straightforward:
+- the `specs` directory contains specifications, some of which are under the
+  `experimental` directory
+- the `code` directory contains the Low* implementations of the high-level
+  specifications; the subdirectory names are self-explanatory.
 
+In order of appearance in the paper:
+- Figure 1: specs/Spec.SHA2_256.fst:126
+- Figure 2: code/hash/Hacl.Hash.SHA2_256.fst:438
+- Figure 3: test/ccs-benchmarks/snapshot/SHA2_256.c:173, inlined in the body of
+  the enclosing function for maximum performance
+- Figure 4: specs/Spec.Chacha20.fst
+- Figure 5: code/salsa-family/Spec.Chacha20_vec.fst
+- Figure 6: code/salsa-family/Hacl.Impl.Chacha20.Vec128.fst
+- Figure 7: test/ccs-benchmarks/snapshot/vec128.h
+- Figure 8: code/poly1305/Hacl.Bignum.Constants.fst
+- Figure 9: code/poly1305/Hacl.Bignum.AddAndMultiply.fst
+- Figure 10: specs/Spec.Curve25519.fst
 
 ## Source code for our tools
 
@@ -174,13 +148,13 @@ following sequence of commands from a machine with Docker installed:
 ```
 git clone https://github.com/project-everest/everest.git everest
 cd everest
-git checkout icfp2017aec
-docker build --tag projecteverest/everest-icfp2017aec .docker/everest-chomolungma
+git checkout ccs2017
+docker build --tag projecteverest/everest-ccs2017 .docker/everest-chomolungma
 ```
 
 This takes a couple hours on a powerful machine. To speed up this process, the
 last command can be replaced with:
 ```
-docker build --build-arg PARALLEL_OPT='-j 4' --tag projecteverest/everest-icfp2017aec .docker/everest-chomolungma
+docker build --build-arg PARALLEL_OPT='-j 4' --tag projecteverest/everest-ccs2017 .docker/everest-chomolungma
 ```
 to build and verify everything using `4` cores.
