@@ -37,9 +37,9 @@ In order of appearance in the paper:
 - Figure 3: test/ccs-benchmarks/snapshot/SHA2_256.c:173, inlined in the body of
   the enclosing function for maximum performance
 - Figure 4: specs/Spec.Chacha20.fst
-- Figure 5: code/salsa-family/Spec.Chacha20_vec.fst
-- Figure 6: code/salsa-family/Hacl.Impl.Chacha20.Vec128.fst
-- Figure 7: test/ccs-benchmarks/snapshot/vec128.h
+- Figure 5: test/ccs-benchmarks/snapshot/vec128.h
+- Figure 6: code/salsa-family/Spec.Chacha20_vec.fst
+- Figure 7: code/salsa-family/Hacl.Impl.Chacha20.Vec128.fst
 - Figure 8: code/poly1305/Hacl.Bignum.Constants.fst
 - Figure 9: code/poly1305/Hacl.Bignum.AddAndMultiply.fst
 - Figure 10: specs/Spec.Curve25519.fst
