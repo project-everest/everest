@@ -1,6 +1,6 @@
 # Project Everest
 
-A verified, efficient TLS implementation, in C.
+Efficient, verified components for the HTTPS ecosystem.
 
 See [the website](https://project-everest.github.io)!
 
