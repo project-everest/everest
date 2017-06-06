@@ -32,7 +32,7 @@ else
   VS_BIN=
 fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
-PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/2.7/python-2.7.msi
+PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/2.7.13/python-2.7.13.amd64.msi
 SCONS_INSTALL_POINT=http://prdownloads.sourceforge.net/scons/scons-2.5.0-setup.exe
 
 # No-interaction when this script is used for CI purposes
