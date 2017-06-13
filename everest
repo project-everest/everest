@@ -502,14 +502,14 @@ OCAML
   magenta "Remember to run source ~/.bashrc if it was modified!"
   if is_windows; then
     magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your Cygwin PATH"
-    magenta "Note: you *may* want to export FSTAR_HOME=$(cygpath -m $(pwd))/FStar"
-    magenta "Note: you *may* want to export KREMLIN_HOME=$(cygpath -m $(pwd))/kremlin"
-    magenta "Note: you *may* want to export HACL_HOME=$(cygpath -m $(pwd))/hacl-star"
+    [ -n "${FSTAR_HOME}" ] || magenta "Note: you *may* want to export FSTAR_HOME=$(cygpath -m $(pwd))/FStar"
+    [ -n "${KREMLIN_HOME}" ] || magenta "Note: you *may* want to export KREMLIN_HOME=$(cygpath -m $(pwd))/kremlin"
+    [ -n "${HACL_HOME}" ] || magenta "Note: you *may* want to export HACL_HOME=$(cygpath -m $(pwd))/hacl-star"
   else
     magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH"
-    magenta "Note: you *may* want to export FSTAR_HOME=$(pwd)/FStar"
-    magenta "Note: you *may* want to export KREMLIN_HOME=$(pwd)/kremlin"
-    magenta "Note: you *may* want to export HACL_HOME=$(pwd)/hacl-star"
+    [ -n "${FSTAR_HOME}" ] || magenta "Note: you *may* want to export FSTAR_HOME=$(pwd)/FStar"
+    [ -n "${KREMLIN_HOME}" ] || magenta "Note: you *may* want to export KREMLIN_HOME=$(pwd)/kremlin"
+    [ -n "${HACL_HOME}" ] || magenta "Note: you *may* want to export HACL_HOME=$(pwd)/hacl-star"
   fi
 }
 
