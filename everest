@@ -32,7 +32,7 @@ else
   VS_BIN=
 fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
-PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/2.7/python-2.7.msi
+PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/2.7.13/python-2.7.13.amd64.msi
 SCONS_INSTALL_POINT=http://prdownloads.sourceforge.net/scons/scons-2.5.0-setup.exe
 
 # No-interaction when this script is used for CI purposes
@@ -500,17 +500,20 @@ OCAML
 
   echo
   magenta "Remember to run source ~/.bashrc if it was modified!"
+  local xpwd=""
   if is_windows; then
-    magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your Cygwin PATH"
-    magenta "Note: you *may* want to export FSTAR_HOME=$(cygpath -m $(pwd))/FStar"
-    magenta "Note: you *may* want to export KREMLIN_HOME=$(cygpath -m $(pwd))/kremlin"
-    magenta "Note: you *may* want to export HACL_HOME=$(cygpath -m $(pwd))/hacl-star"
+      xpwd="$(cygpath -m $(pwd))"
   else
-    magenta "Note: you *may* want to add $(pwd)/FStar/bin and $(pwd)/kremlin to your PATH"
-    magenta "Note: you *may* want to export FSTAR_HOME=$(pwd)/FStar"
-    magenta "Note: you *may* want to export KREMLIN_HOME=$(pwd)/kremlin"
-    magenta "Note: you *may* want to export HACL_HOME=$(pwd)/hacl-star"
+      xpwd="$(pwd)"
   fi
+  
+  magenta "Note: you *may* want to add ${xpwd}/FStar/bin and ${xpwd}/kremlin to your PATH"
+  [ -n "${FSTAR_HOME}" ] || \
+    magenta "Note: you *may* want to export FSTAR_HOME=${xpwd}/FStar"
+  [ -n "${KREMLIN_HOME}" ] || \
+    magenta "Note: you *may* want to export KREMLIN_HOME=${xpwd}/kremlin"
+  [ -n "${HACL_HOME}" ] || \
+    magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
 
 try_git_clone () {
