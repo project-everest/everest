@@ -32,7 +32,8 @@ else
   VS_BIN=
 fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
-PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/2.7.13/python-2.7.13.amd64.msi
+PYTHON_VER=2.7.13
+PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
 SCONS_INSTALL_POINT=http://prdownloads.sourceforge.net/scons/scons-2.5.0-setup.exe
 
 # No-interaction when this script is used for CI purposes
@@ -465,18 +466,18 @@ OCAML
       red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
       if prompt_yes true "exit 1"; then
         wget $PYTHON_INSTALL_POINT
-        chmod a+x python-2.7.msi
-        msiexec /i python-2.7.msi /quiet
+        chmod a+x python-$PYTHON_VER.msi
+        msiexec /i python-$PYTHON_VER.msi /quiet
         windows_check_or_modify_bashrc "python.exe" "C:\\Python27"
         source ~/.bashrc
       fi
     else
-      echo "... Python 2.7 found"
+      echo "... Python $PYTHON_VER found"
     fi
 
     if ! command -v scons.bat >/dev/null 2>&1; then
       red "ERROR: scons.bat was not found so scons will need to be installed."
-      red "NOTE: scons requires Python 2.7. Choose Python 2.7 in the second page of the scons install wizard."
+      red "NOTE: scons requires Python $PYTHON_VER. Choose Python $PYTHON_VER in the second page of the scons install wizard."
       red "Start the install wizard for scons (Y/n)?"
       if prompt_yes true "exit 1"; then
         wget $SCONS_INSTALL_POINT
