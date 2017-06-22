@@ -1,9 +1,6 @@
 # The image built from this file is to be named everest-chomolungma, as the "Holy Mother" (Tibetan) of all everest images.
 
-# FIXME: more recent Ubuntu images make nuget fail to validate certificates
-# Revert to xenial once the Ubuntu image is fixed upstream
-# (see https://github.com/tianon/docker-brew-ubuntu-core/issues/86 )
-FROM ubuntu:xenial-20170214
+FROM ubuntu:xenial
 
 LABEL maintainer "Irina Spiridonova <irinasp@microsoft.com>; Darren Gehring <darrenge@microsoft.com>; Tahina Ramananandro <taramana@microsoft.com>"
 # created based on original script from fstar branch writen by Benjamin Beurdouche and Daniel Fabian
@@ -33,6 +30,7 @@ RUN apt-get --yes update
 # pandoc: needed by F* documentation
 # cmake, libtool, automake: needed by hacl-star
 # gcc-6 instead of gcc-5: needed by hacl-star
+# tzdata needed by nuget, or more exactly by mono HTTPS support (cf. https://github.com/tianon/docker-brew-ubuntu-core/issues/86#issuecomment-310269818 )
 RUN until apt-get install --no-install-recommends --yes \
   libssl-dev \
   libsqlite3-dev \
@@ -64,6 +62,7 @@ RUN until apt-get install --no-install-recommends --yes \
   cmake \
   libtool \
   autoconf \
+  tzdata \
  ; do apt-get --yes update ; done
 
 # Create user everest.
