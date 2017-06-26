@@ -93,7 +93,7 @@ ENV PATH ${MYHOME}/z3/${z3full}/bin:$PATH
 ENV OPAMYES 1
 
 # Install OCaml
-ENV ocamlv 4.04.0
+ENV ocamlv 4.04.1
 RUN opam init --auto-setup --compiler=${ocamlv}
 
 # Prepare everest repository
