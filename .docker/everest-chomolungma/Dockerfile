@@ -80,14 +80,7 @@ SHELL ["/bin/bash", "--login", "-c"]
 USER everest
 WORKDIR ${MYHOME}
 
-# Install Z3 (do it here for better caching)
-ENV z3v z3-4.5.0
-ENV z3platform x64-ubuntu-14.04
-ENV z3full ${z3v}-${z3platform}
-RUN wget -O z3.zip https://github.com/Z3Prover/z3/releases/download/${z3v}/${z3full}.zip
-RUN mkdir z3
-RUN unzip -uo z3.zip -d z3
-ENV PATH ${MYHOME}/z3/${z3full}/bin:$PATH
+# We no longer install z3 and rely on the everest script to do so
 
 # Enable --yes option for opam
 ENV OPAMYES 1
