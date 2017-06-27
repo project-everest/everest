@@ -223,8 +223,8 @@ parse_z3_version () {
     echo "no z3 in path!"
   else
     local z3_version=$(z3 --version)
-    if echo $z3_version | grep hashcode; then
-      z3 --version | sed 's/.*build hashcode \(.*\)\r\?\n\?/\1/'
+    if echo $z3_version | grep hashcode >/dev/null 2>&1; then
+      z3 --version | sed 's/.*build hashcode \(.*\)/\1/' | tr -d '\r'
     else
       z3 --version | sed 's/Z3 version \([0-9\.]\+\).*/\1/'
     fi
@@ -450,6 +450,7 @@ OCAML
     echo "... cloning FStarLang/binaries"
     try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
   fi
+  (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
 
   local current_z3=$(parse_z3_version)
   echo "... version of z3 found in PATH: $current_z3"
