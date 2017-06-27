@@ -17,9 +17,6 @@ OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.b
 OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
 FLEXDLL_NAME=flexdll-bin-0.35
 FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
-Z3_VERSION=4.5.0
-Z3_NAME=z3-$Z3_VERSION-x64-win
-Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 VS_BIN=
 if [[ -v VS140COMNTOOLS ]]; then
@@ -125,7 +122,7 @@ windows_check_or_modify_bashrc () {
 write_z3_bashrc () {
   str="
     # This line automatically added by $0
-    export PATH=$(pwd)/$Z3_NAME/bin:\$PATH"
+    export PATH=$(pwd)/$1/bin:\$PATH"
   eval "$str"
   echo "$str" >> ~/.bashrc
   magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
@@ -209,6 +206,29 @@ install_all_opam_packages () {
   opam install $packages
 }
 
+try_git_clone () {
+  if ! git clone $1 $2; then
+    magenta "Proceed with https? [Yn]"
+    prompt_yes true "exit 1"
+    url=$1
+    url=${url/:/\/}
+    url=https://${url#*@}
+    git clone $url $2
+  fi
+}
+
+parse_z3_version () {
+  if ! which z3 >/dev/null 2>&1; then
+    echo "no z3 in path!"
+  else
+    local z3_version=$(z3 --version)
+    if echo $z3_version | grep hashcode; then
+      z3 --version | sed 's/.*build hashcode \(.*\)\r\?\n\?/\1/'
+    else
+      z3 --version | sed 's/Z3 version \([0-9\.]\+\).*/\1/'
+    fi
+  fi
+}
 
 # ------------------------------------------------------------------------------
 # The functions that implement the main actions
@@ -423,24 +443,44 @@ OCAML
   fi
   echo "... fsc found in PATH"
 
-  # The right z3 version
-  if ! which z3 >/dev/null 2>&1 || [[ $(z3 --version | tr -d '\r\n') != "Z3 version $Z3_VERSION - 64 bit" ]]; then
-    red "ERROR: the right version of z3 doesn't seem to be installed"
-    if is_windows; then
-      magenta "Download it from the internet? [Yn]"
-      prompt_yes true "exit 1"
-      wget $Z3_URL
-      unzip $Z3_NAME
-      find $Z3_NAME -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
-      magenta "Automatically customize ~/.bashrc with the z3 path? [Yn]"
-      prompt_yes write_z3_bashrc true
-    else
-      echo "Hint: brew install z3 (OSX), apt-get install z3 (other)"
-      echo "Hint: most recent versions available at https://github.com/Z3Prover/z3/releases/tag/z3-$Z3_VERSION"
-      exit 1
-    fi
+  # Update our clone of FStarLang/binaries and check that we have the blessed z3
+  # version
+  if ! [[ -d fstarlang_binaries ]]; then
+    echo "... cloning FStarLang/binaries"
+    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
   fi
-  echo "... correct z3 version detected"
+
+  local current_z3=$(parse_z3_version)
+  echo "... version of z3 found in PATH: $current_z3"
+
+  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
+  if is_windows; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-win.zip
+  elif is_osx; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-osx-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-ubuntu-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  else
+    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  fi
+  local new_z3=$(ls $new_z3_file | sed "$hash_of_filename")
+  echo "... version of z3 found for win-x64 in z3-tested is: $new_z3"
+
+  new_z3_file=$(ls $new_z3_file)
+  if [[ $new_z3 != $current_z3 ]]; then
+    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
+    prompt_yes true "exit 1"
+    echo "... unzipping $new_z3_file"
+    unzip $new_z3_file
+    local new_z3_folder=${new_z3_file%%.zip}
+    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
+    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
+    magenta "Automatically customize ~/.bashrc with the z3 path? [Yn]"
+    prompt_yes "write_z3_bashrc $new_z3_folder" true
+  fi
 
   # We need Nuget for Vale
   if ! which nuget >/dev/null 2>&1 ; then
@@ -506,7 +546,7 @@ OCAML
   else
       xpwd="$(pwd)"
   fi
-  
+
   magenta "Note: you *may* want to add ${xpwd}/FStar/bin and ${xpwd}/kremlin to your PATH"
   [ -n "${FSTAR_HOME}" ] || \
     magenta "Note: you *may* want to export FSTAR_HOME=${xpwd}/FStar"
@@ -516,16 +556,6 @@ OCAML
     magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
 
-try_git_clone () {
-  if ! git clone $1 $2; then
-    magenta "Proceed with https? [Yn]"
-    prompt_yes true "exit 1"
-    url=$1
-    url=${url/:/\/}
-    url=https://${url#*@}
-    git clone $url $2
-  fi
-}
 
 # The array of all options passed to $0 (--yes, etc.)
 declare -a options
@@ -585,6 +615,20 @@ do_reset ()
     if [[ $(git symbolic-ref HEAD) != $branch ]]; then
       git checkout $branch
     fi
+    # Note: this is not super robust in the face of weird cases like someone
+    # having a local branch named origin/master, in which case [upstream] will
+    # contain "remotes/origin/master"... alternate solution:
+    # local found=false
+    # for b in $(git branch -r --contains $hash | awk '{ print $0; }'); do
+    #   if [[ $upstream == $(git rev-parse --abbrev-ref --symbolic-full-name $b@{u} ]]; then
+    #     found=true
+    #   fi
+    #  done
+    # if ! $found; then
+    #   etc.
+    # fi
+    # Note: the --format option of git branch would be better than awk but a lot of
+    # people are stuck on git 2.8, including cygwin and Azure VMs.
     upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
     if ! git branch -r --contains $hash | egrep "^ +$upstream$" >/dev/null 2>&1; then
       red "ERROR: in repository $r, the hash $hash claims to belong to branch \
