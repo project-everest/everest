@@ -511,13 +511,6 @@ OCAML
         chmod a+x python-$PYTHON_VER.msi
         msiexec /i python-$PYTHON_VER.msi /quiet
         windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27"
-        # FIXME: from commit 4a81bfd5, why is the following `source` needed?
-        # Normally, windows_check_or_modify_env_dest_file already evaluates
-        # whatever is added in the source file, unless
-        # `msiexec python-$PYTHON_VER.msi` changes .bashrc.
-        # In the latter case, there should be a way to
-        # pass $EVEREST_ENV_DEST_FILE as argument, to change the right file.
-        source "$EVEREST_ENV_DEST_FILE"
       fi
     else
       echo "... Python $PYTHON_VER found"
@@ -533,9 +526,6 @@ OCAML
         ./scons-2.5.0-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
         # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
         windows_check_or_modify_env_dest_file "scons.bat" "C:\\Python27\\Scripts"
-        # FIXME: why is the following `source` needed?
-        # (similarly to the previous `source` above)
-        source "$EVEREST_ENV_DEST_FILE"
       fi
     else
       echo "... scons.bat found in PATH"
