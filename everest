@@ -49,9 +49,9 @@ make_non_interactive () {
 unset parallel_opt
 
 # The file where to store customized environment variables
-# (default is ~/.bashrc)
+# (default is $HOME/.bashrc)
 if [[ -z "${EVEREST_ENV_DEST_FILE+x}" ]] ; then
-  EVEREST_ENV_DEST_FILE="~/.bashrc"
+  EVEREST_ENV_DEST_FILE="$HOME/.bashrc"
 fi
 
 # The whole script makes the assumption that we're in the everest directory;
