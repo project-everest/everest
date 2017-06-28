@@ -95,7 +95,12 @@ RUN git clone https://github.com/project-everest/everest.git everest
 
 # Install opam packages required by everest (to avoid duplicating the list of opam packages here),
 # then retrieve the latest version
+# Through EVEREST_ENV_DEST_FILE, we make environment changes to .profile
+# (consistently with `opam init --auto-setup` above) instead of .bashrc,
+# so that those changes are always taken into account
+# in login shells, whether they are interactive or not.
 WORKDIR ${MYHOME}/everest
+ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest --yes check pull
 
 # Install all HACL* prerequisites
