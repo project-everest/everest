@@ -48,6 +48,12 @@ make_non_interactive () {
 # Use $parallel_opt instead
 unset parallel_opt
 
+# The file where to store customized environment variables
+# (default is $HOME/.bashrc)
+if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
+  EVEREST_ENV_DEST_FILE="$HOME/.bashrc"
+fi
+
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
 # thing. Basically, this supports:
@@ -87,25 +93,33 @@ source hashes.sh
 # A series of helpers
 # ------------------------------------------------------------------------------
 
+write_to_env_dest_file () {
+  str="$1"
+  # NOTE: "$str" contains line breaks, since it actually contains
+  # several commands, with each command on its own line.
+  # These line breaks must be preserved.
+  eval "$str"
+  echo "$str" >> "$EVEREST_ENV_DEST_FILE"
+  magenta "Remember to run source \"$EVEREST_ENV_DEST_FILE\" in your terminal afterwards!"
+}
+
 # Windows requires several tools that can be installed via Visual Studio, but
 # these usually aren't in the PATH. Check in the usual locations, then offer to
-# customize ~/.bashrc
+# customize "$EVEREST_ENV_DEST_FILE"
 #   $1: name of command to check for
 #   $2: candidate directory where it may reside
-windows_check_or_modify_bashrc () {
+windows_check_or_modify_env_dest_file () {
   if ! command -v $1 >/dev/null 2>&1; then
     red "ERROR: $1 not found in PATH"
     if [ -f "$2"/$1 ]; then
-      magenta "$1 found in $2; add to PATH via ~/.bashrc? [Yn]"
+      magenta "$1 found in $2; add to PATH via $EVEREST_ENV_DEST_FILE ? [Yn]"
       if prompt_yes true false; then
         path=$(cygpath -m -d "$2")
         path=$(cygpath "$path")
         str="
           # This line automatically added by $0
           export PATH=\"$path\":\$PATH"
-        eval "$str"
-        echo "$str" >> ~/.bashrc
-        magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+        write_to_env_dest_file "$str"
       fi
     else
       red "$1 not found in $2, bailing"
@@ -120,34 +134,28 @@ windows_check_or_modify_bashrc () {
   echo "... found $1"
 }
 
-write_z3_bashrc () {
+write_z3_env_dest_file () {
   str="
     # This line automatically added by $0
     export PATH=$(pwd)/$1/bin:\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
-write_nuget_bashrc () {
+write_nuget_env_dest_file () {
   str="
     # This line automatically added by $0
     export PATH=$(pwd)/nuget/bin:\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
-write_flexdll_bashrc () {
+write_flexdll_env_dest_file () {
   str="
     # These lines automatically added by $0
     export PATH=$(pwd)/flexdll:\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
-write_ocaml_bashrc () {
+write_ocaml_env_dest_file () {
   str="
     # These lines automatically added by $0
     export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
@@ -157,19 +165,15 @@ write_ocaml_bashrc () {
     export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
     export MENHIRLIB=$(cygpath -m ~/.opam/system/share/menhir)
     export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
-write_cygwin_bashrc () {
+write_cygwin_env_dest_file () {
   str="
     # These lines automatically added by $0
     export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
     export CYGWIN='winsymlinks:native'"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
 cygsetup="setup-x86_64.exe"
@@ -294,8 +298,8 @@ do_check ()
 
     if ! command -v libsqlite3-0.dll >/dev/null 2>&1; then
       red "Warning: x86_64-mingw32 DLLs not in PATH"
-      magenta "Automatically customize ~/.bashrc with the x86_64-mingw32 path + native windows symlinks?"
-      prompt_yes write_cygwin_bashrc true
+      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the x86_64-mingw32 path + native windows symlinks?"
+      prompt_yes write_cygwin_env_dest_file true
     else
       echo "... proper mingw directory seems to be in PATH"
     fi
@@ -345,8 +349,8 @@ MSG
         echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
         tail -n +3 findlib.conf >> findlib.conf.new &&
         mv findlib.conf.new findlib.conf)
-      magenta "Automatically customize ~/.bashrc with the the magic variables you need? [Yn]"
-      prompt_yes write_ocaml_bashrc true
+      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
+      prompt_yes write_ocaml_env_dest_file true
     else
       red "ERROR: no ocaml found in PATH"
       if is_osx; then
@@ -375,8 +379,8 @@ OCAML
     prompt_yes true "exit 1"
     wget $FLEXDLL_URL
     mkdir -p flexdll && cd flexdll && unzip ../$FLEXDLL_NAME.zip && cd ..
-    magenta "Automatically customize ~/.bashrc with the the magic variables you need? [Yn]"
-    prompt_yes write_flexdll_bashrc true
+    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
+    prompt_yes write_flexdll_env_dest_file true
   elif is_windows; then
     echo "... flexdll ok"
   fi
@@ -431,14 +435,14 @@ OCAML
     red "Warning: seems like you're using the OCaml installer for windows"
     echo There is a bug in the installer -- please see \
       https://github.com/protz/ocaml-installer/wiki#configure-your-initial-opam-setup \
-      and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your ~/.bashrc
+      and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your "$EVEREST_ENV_DEST_FILE"
   fi
 
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
-    windows_check_or_modify_bashrc "fsc.exe" "$FS_DIR"
-    windows_check_or_modify_bashrc "nmake.exe" "$VS_BIN"
-    windows_check_or_modify_bashrc "ml64.exe" "$VS_BIN/amd64"
+    windows_check_or_modify_env_dest_file "fsc.exe" "$FS_DIR"
+    windows_check_or_modify_env_dest_file "nmake.exe" "$VS_BIN"
+    windows_check_or_modify_env_dest_file "ml64.exe" "$VS_BIN/amd64"
   else
     success_or "fsharpc" "brew install mono or use your favorite package manager"
   fi
@@ -480,8 +484,8 @@ OCAML
     local new_z3_folder=${new_z3_file%%.zip}
     new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
     find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
-    magenta "Automatically customize ~/.bashrc with the z3 path? [Yn]"
-    prompt_yes "write_z3_bashrc $new_z3_folder" true
+    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
+    prompt_yes "write_z3_env_dest_file $new_z3_folder" true
   fi
 
   # We need Nuget for Vale
@@ -491,8 +495,8 @@ OCAML
       magenta "Download it from the internet? [Yn]"
       prompt_yes true "exit 1"
       mkdir -p nuget/bin && cd nuget/bin && wget $NUGET_URL && chmod a+x nuget.exe && cd ../..
-      magenta "Automatically customize ~/.bashrc with the nuget path? [Yn]"
-      prompt_yes write_nuget_bashrc true
+      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the nuget path? [Yn]"
+      prompt_yes write_nuget_env_dest_file true
     else
       echo "Hint: brew install nuget (OSX)"
       echo "Hint: most recent versions available at https://dist.nuget.org"
@@ -509,8 +513,7 @@ OCAML
         wget $PYTHON_INSTALL_POINT
         chmod a+x python-$PYTHON_VER.msi
         msiexec /i python-$PYTHON_VER.msi /quiet
-        windows_check_or_modify_bashrc "python.exe" "C:\\Python27"
-        source ~/.bashrc
+        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27"
       fi
     else
       echo "... Python $PYTHON_VER found"
@@ -525,8 +528,7 @@ OCAML
         chmod a+x scons-2.5.0-setup.exe
         ./scons-2.5.0-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
         # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
-        windows_check_or_modify_bashrc "scons.bat" "C:\\Python27\\Scripts"
-        source ~/.bashrc
+        windows_check_or_modify_env_dest_file "scons.bat" "C:\\Python27\\Scripts"
       fi
     else
       echo "... scons.bat found in PATH"
@@ -541,7 +543,7 @@ OCAML
   fi
 
   echo
-  magenta "Remember to run source ~/.bashrc if it was modified!"
+  magenta "Remember to run source \"$EVEREST_ENV_DEST_FILE\" if it was modified!"
   local xpwd=""
   if is_windows; then
       xpwd="$(cygpath -m $(pwd))"
@@ -908,6 +910,8 @@ COMMAND:
   check     ensure that all the required programs are found in path, install
             them if needed; offer to customize ~/.bashrc with proper env
             variables
+            (destination file ~/.bashrc can be overridden with the
+            EVEREST_ENV_DEST_FILE environment variable)
 
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
