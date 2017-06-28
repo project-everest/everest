@@ -50,7 +50,7 @@ unset parallel_opt
 
 # The file where to store customized environment variables
 # (default is $HOME/.bashrc)
-if [[ -z "${EVEREST_ENV_DEST_FILE+x}" ]] ; then
+if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
   EVEREST_ENV_DEST_FILE="$HOME/.bashrc"
 fi
 
@@ -95,6 +95,9 @@ source hashes.sh
 
 write_to_env_dest_file () {
   str="$1"
+  # NOTE: "$str" contains line breaks, since it actually contains
+  # several commands, with each command on its own line.
+  # These line breaks must be preserved.
   eval "$str"
   echo "$str" >> "$EVEREST_ENV_DEST_FILE"
   magenta "Remember to run source \"$EVEREST_ENV_DEST_FILE\" in your terminal afterwards!"
