@@ -495,6 +495,7 @@ OCAML
       prompt_yes write_nuget_bashrc true
     else
       echo "Hint: brew install nuget (OSX)"
+      echo "Hint: sudo apt-get install nuget (Ubuntu 16.04)"
       echo "Hint: most recent versions available at https://dist.nuget.org"
       exit 1
     fi
