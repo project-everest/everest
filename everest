@@ -650,7 +650,6 @@ run_nuget () {
   # which means that -e is not inherited. Explicit failures here.
   cmd=$1
   nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc $cmd
-
 }
 
 # OS-independent scons. Passes $1 to scons.
