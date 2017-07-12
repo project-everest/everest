@@ -572,7 +572,7 @@ declare -a remaining_args
 
 self_update () {
   old_revision=$(git rev-parse HEAD)
-  git pull
+  git pull --rebase
   if [[ $(git rev-parse HEAD) != $old_revision ]]; then
     blue "Self-updating to new everest revision $(git rev-parse HEAD | cut -c 1-8)"
     # Now, we transfer execution to the new version of $0
@@ -641,6 +641,32 @@ do_reset ()
       exit 1
     fi
     git reset --hard $hash
+    cd ..
+  done
+}
+
+do_merge ()
+{
+  self_update
+  echo Merging working copies
+  for r in ${!repositories[@]}; do
+    echo
+    blue "Pulling and rebasing $r"
+    cd $r
+    git pull --rebase
+    cd ..
+  done
+}
+
+do_forall ()
+{
+  blue "Executing on toplevel"
+  "${remaining_args[@]}"
+  for r in ${!repositories[@]}; do
+    echo
+    blue "Executing in $r"
+    cd $r
+    ${remaining_args[@]}
     cd ..
   done
 }
@@ -917,6 +943,11 @@ COMMAND:
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
+  merge     pull all projects, merging and rebasing local changes; does NOT
+            reset to known to be good version, but preserves your changes
+
+  forall    execute command in all git repository directories
+
   reset     pull all projects and move them to the revisions specified by
             hashes.sh
 
@@ -966,6 +997,20 @@ while true; do
       # new version of $0
       remaining_args=("$@")
       do_pull
+      ;;
+
+    merge)
+      # Save the remaining options (including pull) for calling the
+      # new version of $0
+      remaining_args=("$@")
+      do_merge
+      ;;
+
+    forall)
+      shift
+      remaining_args=("$@")
+      do_forall
+      break
       ;;
 
     reset)
