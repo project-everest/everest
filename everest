@@ -876,7 +876,8 @@ do_clean ()
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     FStar/ucontrib/CoreCrypto/ml/{,openssl} \
     kremlin \
-    FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
+    FStar/examples/low-level/{,spartan_aes,LowCProvider} \
+    mitls-fstar/libs/ffi mitls-fstar/src/{,tls}; do
     make -C "$d" clean
   done
   clean_vale
