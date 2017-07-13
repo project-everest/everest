@@ -17,9 +17,6 @@ OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.b
 OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
 FLEXDLL_NAME=flexdll-bin-0.35
 FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
-Z3_VERSION=4.5.0
-Z3_NAME=z3-$Z3_VERSION-x64-win
-Z3_URL=https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_NAME.zip
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 VS_BIN=
 if [[ -v VS140COMNTOOLS ]]; then
@@ -32,7 +29,8 @@ else
   VS_BIN=
 fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
-PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/2.7.13/python-2.7.13.amd64.msi
+PYTHON_VER=2.7.13
+PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
 SCONS_INSTALL_POINT=http://prdownloads.sourceforge.net/scons/scons-2.5.0-setup.exe
 
 # No-interaction when this script is used for CI purposes
@@ -49,6 +47,12 @@ make_non_interactive () {
 # NEVER quote it as "$parallel_opt"
 # Use $parallel_opt instead
 unset parallel_opt
+
+# The file where to store customized environment variables
+# (default is $HOME/.bashrc)
+if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
+  EVEREST_ENV_DEST_FILE="$HOME/.bashrc"
+fi
 
 # The whole script makes the assumption that we're in the everest directory;
 # this is a conservative method that ensures we switch to this directory first
@@ -89,25 +93,33 @@ source hashes.sh
 # A series of helpers
 # ------------------------------------------------------------------------------
 
+write_to_env_dest_file () {
+  str="$1"
+  # NOTE: "$str" contains line breaks, since it actually contains
+  # several commands, with each command on its own line.
+  # These line breaks must be preserved.
+  eval "$str"
+  echo "$str" >> "$EVEREST_ENV_DEST_FILE"
+  magenta "Remember to run source \"$EVEREST_ENV_DEST_FILE\" in your terminal afterwards!"
+}
+
 # Windows requires several tools that can be installed via Visual Studio, but
 # these usually aren't in the PATH. Check in the usual locations, then offer to
-# customize ~/.bashrc
+# customize "$EVEREST_ENV_DEST_FILE"
 #   $1: name of command to check for
 #   $2: candidate directory where it may reside
-windows_check_or_modify_bashrc () {
+windows_check_or_modify_env_dest_file () {
   if ! command -v $1 >/dev/null 2>&1; then
     red "ERROR: $1 not found in PATH"
     if [ -f "$2"/$1 ]; then
-      magenta "$1 found in $2; add to PATH via ~/.bashrc? [Yn]"
+      magenta "$1 found in $2; add to PATH via $EVEREST_ENV_DEST_FILE ? [Yn]"
       if prompt_yes true false; then
         path=$(cygpath -m -d "$2")
         path=$(cygpath "$path")
         str="
           # This line automatically added by $0
           export PATH=\"$path\":\$PATH"
-        eval "$str"
-        echo "$str" >> ~/.bashrc
-        magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+        write_to_env_dest_file "$str"
       fi
     else
       red "$1 not found in $2, bailing"
@@ -122,34 +134,28 @@ windows_check_or_modify_bashrc () {
   echo "... found $1"
 }
 
-write_z3_bashrc () {
+write_z3_env_dest_file () {
   str="
     # This line automatically added by $0
-    export PATH=$(pwd)/$Z3_NAME/bin:\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+    export PATH=$(pwd)/$1/bin:\$PATH"
+  write_to_env_dest_file "$str"
 }
 
-write_nuget_bashrc () {
+write_nuget_env_dest_file () {
   str="
     # This line automatically added by $0
     export PATH=$(pwd)/nuget/bin:\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
-write_flexdll_bashrc () {
+write_flexdll_env_dest_file () {
   str="
     # These lines automatically added by $0
     export PATH=$(pwd)/flexdll:\$PATH"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
-write_ocaml_bashrc () {
+write_ocaml_env_dest_file () {
   str="
     # These lines automatically added by $0
     export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
@@ -159,19 +165,15 @@ write_ocaml_bashrc () {
     export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
     export MENHIRLIB=$(cygpath -m ~/.opam/system/share/menhir)
     export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
-write_cygwin_bashrc () {
+write_cygwin_env_dest_file () {
   str="
     # These lines automatically added by $0
     export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:\$PATH
     export CYGWIN='winsymlinks:native'"
-  eval "$str"
-  echo "$str" >> ~/.bashrc
-  magenta "Remember to run source ~/.bashrc in your terminal afterwards!"
+  write_to_env_dest_file "$str"
 }
 
 cygsetup="setup-x86_64.exe"
@@ -209,6 +211,29 @@ install_all_opam_packages () {
   opam install $packages
 }
 
+try_git_clone () {
+  if ! git clone $1 $2; then
+    magenta "Proceed with https? [Yn]"
+    prompt_yes true "exit 1"
+    url=$1
+    url=${url/:/\/}
+    url=https://${url#*@}
+    git clone $url $2
+  fi
+}
+
+parse_z3_version () {
+  if ! which z3 >/dev/null 2>&1; then
+    echo "no z3 in path!"
+  else
+    local z3_version=$(z3 --version)
+    if echo $z3_version | grep hashcode >/dev/null 2>&1; then
+      z3 --version | sed 's/.*build hashcode \(.*\)/\1/' | tr -d '\r'
+    else
+      z3 --version | sed 's/Z3 version \([0-9\.]\+\).*/\1/'
+    fi
+  fi
+}
 
 # ------------------------------------------------------------------------------
 # The functions that implement the main actions
@@ -273,8 +298,8 @@ do_check ()
 
     if ! command -v libsqlite3-0.dll >/dev/null 2>&1; then
       red "Warning: x86_64-mingw32 DLLs not in PATH"
-      magenta "Automatically customize ~/.bashrc with the x86_64-mingw32 path + native windows symlinks?"
-      prompt_yes write_cygwin_bashrc true
+      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the x86_64-mingw32 path + native windows symlinks?"
+      prompt_yes write_cygwin_env_dest_file true
     else
       echo "... proper mingw directory seems to be in PATH"
     fi
@@ -324,8 +349,8 @@ MSG
         echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
         tail -n +3 findlib.conf >> findlib.conf.new &&
         mv findlib.conf.new findlib.conf)
-      magenta "Automatically customize ~/.bashrc with the the magic variables you need? [Yn]"
-      prompt_yes write_ocaml_bashrc true
+      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
+      prompt_yes write_ocaml_env_dest_file true
     else
       red "ERROR: no ocaml found in PATH"
       if is_osx; then
@@ -354,8 +379,8 @@ OCAML
     prompt_yes true "exit 1"
     wget $FLEXDLL_URL
     mkdir -p flexdll && cd flexdll && unzip ../$FLEXDLL_NAME.zip && cd ..
-    magenta "Automatically customize ~/.bashrc with the the magic variables you need? [Yn]"
-    prompt_yes write_flexdll_bashrc true
+    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
+    prompt_yes write_flexdll_env_dest_file true
   elif is_windows; then
     echo "... flexdll ok"
   fi
@@ -410,37 +435,58 @@ OCAML
     red "Warning: seems like you're using the OCaml installer for windows"
     echo There is a bug in the installer -- please see \
       https://github.com/protz/ocaml-installer/wiki#configure-your-initial-opam-setup \
-      and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your ~/.bashrc
+      and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your "$EVEREST_ENV_DEST_FILE"
   fi
 
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
-    windows_check_or_modify_bashrc "fsc.exe" "$FS_DIR"
-    windows_check_or_modify_bashrc "nmake.exe" "$VS_BIN"
-    windows_check_or_modify_bashrc "ml64.exe" "$VS_BIN/amd64"
+    windows_check_or_modify_env_dest_file "fsc.exe" "$FS_DIR"
+    windows_check_or_modify_env_dest_file "nmake.exe" "$VS_BIN"
+    windows_check_or_modify_env_dest_file "ml64.exe" "$VS_BIN/amd64"
   else
     success_or "fsharpc" "brew install mono or use your favorite package manager"
   fi
   echo "... fsc found in PATH"
 
-  # The right z3 version
-  if ! which z3 >/dev/null 2>&1 || [[ $(z3 --version | tr -d '\r\n') != "Z3 version $Z3_VERSION - 64 bit" ]]; then
-    red "ERROR: the right version of z3 doesn't seem to be installed"
-    if is_windows; then
-      magenta "Download it from the internet? [Yn]"
-      prompt_yes true "exit 1"
-      wget $Z3_URL
-      unzip $Z3_NAME
-      find $Z3_NAME -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
-      magenta "Automatically customize ~/.bashrc with the z3 path? [Yn]"
-      prompt_yes write_z3_bashrc true
-    else
-      echo "Hint: brew install z3 (OSX), apt-get install z3 (other)"
-      echo "Hint: most recent versions available at https://github.com/Z3Prover/z3/releases/tag/z3-$Z3_VERSION"
-      exit 1
-    fi
+  # Update our clone of FStarLang/binaries and check that we have the blessed z3
+  # version
+  if ! [[ -d fstarlang_binaries ]]; then
+    echo "... cloning FStarLang/binaries"
+    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
   fi
-  echo "... correct z3 version detected"
+  (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
+
+  local current_z3=$(parse_z3_version)
+  echo "... version of z3 found in PATH: $current_z3"
+
+  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
+  if is_windows; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-win.zip
+  elif is_osx; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-osx-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-ubuntu-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  else
+    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  fi
+  local new_z3=$(ls $new_z3_file | sed "$hash_of_filename")
+  echo "... version of z3 found for win-x64 in z3-tested is: $new_z3"
+
+  new_z3_file=$(ls $new_z3_file)
+  if [[ $new_z3 != $current_z3 ]]; then
+    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
+    prompt_yes true "exit 1"
+    echo "... unzipping $new_z3_file"
+    unzip $new_z3_file
+    local new_z3_folder=${new_z3_file%%.zip}
+    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
+    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
+    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
+    prompt_yes "write_z3_env_dest_file $new_z3_folder" true
+  fi
 
   # We need Nuget for Vale
   if ! which nuget >/dev/null 2>&1 ; then
@@ -449,10 +495,11 @@ OCAML
       magenta "Download it from the internet? [Yn]"
       prompt_yes true "exit 1"
       mkdir -p nuget/bin && cd nuget/bin && wget $NUGET_URL && chmod a+x nuget.exe && cd ../..
-      magenta "Automatically customize ~/.bashrc with the nuget path? [Yn]"
-      prompt_yes write_nuget_bashrc true
+      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the nuget path? [Yn]"
+      prompt_yes write_nuget_env_dest_file true
     else
       echo "Hint: brew install nuget (OSX)"
+      echo "Hint: sudo apt-get install nuget (Ubuntu 16.04)"
       echo "Hint: most recent versions available at https://dist.nuget.org"
       exit 1
     fi
@@ -465,26 +512,24 @@ OCAML
       red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
       if prompt_yes true "exit 1"; then
         wget $PYTHON_INSTALL_POINT
-        chmod a+x python-2.7.msi
-        msiexec /i python-2.7.msi /quiet
-        windows_check_or_modify_bashrc "python.exe" "C:\\Python27"
-        source ~/.bashrc
+        chmod a+x python-$PYTHON_VER.msi
+        msiexec /i python-$PYTHON_VER.msi /quiet
+        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27"
       fi
     else
-      echo "... Python 2.7 found"
+      echo "... Python $PYTHON_VER found"
     fi
 
     if ! command -v scons.bat >/dev/null 2>&1; then
       red "ERROR: scons.bat was not found so scons will need to be installed."
-      red "NOTE: scons requires Python 2.7. Choose Python 2.7 in the second page of the scons install wizard."
+      red "NOTE: scons requires Python $PYTHON_VER. Choose Python $PYTHON_VER in the second page of the scons install wizard."
       red "Start the install wizard for scons (Y/n)?"
       if prompt_yes true "exit 1"; then
         wget $SCONS_INSTALL_POINT
         chmod a+x scons-2.5.0-setup.exe
         ./scons-2.5.0-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
         # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
-        windows_check_or_modify_bashrc "scons.bat" "C:\\Python27\\Scripts"
-        source ~/.bashrc
+        windows_check_or_modify_env_dest_file "scons.bat" "C:\\Python27\\Scripts"
       fi
     else
       echo "... scons.bat found in PATH"
@@ -499,14 +544,14 @@ OCAML
   fi
 
   echo
-  magenta "Remember to run source ~/.bashrc if it was modified!"
+  magenta "Remember to run source \"$EVEREST_ENV_DEST_FILE\" if it was modified!"
   local xpwd=""
   if is_windows; then
       xpwd="$(cygpath -m $(pwd))"
   else
       xpwd="$(pwd)"
   fi
-  
+
   magenta "Note: you *may* want to add ${xpwd}/FStar/bin and ${xpwd}/kremlin to your PATH"
   [ -n "${FSTAR_HOME}" ] || \
     magenta "Note: you *may* want to export FSTAR_HOME=${xpwd}/FStar"
@@ -516,16 +561,6 @@ OCAML
     magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
 
-try_git_clone () {
-  if ! git clone $1 $2; then
-    magenta "Proceed with https? [Yn]"
-    prompt_yes true "exit 1"
-    url=$1
-    url=${url/:/\/}
-    url=https://${url#*@}
-    git clone $url $2
-  fi
-}
 
 # The array of all options passed to $0 (--yes, etc.)
 declare -a options
@@ -537,7 +572,7 @@ declare -a remaining_args
 
 self_update () {
   old_revision=$(git rev-parse HEAD)
-  git pull
+  git pull --rebase
   if [[ $(git rev-parse HEAD) != $old_revision ]]; then
     blue "Self-updating to new everest revision $(git rev-parse HEAD | cut -c 1-8)"
     # Now, we transfer execution to the new version of $0
@@ -585,6 +620,20 @@ do_reset ()
     if [[ $(git symbolic-ref HEAD) != $branch ]]; then
       git checkout $branch
     fi
+    # Note: this is not super robust in the face of weird cases like someone
+    # having a local branch named origin/master, in which case [upstream] will
+    # contain "remotes/origin/master"... alternate solution:
+    # local found=false
+    # for b in $(git branch -r --contains $hash | awk '{ print $0; }'); do
+    #   if [[ $upstream == $(git rev-parse --abbrev-ref --symbolic-full-name $b@{u} ]]; then
+    #     found=true
+    #   fi
+    #  done
+    # if ! $found; then
+    #   etc.
+    # fi
+    # Note: the --format option of git branch would be better than awk but a lot of
+    # people are stuck on git 2.8, including cygwin and Azure VMs.
     upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
     if ! git branch -r --contains $hash | egrep "^ +$upstream$" >/dev/null 2>&1; then
       red "ERROR: in repository $r, the hash $hash claims to belong to branch \
@@ -592,6 +641,32 @@ do_reset ()
       exit 1
     fi
     git reset --hard $hash
+    cd ..
+  done
+}
+
+do_merge ()
+{
+  self_update
+  echo Merging working copies
+  for r in ${!repositories[@]}; do
+    echo
+    blue "Pulling and rebasing $r"
+    cd $r
+    git pull --rebase
+    cd ..
+  done
+}
+
+do_forall ()
+{
+  blue "Executing on toplevel"
+  "${remaining_args[@]}"
+  for r in ${!repositories[@]}; do
+    echo
+    blue "Executing in $r"
+    cd $r
+    ${remaining_args[@]}
     cd ..
   done
 }
@@ -862,9 +937,16 @@ COMMAND:
   check     ensure that all the required programs are found in path, install
             them if needed; offer to customize ~/.bashrc with proper env
             variables
+            (destination file ~/.bashrc can be overridden with the
+            EVEREST_ENV_DEST_FILE environment variable)
 
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
+
+  merge     pull all projects, merging and rebasing local changes; does NOT
+            reset to known to be good version, but preserves your changes
+
+  forall    execute command in all git repository directories
 
   reset     pull all projects and move them to the revisions specified by
             hashes.sh
@@ -915,6 +997,20 @@ while true; do
       # new version of $0
       remaining_args=("$@")
       do_pull
+      ;;
+
+    merge)
+      # Save the remaining options (including pull) for calling the
+      # new version of $0
+      remaining_args=("$@")
+      do_merge
+      ;;
+
+    forall)
+      shift
+      remaining_args=("$@")
+      do_forall
+      break
       ;;
 
     reset)

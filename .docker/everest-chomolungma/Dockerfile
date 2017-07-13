@@ -1,9 +1,6 @@
 # The image built from this file is to be named everest-chomolungma, as the "Holy Mother" (Tibetan) of all everest images.
 
-# FIXME: more recent Ubuntu images make nuget fail to validate certificates
-# Revert to xenial once the Ubuntu image is fixed upstream
-# (see https://github.com/tianon/docker-brew-ubuntu-core/issues/86 )
-FROM ubuntu:xenial-20170214
+FROM ubuntu:xenial
 
 LABEL maintainer "Irina Spiridonova <irinasp@microsoft.com>; Darren Gehring <darrenge@microsoft.com>; Tahina Ramananandro <taramana@microsoft.com>"
 # created based on original script from fstar branch writen by Benjamin Beurdouche and Daniel Fabian
@@ -33,6 +30,7 @@ RUN apt-get --yes update
 # pandoc: needed by F* documentation
 # cmake, libtool, automake: needed by hacl-star
 # gcc-6 instead of gcc-5: needed by hacl-star
+# tzdata needed by nuget, or more exactly by mono HTTPS support (cf. https://github.com/tianon/docker-brew-ubuntu-core/issues/86#issuecomment-310269818 )
 RUN until apt-get install --no-install-recommends --yes \
   libssl-dev \
   libsqlite3-dev \
@@ -64,6 +62,7 @@ RUN until apt-get install --no-install-recommends --yes \
   cmake \
   libtool \
   autoconf \
+  tzdata \
  ; do apt-get --yes update ; done
 
 # Create user everest.
@@ -81,20 +80,13 @@ SHELL ["/bin/bash", "--login", "-c"]
 USER everest
 WORKDIR ${MYHOME}
 
-# Install Z3 (do it here for better caching)
-ENV z3v z3-4.5.0
-ENV z3platform x64-ubuntu-14.04
-ENV z3full ${z3v}-${z3platform}
-RUN wget -O z3.zip https://github.com/Z3Prover/z3/releases/download/${z3v}/${z3full}.zip
-RUN mkdir z3
-RUN unzip -uo z3.zip -d z3
-ENV PATH ${MYHOME}/z3/${z3full}/bin:$PATH
+# We no longer install z3 and rely on the everest script to do so
 
 # Enable --yes option for opam
 ENV OPAMYES 1
 
 # Install OCaml
-ENV ocamlv 4.04.0
+ENV ocamlv 4.04.1
 RUN opam init --auto-setup --compiler=${ocamlv}
 
 # Prepare everest repository
@@ -103,7 +95,12 @@ RUN git clone https://github.com/project-everest/everest.git everest
 
 # Install opam packages required by everest (to avoid duplicating the list of opam packages here),
 # then retrieve the latest version
+# Through EVEREST_ENV_DEST_FILE, we make environment changes to .profile
+# (consistently with `opam init --auto-setup` above) instead of .bashrc,
+# so that those changes are always taken into account
+# in login shells, whether they are interactive or not.
 WORKDIR ${MYHOME}/everest
+ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest --yes check pull
 
 # Install all HACL* prerequisites

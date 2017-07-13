@@ -7,3 +7,11 @@ log
 
 test/_build
 test/test.native
+
+flexdll/
+nuget/
+setup.log
+setup.log.full
+z3-4.5.0-x64-win/
+*.zip
+.repo
