@@ -768,7 +768,7 @@ do_make ()
 
   separator
   blue "Rebuilding F*"
-  if ! possibly_log "make -C FStar/src/ocaml-output $parallel_opt" "fstar"; then
+  if ! possibly_log "make -C FStar/src/ocaml-output $parallel_opt -k" "fstar"; then
     failed="$failed  FStar\n"
   fi
   separator
@@ -776,7 +776,7 @@ do_make ()
 
   separator
   blue "Rebuilding KreMLin"
-  if ! possibly_log "make -C kremlin $parallel_opt" "kremlin"; then
+  if ! possibly_log "make -C kremlin $parallel_opt -k" "kremlin"; then
     failed="$failed  KreMLin\n"
   fi
   separator
@@ -784,7 +784,7 @@ do_make ()
 
   separator
   blue "Rebuilding HACL*"
-  if ! possibly_log "make -C hacl-star/code extract-c $parallel_opt" "hacl"; then
+  if ! possibly_log "make -C hacl-star/code extract-c $parallel_opt -k" "hacl"; then
     failed="$failed  HACL*\n"
   fi
   separator
@@ -802,7 +802,7 @@ do_make ()
   blue "Rebuilding F* / CoreCrypto"
   echo -n "Using git: "
   which git
-  if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt" "fstar-corecrypto"; then
+  if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k" "fstar-corecrypto"; then
     failed="$failed  CoreCrypto\n"
   fi
   separator
@@ -814,7 +814,7 @@ do_make ()
   which git
   # NOTE: here, parallelism MUST BE disabled, because
   # building test-perf.exe needs objects produced by running krml-test.exe
-  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe" "krml-test"; then
+  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe -k" "krml-test"; then
     failed="$failed krml-test\n"
   fi
   separator
@@ -822,7 +822,7 @@ do_make ()
 
   separator
   blue "Rebuilding miTLS"
-  if ! possibly_log "make -C mitls-fstar/src/tls $parallel_opt build" "mitls-exe"; then
+  if ! possibly_log "make -C mitls-fstar/src/tls $parallel_opt build -k" "mitls-exe"; then
     failed="$failed miTLS\n"
   fi
   separator
@@ -862,12 +862,12 @@ do_verify () {
 
   separator
   blue "Running verification for: miTLS"
-  make -C mitls-fstar/src/tls verify $parallel_opt
+  make -C mitls-fstar/src/tls verify $parallel_opt -k
   separator
 
   separator
   blue "Running everything for: HACL*"
-  make -C hacl-star/test $parallel_opt
+  make -C hacl-star/test $parallel_opt -k
   separator
 }
 
