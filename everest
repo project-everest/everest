@@ -31,7 +31,7 @@ fi
 FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 PYTHON_VER=2.7.13
 PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
-SCONS_INSTALL_POINT=http://prdownloads.sourceforge.net/scons/scons-2.5.0-setup.exe
+SCONS_INSTALL_POINT=https://downloads.sourceforge.net/project/scons/scons/2.5.1/scons-2.5.1-amd64-setup.exe
 
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
@@ -126,7 +126,8 @@ windows_check_or_modify_env_dest_file () {
       echo Hint: it looks like some VS2015 components are missing. We need \
         VS2015, including the C++ components. You can run the VS2015 installer \
         and choose a custom setup, to ensure you have both F# and the C++ \
-        components.
+        components. Download it from: \
+	https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
       exit 1
     fi
   fi
@@ -508,13 +509,13 @@ OCAML
 
   # We need Scons for Vale which needs Python 2.7
   if is_windows; then
-    if ! [ -d "/cygdrive/c/Python27" ]; then
+    if ! [ -d "/cygdrive/c/Python27amd64" ]; then
       red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
       if prompt_yes true "exit 1"; then
         wget $PYTHON_INSTALL_POINT
-        chmod a+x python-$PYTHON_VER.msi
-        msiexec /i python-$PYTHON_VER.msi /quiet
-        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27"
+        chmod a+x python-$PYTHON_VER.amd64.msi
+        msiexec /i python-$PYTHON_VER.amd64.msi /quiet
+        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27amd64"
       fi
     else
       echo "... Python $PYTHON_VER found"
@@ -526,8 +527,8 @@ OCAML
       red "Start the install wizard for scons (Y/n)?"
       if prompt_yes true "exit 1"; then
         wget $SCONS_INSTALL_POINT
-        chmod a+x scons-2.5.0-setup.exe
-        ./scons-2.5.0-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
+        chmod a+x scons-2.5.1-amd64-setup.exe
+        ./scons-2.5.1-amd64-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
         # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
         windows_check_or_modify_env_dest_file "scons.bat" "C:\\Python27\\Scripts"
       fi
