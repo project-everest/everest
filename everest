@@ -49,9 +49,9 @@ make_non_interactive () {
 unset parallel_opt
 
 # The file where to store customized environment variables
-# (default is $HOME/.bashrc)
+# (default is $HOME/.bash_profile)
 if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
-  EVEREST_ENV_DEST_FILE="$HOME/.bashrc"
+  EVEREST_ENV_DEST_FILE="$HOME/.bash_profile"
 fi
 
 # The whole script makes the assumption that we're in the everest directory;
@@ -935,9 +935,9 @@ OPTION:
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
-            them if needed; offer to customize ~/.bashrc with proper env
+            them if needed; offer to customize ~/.bash_profile with proper env
             variables
-            (destination file ~/.bashrc can be overridden with the
+            (destination file ~/.bash_profile can be overridden with the
             EVEREST_ENV_DEST_FILE environment variable)
 
   pull      self-update the everest repository (i.e. the script and
