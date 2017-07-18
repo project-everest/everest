@@ -672,11 +672,7 @@ do_forall ()
 }
 
 run_nuget () {
-  # This function is called in a subshell in a test context (via possibly_log)
-  # which means that -e is not inherited. Explicit failures here.
-  cmd=$1
-  nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc $cmd
-
+  nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc
 }
 
 # OS-independent scons. Passes $1 to scons.
