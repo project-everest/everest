@@ -508,14 +508,24 @@ OCAML
   echo "... nuget found in PATH"
 
   # We need Scons for Vale which needs Python 2.7
+  #
+  # What we really should do instead of checking for a directory name is looking at the
+  # registry. These are the four possible values:
+  #
+  # regtool get \HKLM\Software\Python\PythonCore\2.7\InstallPath\
+  # regtool get \HKCU\Software\Python\PythonCore\2.7\InstallPath\
+  # regtool get \HKLM\Software\WOW6432Node\Python\PythonCore\2.7\InstallPath\
+  # regtool get \HKCU\Software\WOW6432Node\Python\PythonCore\2.7\InstallPath\
+  #
+  #
   if is_windows; then
-    if ! [ -d "/cygdrive/c/Python27amd64" ]; then
+    if ! [ -d "/cygdrive/c/Python27" ]; then
       red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
       if prompt_yes true "exit 1"; then
         wget $PYTHON_INSTALL_POINT
         chmod a+x python-$PYTHON_VER.amd64.msi
         msiexec /i python-$PYTHON_VER.amd64.msi /quiet
-        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27amd64"
+        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27"
       fi
     else
       echo "... Python $PYTHON_VER found"
