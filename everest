@@ -726,7 +726,17 @@ build_vale () {
   # Import fresh crypto from Vale into F*
   cd FStar
   make -C examples/low-level/spartan_aes import || return 1
-  if ! git diff --exit-code; then
+  # Ignore other changes (e.g. submodules)
+  if ! git diff --exit-code examples/low-level/spartan_aes ; then
+    magenta "New assemblies from Vale, diff is above"
+  fi
+  cd ..
+
+  # Import fresh crypto from Vale into HACL*
+  cd hacl-star
+  make -C secure_api/vale/asm import || return 1
+  # Ignore other changes (e.g. submodules)
+  if ! git diff --exit-code secure_api/vale/asm ; then
     magenta "New assemblies from Vale, diff is above"
   fi
   cd ..
