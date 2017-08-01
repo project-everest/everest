@@ -819,17 +819,18 @@ do_make ()
   separator
   echo -e "\n\n"
 
-  separator
-  blue "Building mixed C/ASM Crypto"
-  echo -n "Using git: "
-  which git
-  # NOTE: here, parallelism MUST BE disabled, because
-  # building test-perf.exe needs objects produced by running krml-test.exe
-  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe -k" "krml-test"; then
-    failed="$failed krml-test\n"
-  fi
-  separator
-  echo -e "\n\n"
+  # TR: disable this for now
+  # separator
+  # blue "Building mixed C/ASM Crypto"
+  # echo -n "Using git: "
+  # which git
+  # # NOTE: here, parallelism MUST BE disabled, because
+  # # building test-perf.exe needs objects produced by running krml-test.exe
+  # if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe -k" "krml-test"; then
+  #   failed="$failed krml-test\n"
+  # fi
+  # separator
+  # echo -e "\n\n"
 
   separator
   blue "Rebuilding miTLS"
