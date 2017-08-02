@@ -855,8 +855,9 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
-  FStar/examples/low-level/krml-test.exe
-  FStar/examples/low-level/test-perf.exe
+  # TR: Disable those tests for now.
+  # FStar/examples/low-level/krml-test.exe
+  # FStar/examples/low-level/test-perf.exe
   # These tests assume the current working directory is src/tls
   (cd mitls-fstar/src/tls && make $parallel_opt test)
   set +x
