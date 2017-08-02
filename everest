@@ -32,6 +32,7 @@ FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 PYTHON_VER=2.7.13
 PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
 SCONS_INSTALL_POINT=https://downloads.sourceforge.net/project/scons/scons/2.5.1/scons-2.5.1-amd64-setup.exe
+SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
 
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
@@ -229,9 +230,9 @@ parse_z3_version () {
   else
     local z3_version=$(z3 --version)
     if echo $z3_version | grep hashcode >/dev/null 2>&1; then
-      z3 --version | sed 's/.*build hashcode \(.*\)/\1/' | tr -d '\r'
+      z3 --version | $SED 's/.*build hashcode \(.*\)/\1/' | tr -d '\r'
     else
-      z3 --version | sed 's/Z3 version \([0-9\.]\+\).*/\1/'
+      z3 --version | $SED 's/Z3 version \([0-9\.]\+\).*/\1/'
     fi
   fi
 }
@@ -474,8 +475,8 @@ OCAML
     red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
     local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
   fi
-  local new_z3=$(ls $new_z3_file | sed "$hash_of_filename")
-  echo "... version of z3 found for win-x64 in z3-tested is: $new_z3"
+  local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
+  echo "... version of z3 found in z3-tested is: $new_z3"
 
   new_z3_file=$(ls $new_z3_file)
   if [[ $new_z3 != $current_z3 ]]; then
