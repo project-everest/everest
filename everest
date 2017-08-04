@@ -1039,7 +1039,9 @@ while true; do
       ;;
 
     verify)
-      do_verify
+#      Disable verification for now
+#      do_verify
+       true
       ;;
 
     test)
