@@ -890,12 +890,16 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 [OPTIONS] COMMANDS
+USAGE: $0 [OPTIONS] [PROJECT] COMMANDS
 
 OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
 
   -j n      Set max number of parallel jobs to n (default 1)
+
+PROJECT:
+  restrict the subsequent commands to operate on one of the following:
+    FStar kremlin mitls-fstar hacl-star vale
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
