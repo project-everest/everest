@@ -607,7 +607,7 @@ do_pull () {
 do_reset ()
 {
   warned=false
-  for r in "$ALL_PROJECTS"; do
+  for r in $ALL_PROJECTS; do
     echo
     blue "Pulling $r"
     # Some sanity checks, and clone the repositories that aren't there already
@@ -665,7 +665,7 @@ do_merge ()
 {
   self_update
   echo Merging working copies
-  for r in "$ALL_PROJECTS"; do
+  for r in $ALL_PROJECTS; do
     echo
     blue "Pulling and rebasing $r"
     cd $r
@@ -781,7 +781,7 @@ do_make ()
   build_commands[vale]="build_vale"
   build_comamnds[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
-  for p in "$ALL_PROJECTS"; do
+  for p in $ALL_PROJECTS; do
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
