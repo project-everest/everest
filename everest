@@ -592,7 +592,7 @@ self_update () {
     blue "Self-updating to new everest revision $(git rev-parse HEAD | cut -c 1-8)"
     # Now, we transfer execution to the new version of $0
     cd "$initial_pwd"
-    exec "$0" "${options[@]}" "${remaining_args[@]}"
+    exec "${@/pull/}"
   else
     echo "No new everest revision available"
   fi
@@ -961,22 +961,15 @@ while true; do
       ;;
 
     pull)
-      # Save the remaining options (including pull) for calling the
-      # new version of $0
-      remaining_args=("$@")
       do_pull
       ;;
 
     merge)
-      # Save the remaining options (including pull) for calling the
-      # new version of $0
-      remaining_args=("$@")
       do_merge
       ;;
 
     forall)
       shift
-      remaining_args=("$@")
       do_forall
       break
       ;;
