@@ -755,6 +755,7 @@ separator () {
 
 build_fstar () {
   make -C FStar/src/ocaml-output $parallel_opt -k && \
+  make -C FStar/ulib/ml $parallel_opt -k && \
   make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k && \
   make -C FStar/examples/low-level krml-test.exe test-perf.exe -k
 }
