@@ -691,9 +691,9 @@ run_scons () {
     VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
     DIR=$(cygpath -d "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd"
+    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd $parallel_opt"
   else
-    scons -C vale $cmd
+    scons -C vale $cmd $parallel_opt
   fi
 }
 
@@ -703,7 +703,7 @@ build_vale () {
   # This function is called in a subshell in a test context (via possibly_log)
   # which means that -e is not inherited. Explicit failures here via || return.
   run_nuget || return 1
-  run_scons "$parallel_opt --NOVERIFY" || return 1
+  run_scons "--NOVERIFY" || return 1
 
   # Import fresh crypto from Vale into F*
   cd FStar
@@ -775,6 +775,9 @@ do_make ()
 
   # Order matters.
   for p in kremlin FStar hacl-star vale mitls-fstar; do
+    if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
+      continue
+    fi
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
@@ -811,21 +814,19 @@ do_test () {
 do_verify () {
   setup_env
 
-  separator
-  blue "Running verification for: Vale"
-  # NOTE: all arguments to be passed to scons must appear as one single word here
-  run_scons "$parallel_opt"
-  separator
+  declare -A verify_commands
+  verify_commands[FStar]="make -C FStar/ulib"
+  verify_commands[kremlin]="echo nothing to verify for kremlin"
+  verify_commands[hacl-star]="make -C hacl-star/test $parallel_opt -k"
+  verify_commands[vale]="run_scons"
+  verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
 
-  separator
-  blue "Running verification for: miTLS"
-  make -C mitls-fstar/src/tls verify $parallel_opt -k
-  separator
-
-  separator
-  blue "Running everything for: HACL*"
-  make -C hacl-star/test $parallel_opt -k
-  separator
+  for p in $ALL_PROJECTS; do
+    separator
+    blue "Running verification for: $p"
+    ${verify_commands[$p]}
+    separator
+  done
 }
 
 do_clean ()
