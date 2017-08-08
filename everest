@@ -89,6 +89,8 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
+# May be overridden to include a single project
+ALL_PROJECTS="${!repositories[@]}"
 
 # ------------------------------------------------------------------------------
 # A series of helpers
@@ -214,13 +216,13 @@ install_all_opam_packages () {
 }
 
 try_git_clone () {
-  if ! git clone $1 $2; then
+  if ! git clone --recursive $1 $2; then
     magenta "Proceed with https? [Yn]"
     prompt_yes true "exit 1"
     url=$1
     url=${url/:/\/}
     url=https://${url#*@}
-    git clone $url $2
+    git clone --recursive $url $2
   fi
 }
 
@@ -574,15 +576,6 @@ OCAML
     magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
 
-
-# The array of all options passed to $0 (--yes, etc.)
-declare -a options
-
-# The array of remaining arguments starting from 'pull'.  Necessary
-# because self_update will actually transfer execution to the
-# potentially new version of the everest script
-declare -a remaining_args
-
 self_update () {
   old_revision=$(git rev-parse HEAD)
   git pull --rebase
@@ -590,7 +583,7 @@ self_update () {
     blue "Self-updating to new everest revision $(git rev-parse HEAD | cut -c 1-8)"
     # Now, we transfer execution to the new version of $0
     cd "$initial_pwd"
-    exec "$0" "${options[@]}" "${remaining_args[@]}"
+    exec "${@/pull/}"
   else
     echo "No new everest revision available"
   fi
@@ -605,7 +598,7 @@ do_pull () {
 do_reset ()
 {
   warned=false
-  for r in ${!repositories[@]}; do
+  for r in $ALL_PROJECTS; do
     echo
     blue "Pulling $r"
     # Some sanity checks, and clone the repositories that aren't there already
@@ -654,6 +647,7 @@ do_reset ()
       exit 1
     fi
     git reset --hard $hash
+    git submodule update --init
     cd ..
   done
 }
@@ -661,8 +655,8 @@ do_reset ()
 do_merge ()
 {
   self_update
-  echo Merging working copies
-  for r in ${!repositories[@]}; do
+  blue "Merging working copies"
+  for r in $ALL_PROJECTS; do
     echo
     blue "Pulling and rebasing $r"
     cd $r
@@ -674,12 +668,12 @@ do_merge ()
 do_forall ()
 {
   blue "Executing on toplevel"
-  "${remaining_args[@]}"
+  "$@"
   for r in ${!repositories[@]}; do
     echo
     blue "Executing in $r"
     cd $r
-    ${remaining_args[@]}
+    "$@"
     cd ..
   done
 }
@@ -726,20 +720,6 @@ clean_vale () {
   run_scons "--clean"
 }
 
-possibly_log () {
-  echo "Running $1"
-  cmd=$1
-  log_file=$2
-  if $INTERACTIVE; then
-    # As far as I understand, the "pipefail" option is inherited, so this
-    # line, even though run inside of a subshell (because of the "if"), will
-    # correctly fail
-    $cmd | count "log/$log_file"
-  else
-    $cmd
-  fi
-}
-
 setup_env () {
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
@@ -773,73 +753,37 @@ separator () {
   echo "================================================================================"
 }
 
+build_fstar () {
+  make -C FStar/src/ocaml-output $parallel_opt -k && \
+  make -C FStar/ulib/ml $parallel_opt -k && \
+  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k && \
+  make -C FStar/examples/low-level krml-test.exe test-perf.exe -k
+}
+
 do_make ()
 {
   setup_env
   failed=""
   mkdir -p log
 
-  separator
-  blue "Rebuilding F*"
-  if ! possibly_log "make -C FStar/src/ocaml-output $parallel_opt -k" "fstar"; then
-    failed="$failed  FStar\n"
-  fi
-  separator
-  echo -e "\n\n"
+  declare -A build_commands
+  build_commands[FStar]="build_fstar"
+  build_commands[kremlin]="make -C kremlin $parallel_opt -k"
+  build_commands[hacl-star]="make -C hacl-star/code extract-c $parallel_opt -k"
+  build_commands[vale]="build_vale"
+  build_comamnds[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
-  separator
-  blue "Rebuilding KreMLin"
-  if ! possibly_log "make -C kremlin $parallel_opt -k" "kremlin"; then
-    failed="$failed  KreMLin\n"
-  fi
-  separator
-  echo -e "\n\n"
-
-  separator
-  blue "Rebuilding HACL*"
-  if ! possibly_log "make -C hacl-star/code extract-c $parallel_opt -k" "hacl"; then
-    failed="$failed  HACL*\n"
-  fi
-  separator
-  echo -e "\n\n"
-
-  separator
-  blue "Rebuilding Vale"
-  if ! possibly_log "build_vale" "vale"; then
-    failed="$failed  Vale\n"
-  fi
-  separator
-  echo -e "\n\n"
-
-  separator
-  blue "Rebuilding F* / CoreCrypto"
-  echo -n "Using git: "
-  which git
-  if ! possibly_log "make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k" "fstar-corecrypto"; then
-    failed="$failed  CoreCrypto\n"
-  fi
-  separator
-  echo -e "\n\n"
-
-  separator
-  blue "Building mixed C/ASM Crypto"
-  echo -n "Using git: "
-  which git
-  # NOTE: here, parallelism MUST BE disabled, because
-  # building test-perf.exe needs objects produced by running krml-test.exe
-  if ! possibly_log "make -C FStar/examples/low-level krml-test.exe test-perf.exe -k" "krml-test"; then
-    failed="$failed krml-test\n"
-  fi
-  separator
-  echo -e "\n\n"
-
-  separator
-  blue "Rebuilding miTLS"
-  if ! possibly_log "make -C mitls-fstar/src/tls $parallel_opt build -k" "mitls-exe"; then
-    failed="$failed miTLS\n"
-  fi
-  separator
-  echo -e "\n\n"
+  # Order matters.
+  for p in kremlin FStar hacl-star vale mitls-fstar; do
+    separator
+    blue "Rebuilding $p"
+    blue "Running: ${build_commands[$p]}"
+    if ! ${build_commands[$p]}; then
+      failed="$failed  $p\n"
+    fi
+    separator
+    echo -e "\n\n"
+  done
 
   if [[ $failed != "" ]]; then
     red "ERROR: build failed for one or more projects"
@@ -939,12 +883,16 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 [OPTIONS] COMMANDS
+USAGE: $0 [OPTIONS] [PROJECT] COMMANDS
 
 OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
 
   -j n      Set max number of parallel jobs to n (default 1)
+
+PROJECT:
+  restrict the subsequent commands to operate on one of the following:
+    FStar kremlin mitls-fstar hacl-star vale
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -987,9 +935,6 @@ fi
 while true; do
   case "$1" in
     --yes)
-      # Save the option so that it can be used by $0 pull once calling
-      # the new version of $0
-      options=("${options[@]}" "$1")
       make_non_interactive
       ;;
 
@@ -997,7 +942,6 @@ while true; do
       # The -j option is in two parts: -j n, where n is the parallel factor
       # (max number of parallel jobs)
       shift
-      options=("${options[@]}" "-j" "$1")
       parallel_opt="-j $1"
       ;;
 
@@ -1006,24 +950,21 @@ while true; do
       ;;
 
     pull)
-      # Save the remaining options (including pull) for calling the
-      # new version of $0
-      remaining_args=("$@")
       do_pull
       ;;
 
     merge)
-      # Save the remaining options (including pull) for calling the
-      # new version of $0
-      remaining_args=("$@")
       do_merge
       ;;
 
     forall)
       shift
-      remaining_args=("$@")
-      do_forall
+      do_forall "$@"
       break
+      ;;
+
+    vale|FStar|mitls-fstar|kremlin|hacl-star)
+      ALL_PROJECTS=$1
       ;;
 
     reset)
