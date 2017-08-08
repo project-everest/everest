@@ -664,7 +664,7 @@ do_reset ()
 do_merge ()
 {
   self_update
-  echo Merging working copies
+  blue "Merging working copies"
   for r in $ALL_PROJECTS; do
     echo
     blue "Pulling and rebasing $r"
