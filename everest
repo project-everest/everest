@@ -957,7 +957,7 @@ while true; do
 
     forall)
       shift
-      do_forall
+      do_forall "$@"
       break
       ;;
 
