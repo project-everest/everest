@@ -576,15 +576,6 @@ OCAML
     magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
 
-
-# The array of all options passed to $0 (--yes, etc.)
-declare -a options
-
-# The array of remaining arguments starting from 'pull'.  Necessary
-# because self_update will actually transfer execution to the
-# potentially new version of the everest script
-declare -a remaining_args
-
 self_update () {
   old_revision=$(git rev-parse HEAD)
   git pull --rebase
@@ -677,12 +668,12 @@ do_merge ()
 do_forall ()
 {
   blue "Executing on toplevel"
-  "${remaining_args[@]}"
+  "$@"
   for r in ${!repositories[@]}; do
     echo
     blue "Executing in $r"
     cd $r
-    ${remaining_args[@]}
+    "$@"
     cd ..
   done
 }
@@ -942,9 +933,6 @@ fi
 while true; do
   case "$1" in
     --yes)
-      # Save the option so that it can be used by $0 pull once calling
-      # the new version of $0
-      options=("${options[@]}" "$1")
       make_non_interactive
       ;;
 
@@ -952,7 +940,6 @@ while true; do
       # The -j option is in two parts: -j n, where n is the parallel factor
       # (max number of parallel jobs)
       shift
-      options=("${options[@]}" "-j" "$1")
       parallel_opt="-j $1"
       ;;
 
