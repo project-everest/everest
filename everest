@@ -180,6 +180,19 @@ write_cygwin_env_dest_file () {
   write_to_env_dest_file "$str"
 }
 
+write_everest_env_dest_file () {
+  if is_windows; then
+    str="
+    # These lines automatically added by $0
+    export EVEREST_SCONS_CACHE_DIR=$(cygpath -m \"$TEMP\"/everest)"
+  else
+    str="
+    # These lines automatically added by $0
+    export EVEREST_SCONS_CACHE_DIR=/tmp/everest"
+  fi
+  write_to_env_dest_file "$str"
+}
+
 cygsetup="setup-x86_64.exe"
 cygsetup_args="--no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode"
 # Find Cygwin's setup utility, or download it from the internet.
@@ -556,6 +569,11 @@ OCAML
     else
       echo "... scons found in PATH"
     fi
+  fi
+
+  if [[ -z "$EVEREST_SCONS_CACHE_DIR" ]]; then
+    echo "Warning: Scons cache directory not set. Set it?"
+    prompt_yes write_everest_env_dest_file true
   fi
 
   echo
