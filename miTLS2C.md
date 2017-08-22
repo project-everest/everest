@@ -17,18 +17,19 @@ cd FStar; make -C src/ocaml-output; cd ..
 cd Kremlin; make; cd ..
 ```
 
-Once you have both Kremlin and F* you can try to extract miTLS. There is a new target for Kremlin output
-which can be invoked with the following command.
+Once you have both Kremlin and F* you can try to extract miTLS. There is a new target for Kremlin 
+output which can be invoked with the following command.
 
 ```
 cd mitls-fstar
 make -C src/tls kremlin
 ```
 
-After this target succeeds (if it does) you should have a new output directory populated with the generated C code, `$EVEREST_HOME/mitls-fstar/src/tls/krml_output`. This code is not correct yet,
-and will not compile with a C compiler.
+After this target succeeds (if it does) you should have the `$EVEREST_HOME/mitls-fstar/src/tls/krml_output` 
+output directory populated with generated C code, `$EVEREST_HOME/mitls-fstar/src/tls/krml_output`. 
+The generate code is not yet correct, and will not compile when passed to a C compiler.
 
-The current plan forward is to categorize the remaining issues, fixing F*, Kremlin and miTLS as needed.
-Hopefully in a few weeks the generated code can at least be compiled, and we can begin testing it.
+The forward path is to categorize remaining issues, fixing F*, Kremlin and miTLS as needed.
+Hopefully in a few weeks the generated code can at be compiled, and we can begin testing it and improving it.
 
-These instructions will serve as place to post tips and tricks for hacking on the porting effort.
+These instructions will serve as the home for tips and tricks for hacking on the miTLS2c porting effort.
