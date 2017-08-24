@@ -33,3 +33,7 @@ The forward path is to categorize remaining issues, fixing F*, Kremlin and miTLS
 Hopefully in a few weeks the generated code can at be compiled, and we can begin testing it and improving it.
 
 These instructions will serve as the home for tips and tricks for hacking on the miTLS2c porting effort.
+
+# Common Issues 
+Ensure the versions of Kremlin and FStar on your `PATH` are the ones from the `everest` snapshot.
+You should make sure that `FSTAR_HOME` and `KRML_HOME` both point to those versions for the time being.
