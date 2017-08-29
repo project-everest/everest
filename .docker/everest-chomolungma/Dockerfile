@@ -16,9 +16,13 @@ RUN echo "Acquire::Retries \"16\";" > /etc/apt/apt.conf.d/99acquire-retries
 RUN apt-get --yes update
 
 # Configure new PPA for gcc-6
-RUN apt-get install --no-install-recommends --yes software-properties-common
+RUN apt-get install --no-install-recommends --yes software-properties-common curl
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test
 RUN apt-get --yes update
+
+# Configure repository for node.js 6.x LTS
+# from: https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 
 # Install required packages
 # Do not install recommended packages, so as not to install OCaml here, thus guaranteeing that the only OCaml will be the one compiled by opam init later
@@ -31,6 +35,7 @@ RUN apt-get --yes update
 # cmake, libtool, automake: needed by hacl-star
 # gcc-6 instead of gcc-5: needed by hacl-star
 # tzdata needed by nuget, or more exactly by mono HTTPS support (cf. https://github.com/tianon/docker-brew-ubuntu-core/issues/86#issuecomment-310269818 )
+# nodejs needed by madoko
 RUN until apt-get install --no-install-recommends --yes \
   libssl-dev \
   libsqlite3-dev \
@@ -63,7 +68,11 @@ RUN until apt-get install --no-install-recommends --yes \
   libtool \
   autoconf \
   tzdata \
+  nodejs \
  ; do apt-get --yes update ; done
+
+# Install madoko (for the F* tutorial)
+RUN npm install madoko -g
 
 # Create user everest.
 # We define a home directory by ourselves, because there is no way to have the HOME variable caught by WORKDIR.
