@@ -833,7 +833,7 @@ do_verify () {
   setup_env
 
   declare -A verify_commands
-  verify_commands[FStar]="make -C FStar/ulib"
+  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star/test $parallel_opt -k"
   verify_commands[vale]="run_scons"
