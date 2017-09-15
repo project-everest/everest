@@ -774,8 +774,7 @@ separator () {
 build_fstar () {
   make -C FStar/src/ocaml-output $parallel_opt -k && \
   make -C FStar/ulib/ml $parallel_opt -k && \
-  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k && \
-  make -C FStar/examples/low-level krml-test.exe test-perf.exe -k
+  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k
 }
 
 do_make ()
@@ -787,9 +786,9 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="make -C kremlin $parallel_opt -k"
-  build_commands[hacl-star]="make -C hacl-star/code extract-c $parallel_opt -k"
+  build_commands[hacl-star]="make -C hacl-star/test extract-c $parallel_opt -k"
   build_commands[vale]="build_vale"
-  build_comamnds[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
+  build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
   # Order matters.
   for p in kremlin FStar hacl-star vale mitls-fstar; do
@@ -821,8 +820,8 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
-  FStar/examples/low-level/krml-test.exe
-  FStar/examples/low-level/test-perf.exe
+  hacl-star/secure_api/krml-test-hacl.exe
+  hacl-star/secure_api/krml-test-vale.exe
   # These tests assume the current working directory is src/tls
   (cd mitls-fstar/src/tls && make $parallel_opt test)
   set +x
