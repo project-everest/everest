@@ -642,7 +642,7 @@ do_reset ()
     hash=${hashes[$r]}
     branch=${branches[$r]}
     if [[ $(git symbolic-ref HEAD) != $branch ]]; then
-      git checkout $branch
+      git checkout -f $branch
     fi
     # Note: this is not super robust in the face of weird cases like someone
     # having a local branch named origin/master, in which case [upstream] will
