@@ -786,7 +786,7 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="make -C kremlin $parallel_opt -k"
-  build_commands[hacl-star]="make -C hacl-star/test extract-c $parallel_opt -k"
+  build_commands[hacl-star]="make -C hacl-star $parallel_opt -k extract-specs extract-all build-make"
   build_commands[vale]="build_vale"
   build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
@@ -820,6 +820,7 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
+  make -C hacl-star test-all package -k
   hacl-star/secure_api/krml-test-hacl.exe
   hacl-star/secure_api/krml-test-vale.exe
   # These tests assume the current working directory is src/tls
@@ -834,7 +835,7 @@ do_verify () {
   declare -A verify_commands
   verify_commands[FStar]="make -C FStar/src ulong $parallel_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
-  verify_commands[hacl-star]="make -C hacl-star/test $parallel_opt -k"
+  verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
   verify_commands[vale]="run_scons"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
 
