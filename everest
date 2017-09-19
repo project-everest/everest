@@ -777,6 +777,12 @@ build_fstar () {
   make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k
 }
 
+build_hacl () {
+  # HACL* Makefile does not encode ependencies properly.
+  make -C hacl-star $parallel_opt -k extract-specs extract-all && \
+  make -C hacl-star $parallel_opt -k build-make
+}
+
 do_make ()
 {
   setup_env
@@ -786,7 +792,7 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="make -C kremlin $parallel_opt -k"
-  build_commands[hacl-star]="make -C hacl-star $parallel_opt -k extract-specs extract-all build-make"
+  build_commands[hacl-star]="build_hacl"
   build_commands[vale]="build_vale"
   build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
