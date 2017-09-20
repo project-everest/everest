@@ -807,7 +807,7 @@ do_make ()
   build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
   # Order matters.
-  for p in kremlin FStar hacl-star vale mitls-fstar; do
+  for p in kremlin FStar vale hacl-star mitls-fstar; do
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
     fi
