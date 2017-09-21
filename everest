@@ -642,7 +642,7 @@ do_reset ()
     hash=${hashes[$r]}
     branch=${branches[$r]}
     if [[ $(git symbolic-ref HEAD) != $branch ]]; then
-      git checkout $branch
+      git checkout -f $branch
     fi
     # Note: this is not super robust in the face of weird cases like someone
     # having a local branch named origin/master, in which case [upstream] will
@@ -774,8 +774,13 @@ separator () {
 build_fstar () {
   make -C FStar/src/ocaml-output $parallel_opt -k && \
   make -C FStar/ulib/ml $parallel_opt -k && \
-  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k && \
-  make -C FStar/examples/low-level krml-test.exe test-perf.exe -k
+  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k
+}
+
+build_hacl () {
+  # HACL* Makefile does not encode ependencies properly.
+  make -C hacl-star $parallel_opt -k extract-specs extract-all && \
+  make -C hacl-star $parallel_opt -k build-make
 }
 
 do_make ()
@@ -787,9 +792,9 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="make -C kremlin $parallel_opt -k"
-  build_commands[hacl-star]="make -C hacl-star/code extract-c $parallel_opt -k"
+  build_commands[hacl-star]="build_hacl"
   build_commands[vale]="build_vale"
-  build_comamnds[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
+  build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
   # Order matters.
   for p in kremlin FStar hacl-star vale mitls-fstar; do
@@ -821,8 +826,9 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
-  FStar/examples/low-level/krml-test.exe
-  FStar/examples/low-level/test-perf.exe
+  make -C hacl-star test-all package -k
+  hacl-star/secure_api/krml-test-hacl.exe
+  hacl-star/secure_api/krml-test-vale.exe
   # These tests assume the current working directory is src/tls
   (cd mitls-fstar/src/tls && make $parallel_opt test)
   set +x
@@ -835,7 +841,7 @@ do_verify () {
   declare -A verify_commands
   verify_commands[FStar]="make -C FStar/src ulong $parallel_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
-  verify_commands[hacl-star]="make -C hacl-star/test $parallel_opt -k"
+  verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
   verify_commands[vale]="run_scons"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
 
