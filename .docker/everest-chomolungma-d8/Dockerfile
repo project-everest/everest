@@ -10,7 +10,8 @@ WORKDIR ${MYHOME}
 RUN git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 # Note: depot_tools has a bug in their latest version... revert to the last
 # known good version.
-RUN cd depot_tools && git reset --hard 6db8ac71
+# Note: this bug seems to have been fixed as of 2017-10-17
+RUN cd depot_tools && git reset --hard HEAD
 ENV DEPOT_TOOLS_UPDATE 0
 RUN echo "export PATH=$(pwd)/depot_tools:\$PATH" >> ${MYHOME}/.profile
 RUN gclient
