@@ -8,5 +8,5 @@ hashes[FStar]=39e78bce667b434d039d6fe0de7165393af0d532
 branches[FStar]=stable
 hashes[hacl-star]=528a404ede9ff017edc5d0707e752bc648402350
 branches[hacl-star]=master
-hashes[kremlin]=b109139e96a291909da89fa2b63759da2e98494d
+hashes[kremlin]=ffd0ded8b0d4e4d471acee82c71bf4d5086ff33b
 branches[kremlin]=master
