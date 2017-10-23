@@ -18,17 +18,6 @@ OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2
 FLEXDLL_NAME=flexdll-bin-0.35
 FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
-VS_BIN=
-if [[ -v VS140COMNTOOLS ]]; then
-  VS_BIN="$VS140COMNTOOLS"/../../VC/bin
-elif [[ -v VS120COMNTOOLS ]]; then
-  VS_BIN="$VS120COMNTOOLS"/../../VC/bin
-elif [[ -v VS110COMNTOOLS ]]; then
-  VS_BIN="$VS110COMNTOOLS"/../../VC/bin
-else
-  VS_BIN=
-fi
-FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 PYTHON_VER=2.7.13
 PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
 SCONS_INSTALL_POINT=https://downloads.sourceforge.net/project/scons/scons/2.5.1/scons-2.5.1-amd64-setup.exe
@@ -89,6 +78,38 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
+# Windows only: path to Visual Studio's vcvarsall.bat
+if is_windows ; then
+    VS_BIN=
+    # Starting from Visual Studio 2017, version 15.2 or later,
+    # we can determine the location of a VS install
+    # using vswhere.exe, see:
+    # https://docs.microsoft.com/en-us/visualstudio/extensibility/locating-visual-studio
+    if
+        VSWHERE_WINDOWS="`cmd.exe /C 'echo %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe' | sed 's!\r!!g'`" &&
+        VSWHERE=$(cygpath -u "$VSWHERE_WINDOWS") &&
+        VS_HOME=`"$VSWHERE" -requires Microsoft.VisualStudio.Component.FSharp -format value -property InstallationPath | sed 's!\r!!g'` &&
+        [[ -n "$VS_HOME" ]]
+    then
+        # Visual Studio 2017 (15.2) or later
+        # vcvarsall.bat has moved since VS2017, see:
+        # https://stackoverflow.com/questions/43372235/vcvarsall-bat-for-visual-studio-2017
+        VS_BIN=$(cygpath -u "$VS_HOME")/VC/Auxiliary/Build
+    elif [[ -v VS140COMNTOOLS ]]; then
+        # Visual Studio 2015 (14.x)
+        VS_BIN="$VS140COMNTOOLS"/../../VC/bin
+    elif [[ -v VS120COMNTOOLS ]]; then
+        # Visual Studio 2012 (12.x)
+        VS_BIN="$VS120COMNTOOLS"/../../VC/bin
+    elif [[ -v VS110COMNTOOLS ]]; then
+        # Visual Studio 2010 (10.x)
+        VS_BIN="$VS110COMNTOOLS"/../../VC/bin
+    else
+        # Not found
+        VS_BIN=
+    fi
+fi
+
 # May be overridden to include a single project
 ALL_PROJECTS="${!repositories[@]}"
 
@@ -111,6 +132,7 @@ write_to_env_dest_file () {
 # customize "$EVEREST_ENV_DEST_FILE"
 #   $1: name of command to check for
 #   $2: candidate directory where it may reside
+# NOTE: this function is also used to locate python and scons
 windows_check_or_modify_env_dest_file () {
   if ! command -v $1 >/dev/null 2>&1; then
     red "ERROR: $1 not found in PATH"
@@ -458,9 +480,8 @@ OCAML
 
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
-    windows_check_or_modify_env_dest_file "fsc.exe" "$FS_DIR"
-    windows_check_or_modify_env_dest_file "nmake.exe" "$VS_BIN"
-    windows_check_or_modify_env_dest_file "ml64.exe" "$VS_BIN/amd64"
+    # note: nothing left, we will use vcvarsall.bat instead
+    true
   else
     success_or "fsharpc" "brew install mono or use your favorite package manager"
   fi
