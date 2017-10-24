@@ -80,7 +80,6 @@ source hashes.sh
 
 # Windows only: path to Visual Studio's vcvarsall.bat
 if is_windows ; then
-    VS_BIN=
     # Starting from Visual Studio 2017, version 15.2 or later,
     # we can determine the location of a VS install
     # using vswhere.exe, see:
@@ -94,20 +93,22 @@ if is_windows ; then
         # Visual Studio 2017 (15.2) or later
         # vcvarsall.bat has moved since VS2017, see:
         # https://stackoverflow.com/questions/43372235/vcvarsall-bat-for-visual-studio-2017
-        VS_BIN=$(cygpath -u "$VS_HOME")/VC/Auxiliary/Build
+        VCVARSALL_PATH=$(cygpath -u "$VS_HOME")/VC/Auxiliary/Build
     elif [[ -v VS140COMNTOOLS ]]; then
         # Visual Studio 2015 (14.x)
-        VS_BIN="$VS140COMNTOOLS"/../../VC/bin
+        VCVARSALL_PATH="$VS140COMNTOOLS"/../../VC
     elif [[ -v VS120COMNTOOLS ]]; then
         # Visual Studio 2012 (12.x)
-        VS_BIN="$VS120COMNTOOLS"/../../VC/bin
+        VCVARSALL_PATH="$VS120COMNTOOLS"/../../VC
     elif [[ -v VS110COMNTOOLS ]]; then
         # Visual Studio 2010 (10.x)
-        VS_BIN="$VS110COMNTOOLS"/../../VC/bin
+        VCVARSALL_PATH="$VS110COMNTOOLS"/../../VC
     else
         # Not found
-        VS_BIN=
+        echo Could not find Visual Studio
+        exit 1
     fi
+    VCVARSALL=$(cygpath -d "$VCVARSALL_PATH/vcvarsall.bat")
 fi
 
 # May be overridden to include a single project
@@ -727,10 +728,9 @@ run_scons () {
   cmd="$1"
 
   if is_windows; then
-    VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
     DIR=$(cygpath -d "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd $parallel_opt"
+    $CMD /C "cd $DIR && $VCVARSALL amd64 && scons.bat $cmd $parallel_opt"
   else
     scons -C vale $cmd $parallel_opt
   fi
