@@ -78,7 +78,7 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
-# Windows only: path to Visual Studio's vcvarsall.bat
+# Windows only: Visual Studio's command line to set up environment (VS_ENV_CMD)
 if is_windows ; then
     # Starting from Visual Studio 2017, version 15.2 or later,
     # we can determine the location of a VS install
@@ -91,24 +91,35 @@ if is_windows ; then
         [[ -n "$VS_HOME" ]]
     then
         # Visual Studio 2017 (15.2) or later
-        # vcvarsall.bat has moved since VS2017, see:
-        # https://stackoverflow.com/questions/43372235/vcvarsall-bat-for-visual-studio-2017
-        VCVARSALL_PATH=$(cygpath -u "$VS_HOME")/VC/Auxiliary/Build
-    elif [[ -v VS140COMNTOOLS ]]; then
-        # Visual Studio 2015 (14.x)
-        VCVARSALL_PATH="$VS140COMNTOOLS"/../../VC
-    elif [[ -v VS120COMNTOOLS ]]; then
-        # Visual Studio 2012 (12.x)
-        VCVARSALL_PATH="$VS120COMNTOOLS"/../../VC
-    elif [[ -v VS110COMNTOOLS ]]; then
-        # Visual Studio 2010 (10.x)
-        VCVARSALL_PATH="$VS110COMNTOOLS"/../../VC
+        # vcvarsall.bat has been superseded by vsdevcmd.bat, see:
+        # https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/how-to-set-environment-variables-for-the-visual-studio-command-line
+        VSDEVCMD_PATH=$(cygpath -u "$VS_HOME")/Common7/Tools
+        VSDEVCMD=$(cygpath -d "$VSDEVCMD_PATH/VsDevCmd.bat")
+        # Here we assume that BOTH the target platform
+        # and the host platform are amd64.
+        VS_ENV_CMD="$VSDEVCMD -arch=amd64 -host_arch=amd64"
     else
-        # Not found
-        echo Could not find Visual Studio
-        exit 1
+        # Older versions are based on vcvarsall.bat
+        if [[ -v VS140COMNTOOLS ]]; then
+            # Visual Studio 2015 (14.x)
+            VS_TOOLS_PATH="$VS140COMNTOOLS"
+        elif [[ -v VS120COMNTOOLS ]]; then
+            # Visual Studio 2012 (12.x)
+            VS_TOOLS_PATH="$VS120COMNTOOLS"
+        elif [[ -v VS110COMNTOOLS ]]; then
+            # Visual Studio 2010 (10.x)
+            VS_TOOLS_PATH="$VS110COMNTOOLS"
+        else
+            # Not found
+            echo Could not find Visual Studio
+            exit 1
+        fi
+        VCVARSALL_PATH="$VS_TOOLS_PATH"/../../VC
+        VCVARSALL=$(cygpath -d "$VCVARSALL_PATH/vcvarsall.bat")
+        # Here we assume that BOTH the target platform
+        # and the host platform are amd64.
+        VS_ENV_CMD="$VCVARSALL amd64"
     fi
-    VCVARSALL=$(cygpath -d "$VCVARSALL_PATH/vcvarsall.bat")
 fi
 
 # May be overridden to include a single project
@@ -481,7 +492,7 @@ OCAML
 
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
-    # note: nothing left, we will use vcvarsall.bat instead
+    # note: nothing left, we will use vcvarsall.bat/vsdevcmd.bat instead
     true
   else
     success_or "fsharpc" "brew install mono or use your favorite package manager"
@@ -730,7 +741,7 @@ run_scons () {
   if is_windows; then
     DIR=$(cygpath -d "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "cd $DIR && $VCVARSALL amd64 && scons.bat $cmd $parallel_opt"
+    $CMD /C "cd $DIR && $VS_ENV_CMD && scons.bat $cmd $parallel_opt"
   else
     scons -C vale $cmd $parallel_opt
   fi
