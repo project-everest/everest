@@ -94,7 +94,7 @@ if is_windows ; then
         # vcvarsall.bat has been superseded by vsdevcmd.bat, see:
         # https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/how-to-set-environment-variables-for-the-visual-studio-command-line
         VSDEVCMD_PATH=$(cygpath -u "$VS_HOME")/Common7/Tools
-        VSDEVCMD=$(cygpath -m "$VSDEVCMD_PATH/VsDevCmd.bat")
+        VSDEVCMD=$(cygpath -w "$VSDEVCMD_PATH/VsDevCmd.bat")
         # Here we assume that BOTH the target platform
         # and the host platform are amd64.
         VS_ENV_CMD='"'"$VSDEVCMD"'" -arch=amd64 -host_arch=amd64'
@@ -739,7 +739,7 @@ run_scons () {
   cmd="$1"
 
   if is_windows; then
-    DIR=$(cygpath -m "$(pwd)"/vale)
+    DIR=$(cygpath -w "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
     $CMD /C "\"cd \"$DIR\" && $VS_ENV_CMD && scons.bat $cmd $parallel_opt\""
   else
