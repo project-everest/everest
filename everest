@@ -741,7 +741,7 @@ run_scons () {
   if is_windows; then
     DIR=$(cygpath -m "$(pwd)"/vale)
     CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C 'cd "'"$DIR"'"'" && $VS_ENV_CMD && scons.bat $cmd $parallel_opt"
+    $CMD /C "\"cd \"$DIR\" && $VS_ENV_CMD && scons.bat $cmd $parallel_opt\""
   else
     scons -C vale $cmd $parallel_opt
   fi
