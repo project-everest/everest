@@ -120,6 +120,8 @@ if is_windows ; then
         # and the host platform are amd64.
         VS_ENV_CMD="$VCVARSALL amd64"
     fi
+    # Initialize a counter for the number of invocations of scons
+    SCONS_EXECS=0
 fi
 
 # May be overridden to include a single project
@@ -740,8 +742,19 @@ run_scons () {
 
   if is_windows; then
     DIR=$(cygpath -w "$(pwd)"/vale)
-    CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "\"cd \"$DIR\" && $VS_ENV_CMD && scons.bat $cmd $parallel_opt\""
+    # Instead of invoking cmd.exe /c, which would force us to
+    # rely on its flaky semantics for double quotes,
+    # we go through a batch file.
+    THIS_PID=$$
+    SCONS_INVOKE_FILE="everest$THIS_PID""scons$SCONS_EXECS"".bat"
+    cat > "$SCONS_INVOKE_FILE" <<EOF
+cd "$DIR"
+call $VS_ENV_CMD
+call scons.bat $cmd $parallel_opt
+EOF
+    chmod +x "$SCONS_INVOKE_FILE"
+    "./$SCONS_INVOKE_FILE"
+    SCONS_EXECS=$(($SCONS_EXEC + 1))
   else
     scons -C vale $cmd $parallel_opt
   fi
