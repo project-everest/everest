@@ -18,8 +18,7 @@ RUN msiexec /i python.msi /quiet
 RUN ["powershell", "-Command", "[Environment]::SetEnvironmentVariable('Path', 'C:\\Python27;C:\\Python27\\Scripts;' + $env:Path, [EnvironmentVariableTarget]::Machine)"]
 WORKDIR ".."
 
-ENV EVEREST_BRANCH taramana_vs2017
-ENV EVEREST_CI_BRANCH taramana_ewerest
+ENV EVEREST_BRANCH taramana_ewerest
 
 # NOTE: we need to install cygwin before scons,
 # because cygwin provides unzip
@@ -47,5 +46,5 @@ WORKDIR "scons-"$SCONS_VER
 RUN python setup.py install
 WORKDIR "..\.."
 
-ADD ["https://raw.githubusercontent.com/project-everest/everest-ci/$EVEREST_CI_BRANCH/.docker/ewerest/install.sh", "install.sh"]
+ADD ["https://raw.githubusercontent.com/project-everest/everest/$EVEREST_BRANCH/.docker/ewerest/install.sh", "install.sh"]
 RUN C:\Cygwin64\bin\bash.exe --login C:\ewerest\install.sh
