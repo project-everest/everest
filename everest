@@ -764,23 +764,25 @@ EOF
 }
 
 build_vale () {
-  set -x
+  (
+    # Run in a subshell, so that, if the command fails,
+    # then the current directory and the +x option
+    # are still reset to the one of the parent shell
+    set -x
 
-  # This function is called in a subshell in a test context (via possibly_log)
-  # which means that -e is not inherited. Explicit failures here via || return.
-  run_nuget || return 1
-  run_scons "--NOVERIFY" || return 1
+    # This function is called in a subshell in a test context (via possibly_log)
+    # which means that -e is not inherited. Explicit failures here via || return.
+    run_nuget || return 1
+    run_scons "--NOVERIFY" || return 1
 
-  # Import fresh crypto from Vale into HACL*
-  cd hacl-star
-  make -C secure_api/vale/asm import || return 1
-  # Ignore other changes (e.g. submodules)
-  if ! git diff --exit-code secure_api/vale/asm ; then
-    magenta "New assemblies from Vale, diff is above"
-  fi
-  cd ..
-
-  set +x
+    # Import fresh crypto from Vale into HACL*
+    cd hacl-star
+    make -C secure_api/vale/asm import || return 1
+    # Ignore other changes (e.g. submodules)
+    if ! git diff --exit-code secure_api/vale/asm ; then
+      magenta "New assemblies from Vale, diff is above"
+    fi
+  )
 }
 
 clean_vale () {
