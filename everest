@@ -120,8 +120,6 @@ if is_windows ; then
     # and the host platform are amd64.
     VS_ENV_CMD="$VCVARSALL amd64"
   fi
-  # Initialize a counter for the number of invocations of scons
-  SCONS_EXECS=0
 fi
 
 # May be overridden to include a single project
@@ -746,7 +744,15 @@ run_scons () {
     # rely on its flaky semantics for double quotes,
     # we go through a batch file.
     THIS_PID=$$
-    SCONS_INVOKE_FILE="everest$THIS_PID""scons$SCONS_EXECS"".bat"
+    # Find an unambiguous file name for our .bat file
+    SCONS_EXECS=0
+    while
+      SCONS_INVOKE_FILE="everest$THIS_PID""scons$SCONS_EXECS"".bat" &&
+      [[ -e "$SCONS_INVOKE_FILE" ]]
+    do
+      SCONS_EXECS=$(($SCONS_EXECS + 1))
+    done
+    # Then create, run and remove the .bat file
     cat > "$SCONS_INVOKE_FILE" <<EOF
 cd "$DIR"
 call $VS_ENV_CMD
@@ -756,7 +762,6 @@ EOF
     "./$SCONS_INVOKE_FILE"
     SCONS_RETCODE=$?
     rm -f "$SCONS_INVOKE_FILE"
-    SCONS_EXECS=$(($SCONS_EXEC + 1))
     return $SCONS_RETCODE
   else
     scons -C vale $cmd $parallel_opt
