@@ -754,8 +754,10 @@ call scons.bat $cmd $parallel_opt
 EOF
     chmod +x "$SCONS_INVOKE_FILE"
     "./$SCONS_INVOKE_FILE"
+    SCONS_RETCODE=$?
     rm -f "$SCONS_INVOKE_FILE"
     SCONS_EXECS=$(($SCONS_EXEC + 1))
+    return $SCONS_RETCODE
   else
     scons -C vale $cmd $parallel_opt
   fi
