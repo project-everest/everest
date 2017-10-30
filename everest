@@ -80,48 +80,48 @@ source hashes.sh
 
 # Windows only: Visual Studio's command line to set up environment (VS_ENV_CMD)
 if is_windows ; then
-    # Starting from Visual Studio 2017, version 15.2 or later,
-    # we can determine the location of a VS install
-    # using vswhere.exe, see:
-    # https://docs.microsoft.com/en-us/visualstudio/extensibility/locating-visual-studio
-    if
-        VSWHERE_WINDOWS="`cmd.exe /C 'echo %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe' | sed 's!\r!!g'`" &&
-        VSWHERE=$(cygpath -u "$VSWHERE_WINDOWS") &&
-        VS_HOME=`"$VSWHERE" -requires Microsoft.VisualStudio.Component.FSharp -format value -property InstallationPath | sed 's!\r!!g'` &&
-        [[ -n "$VS_HOME" ]]
-    then
-        # Visual Studio 2017 (15.2) or later
-        # vcvarsall.bat has been superseded by vsdevcmd.bat, see:
-        # https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/how-to-set-environment-variables-for-the-visual-studio-command-line
-        VSDEVCMD_PATH=$(cygpath -u "$VS_HOME")/Common7/Tools
-        VSDEVCMD=$(cygpath -w "$VSDEVCMD_PATH/VsDevCmd.bat")
-        # Here we assume that BOTH the target platform
-        # and the host platform are amd64.
-        VS_ENV_CMD='"'"$VSDEVCMD"'" -arch=amd64 -host_arch=amd64'
+  # Starting from Visual Studio 2017, version 15.2 or later,
+  # we can determine the location of a VS install
+  # using vswhere.exe, see:
+  # https://docs.microsoft.com/en-us/visualstudio/extensibility/locating-visual-studio
+  if
+    VSWHERE_WINDOWS="$(cmd.exe /C 'echo %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe' | sed 's!\r!!g')" &&
+    VSWHERE=$(cygpath -u "$VSWHERE_WINDOWS") &&
+    VS_HOME=$("$VSWHERE" -requires Microsoft.VisualStudio.Component.FSharp -format value -property InstallationPath | sed 's!\r!!g') &&
+    [[ -n "$VS_HOME" ]]
+  then
+    # Visual Studio 2017 (15.2) or later
+    # vcvarsall.bat has been superseded by vsdevcmd.bat, see:
+    # https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/how-to-set-environment-variables-for-the-visual-studio-command-line
+    VSDEVCMD_PATH=$(cygpath -u "$VS_HOME")/Common7/Tools
+    VSDEVCMD=$(cygpath -w "$VSDEVCMD_PATH/VsDevCmd.bat")
+    # Here we assume that BOTH the target platform
+    # and the host platform are amd64.
+    VS_ENV_CMD='"'"$VSDEVCMD"'" -arch=amd64 -host_arch=amd64'
+  else
+    # Older versions are based on vcvarsall.bat
+    if [[ -v VS140COMNTOOLS ]]; then
+      # Visual Studio 2015 (14.x)
+      VS_TOOLS_PATH="$VS140COMNTOOLS"
+    elif [[ -v VS120COMNTOOLS ]]; then
+      # Visual Studio 2012 (12.x)
+      VS_TOOLS_PATH="$VS120COMNTOOLS"
+    elif [[ -v VS110COMNTOOLS ]]; then
+      # Visual Studio 2010 (10.x)
+      VS_TOOLS_PATH="$VS110COMNTOOLS"
     else
-        # Older versions are based on vcvarsall.bat
-        if [[ -v VS140COMNTOOLS ]]; then
-            # Visual Studio 2015 (14.x)
-            VS_TOOLS_PATH="$VS140COMNTOOLS"
-        elif [[ -v VS120COMNTOOLS ]]; then
-            # Visual Studio 2012 (12.x)
-            VS_TOOLS_PATH="$VS120COMNTOOLS"
-        elif [[ -v VS110COMNTOOLS ]]; then
-            # Visual Studio 2010 (10.x)
-            VS_TOOLS_PATH="$VS110COMNTOOLS"
-        else
-            # Not found
-            echo Could not find Visual Studio
-            exit 1
-        fi
-        VCVARSALL_PATH="$VS_TOOLS_PATH"/../../VC
-        VCVARSALL=$(cygpath -d "$VCVARSALL_PATH/vcvarsall.bat")
-        # Here we assume that BOTH the target platform
-        # and the host platform are amd64.
-        VS_ENV_CMD="$VCVARSALL amd64"
+      # Not found
+      echo Could not find Visual Studio
+      exit 1
     fi
-    # Initialize a counter for the number of invocations of scons
-    SCONS_EXECS=0
+    VCVARSALL_PATH="$VS_TOOLS_PATH"/../../VC
+    VCVARSALL=$(cygpath -d "$VCVARSALL_PATH/vcvarsall.bat")
+    # Here we assume that BOTH the target platform
+    # and the host platform are amd64.
+    VS_ENV_CMD="$VCVARSALL amd64"
+  fi
+  # Initialize a counter for the number of invocations of scons
+  SCONS_EXECS=0
 fi
 
 # May be overridden to include a single project
@@ -166,7 +166,7 @@ windows_check_or_modify_env_dest_file () {
         VS2015, including the C++ components. You can run the VS2015 installer \
         and choose a custom setup, to ensure you have both F# and the C++ \
         components. Download it from: \
-	https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
+        https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
       exit 1
     fi
   fi
