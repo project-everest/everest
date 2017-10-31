@@ -3,7 +3,8 @@ WORKDIR "C:\ewerest"
 
 WORKDIR "vs2017"
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
-RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --quiet --wait
+# Windows SDK needed by Vale
+RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.WindowsSDK.15063.Desktop --quiet --wait
 WORKDIR ".."
 
 WORKDIR "python"
