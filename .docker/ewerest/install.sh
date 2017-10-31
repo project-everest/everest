@@ -33,8 +33,5 @@ popd
 
 git clone --branch $EVEREST_BRANCH 'https://github.com/project-everest/everest.git' everest
 pushd everest
-./everest --yes check
-# source "$EVEREST_ENV_DEST_FILE"
-# export PLATFORM=X64 # until Vale's SConscript/SConstruct are fixed
-# ./everest make
+./everest --yes check pull make
 popd
