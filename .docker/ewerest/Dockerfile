@@ -2,9 +2,7 @@ FROM microsoft/windowsservercore:1709
 WORKDIR "C:\ewerest"
 
 WORKDIR "vs2017"
-## NOTE: the URL obtained through GC Developer Console, Network tab,
-## couldn't find an official direct URL
-ADD ["https://download.visualstudio.microsoft.com/download/pr/100196707/045b56eb413191d03850ecc425172a7d/vs_Community.exe", "vs2017.exe"]
+ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
 RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --quiet --wait
 WORKDIR ".."
 
