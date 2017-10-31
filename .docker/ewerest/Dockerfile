@@ -45,5 +45,11 @@ WORKDIR "scons-"$SCONS_VER
 RUN python setup.py install
 WORKDIR "..\.."
 
+# FIXME: remove the following temporary workaround.
+# VS2017 no longer defines PLATFORM, but
+# Vale Sconscript/Sconstruct are still relying on it
+# to detect the platform
+ENV PLATFORM X64
+
 ADD ["https://raw.githubusercontent.com/project-everest/everest/$EVEREST_BRANCH/.docker/ewerest/install.sh", "install.sh"]
 RUN C:\Cygwin64\bin\bash.exe --login C:\ewerest\install.sh
