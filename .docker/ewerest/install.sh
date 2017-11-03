@@ -38,5 +38,5 @@ opam install jbuilder
 
 git clone --branch $EVEREST_BRANCH 'https://github.com/project-everest/everest.git' everest
 pushd everest
-./everest --yes check pull make
+./everest --yes check pull make test verify
 popd
