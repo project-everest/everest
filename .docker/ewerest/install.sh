@@ -31,6 +31,11 @@ popd
 
 # Install Everest
 
+# jbuilder must be installed separately,
+# because its installation is fragile
+opam depext jbuilder
+opam install jbuilder
+
 git clone --branch $EVEREST_BRANCH 'https://github.com/project-everest/everest.git' everest
 pushd everest
 ./everest --yes check pull make
