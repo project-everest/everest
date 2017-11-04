@@ -898,7 +898,15 @@ do_verify () {
   verify_commands[FStar]="make -C FStar/src ulong $parallel_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
-  verify_commands[vale]="run_scons"
+  if is_windows ; then
+    # Use the same Z3 for Dafny as for F*
+    # i.e. the one in the PATH
+    Z3PATH_UNIX=$(which z3.exe)
+    Z3PATH=$(cygpath -w "$Z3PATH_UNIX")
+    verify_commands[vale]="run_scons --DARGS /z3exe:\"$Z3PATH\""
+  else
+    verify_commands[vale]="run_scons"
+  fi
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
 
   for p in $ALL_PROJECTS; do
