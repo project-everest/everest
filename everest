@@ -754,8 +754,8 @@ run_scons () {
     done
     # Then create, run and remove the .bat file
     cat > "$SCONS_INVOKE_FILE" <<EOF
-cd "$DIR"
 call $VS_ENV_CMD
+cd "$DIR"
 call scons.bat $cmd $parallel_opt
 EOF
     chmod +x "$SCONS_INVOKE_FILE"
