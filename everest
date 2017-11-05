@@ -891,6 +891,24 @@ do_test () {
   separator
 }
 
+do_verify_vale () {
+  if is_windows ; then
+    # Use the same Z3 for Dafny as for F*
+    # i.e. the one in the PATH
+    Z3PATH_UNIX=$(which z3.exe)
+    Z3PATH=$(cygpath -w "$Z3PATH_UNIX")
+    # Here the path to z3 might have whitespaces,
+    # so it must be enclosed into double quotes
+    # to be treated correctly by scons and Dafny.
+    # Moreover, it must fit in the single argument to
+    # run_scons, which is why we cannot quote the command
+    # as a member of the verify_commands array
+    run_scons "--DARGS=/z3exe:\"$Z3PATH\""
+  else
+    run_scons
+  fi
+}
+
 do_verify () {
   setup_env
 
@@ -898,15 +916,7 @@ do_verify () {
   verify_commands[FStar]="make -C FStar/src ulong $parallel_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
-  if is_windows ; then
-    # Use the same Z3 for Dafny as for F*
-    # i.e. the one in the PATH
-    Z3PATH_UNIX=$(which z3.exe)
-    Z3PATH=$(cygpath -w "$Z3PATH_UNIX")
-    verify_commands[vale]="run_scons --DARGS=/z3exe:\"$Z3PATH\""
-  else
-    verify_commands[vale]="run_scons"
-  fi
+  verify_commands[vale]="do_verify_vale"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
 
   for p in $ALL_PROJECTS; do
