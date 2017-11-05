@@ -903,7 +903,7 @@ do_verify () {
     # i.e. the one in the PATH
     Z3PATH_UNIX=$(which z3.exe)
     Z3PATH=$(cygpath -w "$Z3PATH_UNIX")
-    verify_commands[vale]="run_scons --DARGS /z3exe:\"$Z3PATH\""
+    verify_commands[vale]="run_scons --DARGS=/z3exe:\"$Z3PATH\""
   else
     verify_commands[vale]="run_scons"
   fi
