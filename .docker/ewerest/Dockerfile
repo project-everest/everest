@@ -19,7 +19,7 @@ RUN msiexec /i python.msi /quiet
 RUN ["powershell", "-Command", "[Environment]::SetEnvironmentVariable('Path', 'C:\\Python27;C:\\Python27\\Scripts;' + $env:Path, [EnvironmentVariableTarget]::Machine)"]
 WORKDIR ".."
 
-ENV EVEREST_BRANCH taramana_ewerest
+ENV EVEREST_BRANCH master
 
 # NOTE: we need to install cygwin before scons,
 # because cygwin provides unzip
