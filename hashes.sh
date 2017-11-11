@@ -8,5 +8,5 @@ hashes[FStar]=9c24ac880225e78d272c3d95ff91bc630ce80430
 branches[FStar]=c_mitls2c
 hashes[hacl-star]=05ec6fedfd6e7a82fb8e1ad3d33ef56d1b299457
 branches[hacl-star]=c_mitls2c
-hashes[kremlin]=1f8c2be62c5759af70274fc8c9a9d8458979c65f
+hashes[kremlin]=c3bec383f02838465d576aad8caa26db88ecd7c5
 branches[kremlin]=nik_mitls2c
