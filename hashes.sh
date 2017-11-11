@@ -1,12 +1,12 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=cb55924c73ee0d6d6d31954b94496a0553eb3777
+hashes[mitls-fstar]=611d3196a978dc19f6b0c82376f1774a0687b208
 branches[mitls-fstar]=c_mitls2c
-hashes[vale]=b58a29b94c145237b84509c323bdb4bc855d448a
+hashes[vale]=1038809b5a67ef5e0e18f403f32dc9cb991f325e
 branches[vale]=kremlin
-hashes[FStar]=3ce3be1245af2328d856db0a851868499f59f6e4
+hashes[FStar]=9c24ac880225e78d272c3d95ff91bc630ce80430
 branches[FStar]=c_mitls2c
-hashes[hacl-star]=9a36ed903a65927f9ec6ed32f5b1f26259ff76b0
+hashes[hacl-star]=05ec6fedfd6e7a82fb8e1ad3d33ef56d1b299457
 branches[hacl-star]=c_mitls2c
-hashes[kremlin]=5ea4f3861f319d15bb3f6c0f8b276092755aeb45
-branches[kremlin]=c_mitls2c
+hashes[kremlin]=1f8c2be62c5759af70274fc8c9a9d8458979c65f
+branches[kremlin]=nik_mitls2c
