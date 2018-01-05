@@ -799,16 +799,19 @@ setup_env () {
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
+    export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
   else
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
+    export HACL_HOME=$(pwd)/hacl-star
   fi
   export OPENSSL_HOME=$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
   magenta "exported KREMLIN_HOME=$KREMLIN_HOME"
   magenta "exported VALE_HOME=$VALE_HOME"
+  magenta "exported HACL_HOME=$HACL_HOME"
   export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
 
   if is_windows; then
@@ -834,7 +837,7 @@ build_fstar () {
 }
 
 build_hacl () {
-  # HACL* Makefile does not encode ependencies properly.
+  # HACL* Makefile does not encode dependencies properly.
   make -C hacl-star $parallel_opt -k extract-specs extract-all && \
   make -C hacl-star $parallel_opt -k build-make
 }
