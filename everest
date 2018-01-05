@@ -797,7 +797,7 @@ do_make ()
   build_commands[kremlin]="make -C kremlin $parallel_opt -k"
   build_commands[hacl-star]="make -C hacl-star/code extract-c $parallel_opt -k"
   build_commands[vale]="build_vale"
-  build_comamnds[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
+  build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
   # Order matters.
   for p in kremlin FStar hacl-star vale mitls-fstar; do
