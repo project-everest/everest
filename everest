@@ -564,33 +564,43 @@ OCAML
   #
   # regtool get \HKLM\Software\Python\PythonCore\2.7\InstallPath\
   # regtool get \HKCU\Software\Python\PythonCore\2.7\InstallPath\
+  # CMW: The following are the 32-bit installations, I think.
   # regtool get \HKLM\Software\WOW6432Node\Python\PythonCore\2.7\InstallPath\
   # regtool get \HKCU\Software\WOW6432Node\Python\PythonCore\2.7\InstallPath\
   #
   #
   if is_windows; then
-    if ! [ -d "/cygdrive/c/Python27" ]; then
-      red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
+    if [ -z ${var+x} ]; then
+      PY27DIR=$(regtool get /HKLM/Software/Python/PythonCore/2.7/InstallPath/)
+      if ! [ -d $PY27DIR ]; then 
+          PY27DIR=$(regtool get /HKCU/Software/Python/PythonCore/2.7/InstallPath/)
+      fi
+      if ! [ -d $PY27DIR ]; then
+          PY27DIR="/cygdrive/c/Python27"
+      fi
+    fi
+    if ! [ -d $PY27DIR ]; then
+      red "ERROR: Python not found -- install a *WINDOWS* Python 2.7? (y/n)"
       if prompt_yes true "exit 1"; then
         wget $PYTHON_INSTALL_POINT
         chmod a+x python-$PYTHON_VER.amd64.msi
         msiexec /i python-$PYTHON_VER.amd64.msi /quiet
-        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27"
+        windows_check_or_modify_env_dest_file "python.exe" "$PY27DIR"
       fi
-    else
-      echo "... Python $PYTHON_VER found"
     fi
+    PY27VER=$($PY27DIR/python.exe -V 2>&1 | dos2unix | cut -d ' ' -f 2)
+    echo "... Python $PY27VER found at $PY27DIR"
 
     if ! command -v scons.bat >/dev/null 2>&1; then
       red "ERROR: scons.bat was not found so scons will need to be installed."
-      red "NOTE: scons requires Python $PYTHON_VER. Choose Python $PYTHON_VER in the second page of the scons install wizard."
+      red "NOTE: scons requires Python 2.7. Choose the one installed at $PY27DIR in the second page of the scons install wizard."
       red "Start the install wizard for scons (Y/n)?"
       if prompt_yes true "exit 1"; then
         wget $SCONS_INSTALL_POINT
         chmod a+x scons-2.5.1-amd64-setup.exe
         ./scons-2.5.1-amd64-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
         # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
-        windows_check_or_modify_env_dest_file "scons.bat" "C:\\Python27\\Scripts"
+        windows_check_or_modify_env_dest_file "scons.bat" "$PY27DIR\\Scripts"
       fi
     else
       echo "... scons.bat found in PATH"
