@@ -1,6 +1,10 @@
 git
 binutils
+flexdll
 gcc-core
+libgmp-devel
+libsqlite3-devel
+libffi-devel
 mingw64-i686-binutils
 mingw64-i686-gcc-core
 mingw64-i686-gcc-g++
@@ -43,3 +47,6 @@ which
 xz
 zip
 dos2unix
+gettext
+git
+opam

@@ -13,8 +13,9 @@ set -o pipefail
 # set -u
 
 # Known URLs and directories
-OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
-OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
+OCAML_VER=4.02.3
+OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-$OCAML_VER-64bit.tar.bz2?dl=0
+OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-$OCAML_VER-64bit.tar.bz2?dl=0
 FLEXDLL_NAME=flexdll-bin-0.35
 FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
@@ -255,11 +256,26 @@ find_cygsetup () {
 install_all_opam_packages () {
   packages=$(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')
   opam update
-  if is_windows; then
-    opam install depext-cygwinports
-  fi
+  opam install --yes depext
   opam depext $packages
-  opam install $packages
+    
+  if is_windows; then
+      opam install --yes $packages
+      if [ ! $? ]; then
+          echo "Installation of opam packages failed; attempting to rebase shared libraries. If it fails again and the error messages mention fork(), shared libraries, relocation targets being too far then see section 4.45 at https://cygwin.com/faq.html."
+          rebase -b 0x7cd20000 `opam config var lib`/ocaml/stublibs/dllunix.so
+          rebase -b 0x7cdc0000 `opam config var lib`/ocaml/stublibs/dllthreads.so
+          opam install --yes $packages
+      fi
+  else
+      opam install --yes $packages
+  fi
+
+  if [ ! $? ]; then return $?; fi
+
+  # ppx_deriving adjustments
+  find `opam config var lib` -iname '*.cmxs' -exec chmod a+x {} \;
+  cp `opam config var lib`/ppx_deriving/ppx_deriving `opam config var lib`/ppx_deriving/ppx_deriving.exe
 }
 
 try_git_clone () {
@@ -332,8 +348,8 @@ do_check ()
     fi
     echo "... 64-bit cygwin"
 
-    if cygwin_has "ocaml" || cygwin_has "flexdll"; then
-      red "ERROR: please remove the cygwin ocaml and/or flexdll packages"
+    if cygwin_has "ocaml"; then
+      red "ERROR: please remove the cygwin ocaml package(s)."
       exit 1
     fi
     echo "... no suspicious cygwin packages"
@@ -368,73 +384,72 @@ do_check ()
   fi
 
   # OCaml detection
-  if ! command -v >/dev/null 2>&1 ocaml; then
-    # Offer to install and sed-setup a crappy snapshot
-    if is_windows; then
-      magenta "No OCaml detected!"
-      cat <<MSG
-This script can download and install a binary snapshot of a working OCaml
-system.
+#   if ! command -v >/dev/null 2>&1 ocaml; then
+#     # Offer to install and sed-setup a crappy snapshot
+#     if is_windows; then
+#       magenta "No OCaml detected!"
+#       cat <<MSG
+# This script can download and install a binary snapshot of a working OCaml
+# system.
 
-- If you intend to do some development work (e.g. try a 32-bit toolchain)
-  then you DO NOT want this. Instead; you want to abort this script and install
-  OCaml & OPAM from https://fdopen.github.io/opam-repository-mingw/
+# - If you intend to do some development work (e.g. try a 32-bit toolchain)
+#   then you DO NOT want this. Instead; you want to abort this script and install
+#   OCaml & OPAM from https://fdopen.github.io/opam-repository-mingw/
 
-- If you're ok with a system that can be setup automatically but that may or may
-  not work in the future, then you want the binary snapshot.
+# - If you're ok with a system that can be setup automatically but that may or may
+#   not work in the future, then you want the binary snapshot.
 
-Proceed with the binary snapshot?
-MSG
-      prompt_yes true "exit 1"
-      if [ -e ~/.opam ]; then
-        red "Warning: stale ~/.opam; continue? [Yn]"
-        prompt_yes true "exit 1"
-      fi
-      if [ -e /cygdrive/c/ocamlmgw64 ]; then
-        red "Warning: stale /cygdrive/c/ocamlmgw64; continue? [Yn]"
-        prompt_yes true "exit 1"
-      fi
-      (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
-      (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
-      (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
-      (cd ~/.opam/system/lib &&
-        echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
-        tail -n +3 findlib.conf >> findlib.conf.new &&
-        mv findlib.conf.new findlib.conf)
-      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
-      prompt_yes write_ocaml_env_dest_file true
-    else
-      red "ERROR: no ocaml found in PATH"
-      if is_osx; then
-        echo "Hint: brew install ocaml opam"
-      else
-        echo "Please use your distribution's package management system to install ocaml and opam"
-        echo "Note: on older Ubuntus, see https://launchpad.net/~avsm/+archive/ubuntu/ppa"
-      fi
+# Proceed with the binary snapshot?
+# MSG
+#       prompt_yes true "exit 1"
+#       if [ -e ~/.opam ]; then
+#         red "Warning: stale ~/.opam; continue? [Yn]"
+#         prompt_yes true "exit 1"
+#       fi
+#       if [ -e /cygdrive/c/ocamlmgw64 ]; then
+#         red "Warning: stale /cygdrive/c/ocamlmgw64; continue? [Yn]"
+#         prompt_yes true "exit 1"
+#       fi
+#       (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
+#       (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
+#       (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
+#       (cd ~/.opam/system/lib &&
+#         echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
+#         tail -n +3 findlib.conf >> findlib.conf.new &&
+#         mv findlib.conf.new findlib.conf)
+#       magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
+#       prompt_yes write_ocaml_env_dest_file true
+#     else
+#       red "ERROR: no ocaml found in PATH"
+#       if is_osx; then
+#         echo "Hint: brew install ocaml opam"
+#       else
+#         echo "Please use your distribution's package management system to install ocaml and opam"
+#         echo "Note: on older Ubuntus, see https://launchpad.net/~avsm/+archive/ubuntu/ppa"
+#       fi
+#       exit 1
+#     fi
+
+#   else
+#     # OCaml; if this exits, set -e means this is a hard error
+#     ocaml -noinit -noprompt -stdin <<OCAML
+#       if Sys.ocaml_version < "4.02.2" then begin
+#         print_endline "ERROR: Everest needs OCaml >= 4.02.3";
+#         exit 1
+#       end
+# OCAML
+#     echo "... ocaml minimum version requirements met"
+  #   fi
+
+  if ! command -v >/dev/null 2>&1 opam; then
+      echo "Please use your distribution's package management system to install opam"
       exit 1
-    fi
-
-  else
-    # OCaml; if this exits, set -e means this is a hard error
-    ocaml -noinit -noprompt -stdin <<OCAML
-      if Sys.ocaml_version < "4.02.2" then begin
-        print_endline "ERROR: Everest needs OCaml >= 4.02.3";
-        exit 1
-      end
-OCAML
-    echo "... ocaml minimum version requirements met"
   fi
 
-  # Flexlink detection (Windows-specific)
-  if is_windows && ! command -v flexlink >/dev/null 2>&1; then
-    magenta "No flexdll found; download? [Yn]"
-    prompt_yes true "exit 1"
-    wget $FLEXDLL_URL
-    mkdir -p flexdll && cd flexdll && unzip ../$FLEXDLL_NAME.zip && cd ..
-    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
-    prompt_yes write_flexdll_env_dest_file true
-  elif is_windows; then
-    echo "... flexdll ok"
+  if ! command -v >/dev/null 2>&1 ocamlc; then
+      EXISTING_OCAML=""
+  else
+      EXISTING_OCAML=$(ocamlc -version)
   fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
@@ -443,13 +458,12 @@ OCAML
   success_or "opam"
   if [ ! -d ~/.opam ]; then
     if is_windows; then
-      echo "This is a Windows environment; not running opam init."
-      echo "Please follow instructions for the installer you picked."
-      echo "Hint: https://github.com/protz/ocaml-installer/wiki or https://fdopen.github.io/opam-repository-mingw/"
-    else
-      if_yes "opam init"
+      echo "This is a Windows/Cygwin environment; automatic installation of ocaml and opam packages may fail. For more information see https://github.com/protz/ocaml-installer/wiki and https://fdopen.github.io/opam-repository-mingw/"
     fi
+    if_yes "opam init --compiler=$OCAML_VER"
     eval $(opam config env)
+  elif [ "$EXISTING_OCAML" != "$OCAML_VER" ]; then
+    if_yes "opam switch $OCAML_VER"
   fi
 
   if ! command -v ocamlfind >/dev/null 2>&1; then
