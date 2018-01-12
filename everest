@@ -743,19 +743,16 @@ setup_env () {
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
-    export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
   else
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
-    export HACL_HOME=$(pwd)/hacl-star
   fi
   export OPENSSL_HOME=$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
   magenta "exported KREMLIN_HOME=$KREMLIN_HOME"
   magenta "exported VALE_HOME=$VALE_HOME"
-  magenta "exported HACL_HOME=$HACL_HOME"
   export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
 
   if is_windows; then
@@ -777,13 +774,9 @@ separator () {
 build_fstar () {
   make -C FStar/src/ocaml-output $parallel_opt -k && \
   make -C FStar/ulib/ml $parallel_opt -k && \
-  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k
-}
-
-build_hacl () {
-  # HACL* Makefile does not encode dependencies properly.
-  make -C hacl-star $parallel_opt -k extract-specs extract-all && \
-  make -C hacl-star $parallel_opt -k build-make
+  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k 
+  # && \
+  # make -C FStar/examples/low-level krml-test.exe test-perf.exe -k
 }
 
 do_make ()
@@ -797,7 +790,7 @@ do_make ()
   build_commands[kremlin]="make -C kremlin $parallel_opt -k"
   build_commands[hacl-star]="make -C hacl-star/code extract-c $parallel_opt -k"
   build_commands[vale]="build_vale"
-  build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
+  build_comamnds[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
   # Order matters.
   for p in kremlin FStar hacl-star vale mitls-fstar; do
