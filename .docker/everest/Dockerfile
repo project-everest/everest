@@ -5,4 +5,6 @@ FROM projecteverest/everest-chomolungma
 # (by default 1)
 ARG PARALLEL_OPT
 
-RUN ./everest --yes check pull $PARALLEL_OPT make test verify
+RUN ./everest --yes check pull $PARALLEL_OPT make
+RUN ./everest --yes test
+RUN ./everest --yes $PARALLEL_OPT verify
