@@ -854,9 +854,10 @@ do_make ()
   build_commands[hacl-star]="build_hacl"
   build_commands[vale]="build_vale"
   build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
+  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt -k"
 
   # Order matters.
-  for p in kremlin FStar vale hacl-star mitls-fstar; do
+  for p in kremlin FStar vale MLCrypto hacl-star mitls-fstar; do
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
     fi
@@ -921,6 +922,7 @@ do_verify () {
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
   verify_commands[vale]="do_verify_vale"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
+  verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
 
   for p in $ALL_PROJECTS; do
     separator
@@ -935,7 +937,8 @@ do_clean ()
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     FStar/ucontrib/CoreCrypto/ml/{,openssl} \
     kremlin \
-    FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
+    FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls} \
+    MLCrypto; do
     make -C "$d" clean
   done
   clean_vale
@@ -994,7 +997,7 @@ OPTION:
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
-    FStar kremlin mitls-fstar hacl-star vale
+    FStar kremlin mitls-fstar hacl-star vale MLCrypto
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1065,7 +1068,7 @@ while true; do
       break
       ;;
 
-    vale|FStar|mitls-fstar|kremlin|hacl-star)
+    vale|FStar|mitls-fstar|kremlin|hacl-star|MLCrypto)
       ALL_PROJECTS=$1
       ;;
 
