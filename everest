@@ -769,25 +769,27 @@ EOF
 }
 
 build_vale () {
-  (
-    # Run in a subshell, so that, if the command fails,
-    # then the current directory and the +x option
-    # are still reset to the one of the parent shell
-    set -x
+    ## skip for this branch
 
-    # This function is called in a subshell in a test context (via possibly_log)
-    # which means that -e is not inherited. Explicit failures here via || return.
-    run_nuget || return 1
-    run_scons "--NOVERIFY" || return 1
+  # (
+  #   # Run in a subshell, so that, if the command fails,
+  #   # then the current directory and the +x option
+  #   # are still reset to the one of the parent shell
+  #   set -x
 
-    # Import fresh crypto from Vale into HACL*
-    cd hacl-star
-    make -C secure_api/vale/asm import || return 1
-    # Ignore other changes (e.g. submodules)
-    if ! git diff --exit-code secure_api/vale/asm ; then
-      magenta "New assemblies from Vale, diff is above"
-    fi
-  )
+  #   # This function is called in a subshell in a test context (via possibly_log)
+  #   # which means that -e is not inherited. Explicit failures here via || return.
+  #   run_nuget || return 1
+  #   run_scons "--NOVERIFY" || return 1
+
+  #   # Import fresh crypto from Vale into HACL*
+  #   cd hacl-star
+  #   make -C secure_api/vale/asm import || return 1
+  #   # Ignore other changes (e.g. submodules)
+  #   if ! git diff --exit-code secure_api/vale/asm ; then
+  #     magenta "New assemblies from Vale, diff is above"
+  #   fi
+  # )
 }
 
 clean_vale () {
@@ -831,15 +833,19 @@ separator () {
 }
 
 build_fstar () {
-  make -C FStar/src/ocaml-output $parallel_opt -k && \
-  make -C FStar/ulib/ml $parallel_opt -k && \
-  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k
+  make -C FStar/src/ocaml-output $parallel_opt && \
+  make -C FStar/ulib/ml $parallel_opt
 }
 
 build_hacl () {
+    make -C hacl-star/secure-api runtime_switch
   # HACL* Makefile does not encode dependencies properly.
-  make -C hacl-star $parallel_opt -k extract-specs extract-all && \
-  make -C hacl-star $parallel_opt -k build-make
+  # make -C hacl-star $parallel_opt -k extract-specs extract-all && \
+  # make -C hacl-star $parallel_opt -k build-make
+}
+
+build_mitls () {
+    make -C mitls-fstar/src/tls -f Makefile.OCaml $parallel_opt
 }
 
 do_make ()
@@ -850,11 +856,12 @@ do_make ()
 
   declare -A build_commands
   build_commands[FStar]="build_fstar"
-  build_commands[kremlin]="make -C kremlin $parallel_opt -k"
+  build_commands[kremlin]="make -C kremlin $parallel_opt"
   build_commands[hacl-star]="build_hacl"
+  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
+  build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
-  build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
-  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt -k"
+
 
   # Order matters.
   for p in kremlin FStar vale MLCrypto hacl-star mitls-fstar; do
