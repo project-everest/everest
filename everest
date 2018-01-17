@@ -818,7 +818,7 @@ build_fstar () {
 }
 
 build_hacl () {
-    make -C hacl-star/secure-api runtime_switch
+    make -C hacl-star/secure_api runtime_switch
   # HACL* Makefile does not encode dependencies properly.
   # make -C hacl-star $parallel_opt -k extract-specs extract-all && \
   # make -C hacl-star $parallel_opt -k build-make
