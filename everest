@@ -818,14 +818,13 @@ build_fstar () {
 }
 
 build_hacl () {
-    make -C hacl-star/secure_api runtime_switch
-  # HACL* Makefile does not encode dependencies properly.
-  # make -C hacl-star $parallel_opt -k extract-specs extract-all && \
-  # make -C hacl-star $parallel_opt -k build-make
+  make -C hacl-star/code/curve25519 extract-c
+  make -C hacl-star/secure_api
 }
 
 build_mitls () {
-    make -C mitls-fstar/src/tls -f Makefile.OCaml $parallel_opt
+  make -C mitls-fstar/libs/ffi
+  make -C mitls-fstar/src/tls
 }
 
 do_make ()
@@ -874,8 +873,8 @@ do_test () {
   blue "Running tests (commands shown below)"
   set -x
   make -C hacl-star test-all package -k
-  hacl-star/secure_api/krml-test-hacl.exe
-  hacl-star/secure_api/krml-test-vale.exe
+  hacl-star/out/vale_aes_concrete_id/krml-test.exe
+  hacl-star/out/hacl_aes_concrete_id/krml-test.exe
   # These tests assume the current working directory is src/tls
   (cd mitls-fstar/src/tls && make $parallel_opt test)
   set +x
