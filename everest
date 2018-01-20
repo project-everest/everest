@@ -843,7 +843,7 @@ do_make ()
 
 
   # Order matters.
-  for p in kremlin FStar vale MLCrypto hacl-star mitls-fstar; do
+  for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
     fi
