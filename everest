@@ -872,7 +872,6 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
-  make -C hacl-star test-all package -k
   hacl-star/out/vale_aes_concrete_id/krml-test.exe
   hacl-star/out/hacl_aes_concrete_id/krml-test.exe
   # These tests assume the current working directory is src/tls
