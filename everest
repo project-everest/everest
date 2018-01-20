@@ -872,8 +872,8 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
-  hacl-star/out/vale_aes_concrete_id/krml-test.exe
-  hacl-star/out/hacl_aes_concrete_id/krml-test.exe
+  hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
+  hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
   # These tests assume the current working directory is src/tls
   (cd mitls-fstar/src/tls && make $parallel_opt test)
   set +x
