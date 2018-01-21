@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# This script propagates the extracted C and assembly code for miTLS and 
+# HACL* out into standalone directories.
+
+
+print_usage ()
+{
+  cat <<HELP
+Usage:  MakeSourceDrop destination_path
+  make-source-drop ~/drops/drop12
+  
+The directory path will be created if it doesn't already exist.
+HELP
+}
+
+if [[ $1 == "" ]]; then
+  print_usage
+  exit 0
+fi
+
+# set current directory to the directory of this script
+cd "${BASH_SOURCE%/*}" || exit 
+
+MITLS_EXTRACT=mitls-fstar/src/tls/extract
+KREMLIB=kremlin/kremlib
+HACL=$HACL_HOME/secure_api/out/vale_aes_abstract_id
+
+mkdir -p $1/mitls
+rm $1/mitls/*.c
+rm $1/mitls/*.h
+cp $MITLS_EXTRACT/kremlin/*.c $1/mitls
+cp $MITLS_EXTRACT/kremlin/*.h $1/mitls
+cp $MITLS_EXTRACT/copied/*.c $1/mitls
+cp $MITLS_EXTRACT/copied/*.h $1/mitls
+cp $MITLS_EXTRACT/cstubs/*.c $1/mitls
+cp $MITLS_EXTRACT/cstubs/*.h $1/mitls
+cp $MITLS_EXTRACT/include/*.h $1/mitls
+cp $KREMLIB/*.h $1/mitls
+
+mkdir -p $1/hacl-star
+rm $1/hacl-star/*.c
+rm $1/hacl-star/*.h
+cp $HACL/*.c $1/hacl-star
+cp $HACL/*.h $1/hacl-star
