@@ -12,11 +12,9 @@ set -o pipefail
 # set -x # uncomment for debugging.
 # set -u
 
-# Known URLs and directories
-OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
-OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
-FLEXDLL_NAME=flexdll-bin-0.35
-FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
+# Known URLs, directories and versions
+OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.1/opam64.tar.xz
+OPAM_VERSION=4.05.0+mingw64c
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 PYTHON_VER=2.7.13
 PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
@@ -183,26 +181,6 @@ write_nuget_env_dest_file () {
   str="
     # This line automatically added by $0
     export PATH=$(pwd)/nuget/bin:\$PATH"
-  write_to_env_dest_file "$str"
-}
-
-write_flexdll_env_dest_file () {
-  str="
-    # These lines automatically added by $0
-    export PATH=$(pwd)/flexdll:\$PATH"
-  write_to_env_dest_file "$str"
-}
-
-write_ocaml_env_dest_file () {
-  str="
-    # These lines automatically added by $0
-    export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
-    export PATH=\$HOME/.opam/system/bin:\$PATH
-    export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
-    export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
-    export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
-    export MENHIRLIB=$(cygpath -m ~/.opam/system/share/menhir)
-    export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)"
   write_to_env_dest_file "$str"
 }
 
@@ -373,17 +351,8 @@ do_check ()
     if is_windows; then
       magenta "No OCaml detected!"
       cat <<MSG
-This script can download and install a binary snapshot of a working OCaml
-system.
 
-- If you intend to do some development work (e.g. try a 32-bit toolchain)
-  then you DO NOT want this. Instead; you want to abort this script and install
-  OCaml & OPAM from https://fdopen.github.io/opam-repository-mingw/
-
-- If you're ok with a system that can be setup automatically but that may or may
-  not work in the future, then you want the binary snapshot.
-
-Proceed with the binary snapshot?
+Proceed with the download?
 MSG
       prompt_yes true "exit 1"
       if [ -e ~/.opam ]; then
@@ -394,15 +363,13 @@ MSG
         red "Warning: stale /cygdrive/c/ocamlmgw64; continue? [Yn]"
         prompt_yes true "exit 1"
       fi
-      (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
-      (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
-      (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
-      (cd ~/.opam/system/lib &&
-        echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
-        tail -n +3 findlib.conf >> findlib.conf.new &&
-        mv findlib.conf.new findlib.conf)
-      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
-      prompt_yes write_ocaml_env_dest_file true
+      # Download and Install OPAM
+      wget $OPAM_URL
+      tar -xf 'opam64.tar.xz'
+      rm -f 'opam64.tar.xz'
+      bash opam64/install.sh
+      opam init mingw 'https://github.com/fdopen/opam-repository-mingw.git' --comp $OPAM_VERSION --switch $OPAM_VERSION
+      eval $(opam config env)
     else
       red "ERROR: no ocaml found in PATH"
       if is_osx; then
@@ -423,18 +390,6 @@ MSG
       end
 OCAML
     echo "... ocaml minimum version requirements met"
-  fi
-
-  # Flexlink detection (Windows-specific)
-  if is_windows && ! command -v flexlink >/dev/null 2>&1; then
-    magenta "No flexdll found; download? [Yn]"
-    prompt_yes true "exit 1"
-    wget $FLEXDLL_URL
-    mkdir -p flexdll && cd flexdll && unzip ../$FLEXDLL_NAME.zip && cd ..
-    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
-    prompt_yes write_flexdll_env_dest_file true
-  elif is_windows; then
-    echo "... flexdll ok"
   fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
