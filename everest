@@ -974,6 +974,8 @@ COMMAND:
 
   make      rebuild all projects
 
+  opam      install the needed OPAM packages
+
   test      launch the test artifacts
 
   verify    run verification for all projects
@@ -1030,6 +1032,10 @@ while true; do
 
     make)
       do_make
+      ;;
+
+    opam)
+      install_all_opam_packages
       ;;
 
     clean)
