@@ -515,9 +515,9 @@ OCAML
   # We need Scons for Vale which needs Python 2.7
   if is_windows; then
     if [ -z ${PY27DIR+x} ]; then
-      PY27DIR=$(regtool get /HKLM/Software/Python/PythonCore/2.7/InstallPath/)
+      PY27DIR=$(regtool get /HKLM/Software/Python/PythonCore/2.7/InstallPath/ || echo)
       if ! [ -d $PY27DIR ]; then 
-          PY27DIR=$(regtool get /HKCU/Software/Python/PythonCore/2.7/InstallPath/)
+          PY27DIR=$(regtool get /HKCU/Software/Python/PythonCore/2.7/InstallPath/ || echo)
       fi
       if ! [ -d $PY27DIR ]; then
           PY27DIR="/cygdrive/c/Python27"
