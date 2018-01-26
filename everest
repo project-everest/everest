@@ -563,6 +563,14 @@ OCAML
     prompt_yes write_everest_env_dest_file true
   fi
 
+  if is_windows; then
+    if [[ $(echo $FSTAR_HOME | cut -c 1 | tr -d '\r\n' ) == "/" ]]; then
+      magenta "You are on windows but your FSTAR_HOME is a Cygwin-style path."
+      magenta "Don't do that, follow the suggestion below, and check all your other *_HOME variables."
+      unset FSTAR_HOME
+    fi
+  fi
+
   echo
   magenta "Remember to run source \"$EVEREST_ENV_DEST_FILE\" if it was modified!"
   local xpwd=""
