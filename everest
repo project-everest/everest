@@ -12,11 +12,9 @@ set -o pipefail
 # set -x # uncomment for debugging.
 # set -u
 
-# Known URLs and directories
-OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
-OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
-FLEXDLL_NAME=flexdll-bin-0.35
-FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
+# Known URLs, directories and versions
+OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.1/opam64.tar.xz
+OPAM_VERSION=4.05.0+mingw64c
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 PYTHON_VER=2.7.13
 PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
@@ -183,26 +181,6 @@ write_nuget_env_dest_file () {
   str="
     # This line automatically added by $0
     export PATH=$(pwd)/nuget/bin:\$PATH"
-  write_to_env_dest_file "$str"
-}
-
-write_flexdll_env_dest_file () {
-  str="
-    # These lines automatically added by $0
-    export PATH=$(pwd)/flexdll:\$PATH"
-  write_to_env_dest_file "$str"
-}
-
-write_ocaml_env_dest_file () {
-  str="
-    # These lines automatically added by $0
-    export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
-    export PATH=\$HOME/.opam/system/bin:\$PATH
-    export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
-    export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
-    export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
-    export MENHIRLIB=$(cygpath -m ~/.opam/system/share/menhir)
-    export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)"
   write_to_env_dest_file "$str"
 }
 
@@ -373,17 +351,8 @@ do_check ()
     if is_windows; then
       magenta "No OCaml detected!"
       cat <<MSG
-This script can download and install a binary snapshot of a working OCaml
-system.
 
-- If you intend to do some development work (e.g. try a 32-bit toolchain)
-  then you DO NOT want this. Instead; you want to abort this script and install
-  OCaml & OPAM from https://fdopen.github.io/opam-repository-mingw/
-
-- If you're ok with a system that can be setup automatically but that may or may
-  not work in the future, then you want the binary snapshot.
-
-Proceed with the binary snapshot?
+Proceed with the download?
 MSG
       prompt_yes true "exit 1"
       if [ -e ~/.opam ]; then
@@ -394,15 +363,13 @@ MSG
         red "Warning: stale /cygdrive/c/ocamlmgw64; continue? [Yn]"
         prompt_yes true "exit 1"
       fi
-      (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
-      (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
-      (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
-      (cd ~/.opam/system/lib &&
-        echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
-        tail -n +3 findlib.conf >> findlib.conf.new &&
-        mv findlib.conf.new findlib.conf)
-      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
-      prompt_yes write_ocaml_env_dest_file true
+      # Download and Install OPAM
+      wget $OPAM_URL
+      tar -xf 'opam64.tar.xz'
+      rm -f 'opam64.tar.xz'
+      bash opam64/install.sh
+      opam init mingw 'https://github.com/fdopen/opam-repository-mingw.git' --comp $OPAM_VERSION --switch $OPAM_VERSION
+      eval $(opam config env)
     else
       red "ERROR: no ocaml found in PATH"
       if is_osx; then
@@ -423,18 +390,6 @@ MSG
       end
 OCAML
     echo "... ocaml minimum version requirements met"
-  fi
-
-  # Flexlink detection (Windows-specific)
-  if is_windows && ! command -v flexlink >/dev/null 2>&1; then
-    magenta "No flexdll found; download? [Yn]"
-    prompt_yes true "exit 1"
-    wget $FLEXDLL_URL
-    mkdir -p flexdll && cd flexdll && unzip ../$FLEXDLL_NAME.zip && cd ..
-    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
-    prompt_yes write_flexdll_env_dest_file true
-  elif is_windows; then
-    echo "... flexdll ok"
   fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
@@ -558,39 +513,38 @@ OCAML
   echo "... nuget found in PATH"
 
   # We need Scons for Vale which needs Python 2.7
-  #
-  # What we really should do instead of checking for a directory name is looking at the
-  # registry. These are the four possible values:
-  #
-  # regtool get \HKLM\Software\Python\PythonCore\2.7\InstallPath\
-  # regtool get \HKCU\Software\Python\PythonCore\2.7\InstallPath\
-  # regtool get \HKLM\Software\WOW6432Node\Python\PythonCore\2.7\InstallPath\
-  # regtool get \HKCU\Software\WOW6432Node\Python\PythonCore\2.7\InstallPath\
-  #
-  #
   if is_windows; then
-    if ! [ -d "/cygdrive/c/Python27" ]; then
-      red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
+    if [ -z ${PY27DIR+x} ]; then
+      PY27DIR=$(regtool get /HKLM/Software/Python/PythonCore/2.7/InstallPath/)
+      if ! [ -d $PY27DIR ]; then 
+          PY27DIR=$(regtool get /HKCU/Software/Python/PythonCore/2.7/InstallPath/)
+      fi
+      if ! [ -d $PY27DIR ]; then
+          PY27DIR="/cygdrive/c/Python27"
+      fi
+    fi
+    if ! [ -d $PY27DIR ]; then
+      red "ERROR: Python not found -- install a *WINDOWS* Python 2.7? (y/n)"
       if prompt_yes true "exit 1"; then
         wget $PYTHON_INSTALL_POINT
         chmod a+x python-$PYTHON_VER.amd64.msi
         msiexec /i python-$PYTHON_VER.amd64.msi /quiet
-        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27"
+        windows_check_or_modify_env_dest_file "python.exe" "$PY27DIR"
       fi
-    else
-      echo "... Python $PYTHON_VER found"
     fi
+    PY27VER=$($PY27DIR/python.exe -V 2>&1 | dos2unix | cut -d ' ' -f 2)
+    echo "... Python $PY27VER found at $PY27DIR"
 
     if ! command -v scons.bat >/dev/null 2>&1; then
       red "ERROR: scons.bat was not found so scons will need to be installed."
-      red "NOTE: scons requires Python $PYTHON_VER. Choose Python $PYTHON_VER in the second page of the scons install wizard."
+      red "NOTE: scons requires Python 2.7. Choose the one installed at $PY27DIR in the second page of the scons install wizard."
       red "Start the install wizard for scons (Y/n)?"
       if prompt_yes true "exit 1"; then
         wget $SCONS_INSTALL_POINT
         chmod a+x scons-2.5.1-amd64-setup.exe
         ./scons-2.5.1-amd64-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
         # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
-        windows_check_or_modify_env_dest_file "scons.bat" "C:\\Python27\\Scripts"
+        windows_check_or_modify_env_dest_file "scons.bat" "$PY27DIR\\Scripts"
       fi
     else
       echo "... scons.bat found in PATH"
@@ -607,6 +561,14 @@ OCAML
   if [[ -z "$EVEREST_SCONS_CACHE_DIR" ]]; then
     echo "Warning: Scons cache directory not set. Set it?"
     prompt_yes write_everest_env_dest_file true
+  fi
+
+  if is_windows; then
+    if [[ $(echo $FSTAR_HOME | cut -c 1 | tr -d '\r\n' ) == "/" ]]; then
+      magenta "You are on windows but your FSTAR_HOME is a Cygwin-style path."
+      magenta "Don't do that, follow the suggestion below, and check all your other *_HOME variables."
+      unset FSTAR_HOME
+    fi
   fi
 
   echo
@@ -1007,6 +969,8 @@ COMMAND:
 
   make      rebuild all projects
 
+  opam      install the needed OPAM packages
+
   test      launch the test artifacts
 
   verify    run verification for all projects
@@ -1063,6 +1027,10 @@ while true; do
 
     make)
       do_make
+      ;;
+
+    opam)
+      install_all_opam_packages
       ;;
 
     clean)
