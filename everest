@@ -780,13 +780,13 @@ build_fstar () {
 }
 
 build_hacl () {
-  make -C hacl-star/code/curve25519 extract-c
-  make -C hacl-star/secure_api
+  make -C hacl-star/code/curve25519 extract-c $parallel_opt
+  make -C hacl-star/secure_api $parallel_opt
 }
 
 build_mitls () {
-  make -C mitls-fstar/libs/ffi
-  make -C mitls-fstar/src/tls
+  make -C mitls-fstar/libs/ffi $parallel_opt
+  make -C mitls-fstar/src/tls $parallel_opt
 }
 
 do_make ()
