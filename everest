@@ -496,7 +496,7 @@ OCAML
 
   # We need Nuget for Vale
   if ! which nuget >/dev/null 2>&1 ; then
-    red "ERROR: nuget doesn't seem to be installed"
+    red "ERROR: nuget doesn\'t seem to be installed"
     if is_windows; then
       magenta "Download it from the internet? [Yn]"
       prompt_yes true "exit 1"
@@ -515,12 +515,12 @@ OCAML
   # We need Scons for Vale which needs Python 2.7
   if is_windows; then
     if [ -z ${PY27DIR+x} ]; then
-      PY27DIR=$(regtool get /HKLM/Software/Python/PythonCore/2.7/InstallPath/)
-      if ! [ -d $PY27DIR ]; then
-        PY27DIR=$(regtool get /HKCU/Software/Python/PythonCore/2.7/InstallPath/)
+      PY27DIR=$(bash -c "regtool -q get /HKLM/Software/Python/PythonCore/2.7/InstallPath/ || true")
+      if ! [ -d "$PY27DIR" ]; then 
+          PY27DIR=$(bash -c "regtool -q get /HKCU/Software/Python/PythonCore/2.7/InstallPath/ || true")
       fi
-      if ! [ -d $PY27DIR ]; then
-        PY27DIR="/cygdrive/c/Python27"
+      if ! [ -d "$PY27DIR" ]; then
+          PY27DIR="/cygdrive/c/Python27"
       fi
     fi
     if ! [ -d $PY27DIR ]; then
@@ -532,7 +532,7 @@ OCAML
         windows_check_or_modify_env_dest_file "python.exe" "$PY27DIR"
       fi
     fi
-    PY27VER=$($PY27DIR/python.exe -V 2>&1 | dos2unix | cut -d ' ' -f 2)
+    PY27VER=$($PY27DIR/python.exe -V 2>&1 | dos2unix | cut -d ' ' -f 2 || true)
     echo "... Python $PY27VER found at $PY27DIR"
 
     if ! command -v scons.bat >/dev/null 2>&1; then
