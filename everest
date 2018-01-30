@@ -744,18 +744,21 @@ setup_env () {
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
     export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
+    export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
   else
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
     export HACL_HOME=$(pwd)/hacl-star
+    export MLCRYPTO_HOME=$(pwd)/MLCrypto
   fi
-  export OPENSSL_HOME=$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl
+  export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
   magenta "exported KREMLIN_HOME=$KREMLIN_HOME"
   magenta "exported VALE_HOME=$VALE_HOME"
   magenta "exported HACL_HOME=$HACL_HOME"
+  magenta "exported MLCRYPTO_HOME=$MLCRYPTO_HOME"
   export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
 
   if is_windows; then
@@ -780,12 +783,13 @@ build_fstar () {
 }
 
 build_hacl () {
-  make -C hacl-star/code/curve25519 extract-c $parallel_opt
+  make -C hacl-star/code/curve25519 extract-c $parallel_opt && \
   make -C hacl-star/secure_api $parallel_opt
 }
 
 build_mitls () {
-  make -C mitls-fstar/libs/ffi $parallel_opt
+  make -C mitls-fstar/libs/ffi $parallel_opt && \
+  make -C mitls-fstar/src/pki $parallel_opt && \
   make -C mitls-fstar/src/tls $parallel_opt
 }
 
