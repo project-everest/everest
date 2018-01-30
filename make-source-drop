@@ -29,17 +29,31 @@ HACL=$HACL_HOME/secure_api/out/vale_aes_abstract_id
 mkdir -p $1/mitls
 rm $1/mitls/*.c
 rm $1/mitls/*.h
-cp $MITLS_EXTRACT/kremlin/*.c $1/mitls
-cp $MITLS_EXTRACT/kremlin/*.h $1/mitls
-cp $MITLS_EXTRACT/copied/*.c $1/mitls
-cp $MITLS_EXTRACT/copied/*.h $1/mitls
-cp $MITLS_EXTRACT/cstubs/*.c $1/mitls
-cp $MITLS_EXTRACT/cstubs/*.h $1/mitls
-cp $MITLS_EXTRACT/include/*.h $1/mitls
-cp $KREMLIB/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-library/*.c $1/mitls
+cp $MITLS_EXTRACT/Kremlin-library/*.h $1/mitls
+#cp $MITLS_EXTRACT/copied/*.c $1/mitls
+#cp $MITLS_EXTRACT/copied/*.h $1/mitls
+#cp $MITLS_EXTRACT/cstubs/*.c $1/mitls
+#cp $MITLS_EXTRACT/cstubs/*.h $1/mitls
+#cp $MITLS_EXTRACT/include/*.h $1/mitls
+#cp $KREMLIB/*.h $1/mitls
 
 mkdir -p $1/hacl-star
 rm $1/hacl-star/*.c
 rm $1/hacl-star/*.h
 cp $HACL/*.c $1/hacl-star
 cp $HACL/*.h $1/hacl-star
+
+mkdir -p $1/mipki
+rm $1/mipki/*.c
+rm $1/mipki/*.h
+cp mitls-fstar/src/pki/*.c $1/mipki
+cp mitls-fstar/src/pki/*.h $1/mipki
+mkdir -p $1/mipki/win
+rm $1/mipki/win/*.c
+rm $1/mipki/win/*.h
+cp mitls-fstar/src/pki/win/*.c $1/mipki/win
+cp mitls-fstar/src/pki/win/*.h $1/mipki/win
+
+
+
