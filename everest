@@ -790,7 +790,7 @@ build_hacl () {
 build_mitls () {
   make -C mitls-fstar/libs/ffi $parallel_opt && \
   make -C mitls-fstar/src/pki $parallel_opt && \
-  make -C mitls-fstar/src/tls $parallel_opt clean-depend all
+  make -C mitls-fstar/src/tls $parallel_opt
 }
 
 do_make ()
