@@ -29,34 +29,34 @@ HACL=$HACL_HOME/secure_api
 mkdir -p $1/mitls
 mkdir -p $1/mitls/amd64
 mkdir -p $1/mitls/i386
-rm $1/mitls/*.c
-rm $1/mitls/*.h
-rm $1/mitls/amd64/*.asm
-rm $1/mitls/i386/*.asm
-cp $MITLS_EXTRACT/Kremlin-library/*.c $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/secure/*.c $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/secure/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/curve/*.c $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/curve/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/kremlib/*.c $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/kremlib/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/include/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/stub/*.c $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/stub/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/vale/*.c $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/vale/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-library/vale/*x86_64*.asm $1/mitls/amd64
-cp $MITLS_EXTRACT/Kremlin-library/vale/*i686*.asm $1/mitls/i386
+rm -f $1/mitls/*.c
+rm -f $1/mitls/*.h
+rm -f $1/mitls/amd64/*.asm
+rm -f $1/mitls/i386/*.asm
+cp $MITLS_EXTRACT/Kremlin-Library/*.c $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/secure/*.c $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/secure/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/curve/*.c $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/curve/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/kremlib/*.c $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/kremlib/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/include/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/stub/*.c $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/stub/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/vale/*.c $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/vale/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/vale/*x86_64*.asm $1/mitls/amd64
+cp $MITLS_EXTRACT/Kremlin-Library/vale/*i686*.asm $1/mitls/i386
 
 mkdir -p $1/quiccrypto
 mkdir -p $1/quiccrypto/amd64
 mkdir -p $1/quiccrypto/i386
 DIST_DIR=runtime_switch
-rm $1/quiccrypto/*.c
-rm $1/quiccrypto/*.h
-rm $1/quiccrypto/amd64/*.asm
-rm $1/quiccrypto/i386/*.asm
+rm -f $1/quiccrypto/*.c
+rm -f $1/quiccrypto/*.h
+rm -f $1/quiccrypto/amd64/*.asm
+rm -f $1/quiccrypto/i386/*.asm
 cp $HACL_HOME/secure_api/QuicProvider/*.c $1/quiccrypto
 cp $HACL_HOME/secure_api/QuicProvider/*.c $1/quiccrypto
 cp $HACL_HOME/secure_api/QuicProvider/*.h $1/quiccrypto
@@ -73,13 +73,13 @@ cp $KREMLIN_HOME/kremlib/kremstr.c $1/quiccrypto
 cp $KREMLIN_HOME/kremlib/*.h $1/quiccrypto
 
 mkdir -p $1/mipki
-rm $1/mipki/*.c
-rm $1/mipki/*.h
+rm -f $1/mipki/*.c
+rm -f $1/mipki/*.h
 cp mitls-fstar/src/pki/*.c $1/mipki
 cp mitls-fstar/src/pki/*.h $1/mipki
 mkdir -p $1/mipki/win
-rm $1/mipki/win/*.c
-rm $1/mipki/win/*.h
+rm -f $1/mipki/win/*.c
+rm -f $1/mipki/win/*.h
 cp mitls-fstar/src/pki/win/*.c $1/mipki/win
 cp mitls-fstar/src/pki/win/*.h $1/mipki/win
 
