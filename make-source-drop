@@ -24,25 +24,36 @@ cd "${BASH_SOURCE%/*}" || exit
 
 MITLS_EXTRACT=mitls-fstar/src/tls/extract
 KREMLIB=kremlin/kremlib
-HACL=$HACL_HOME/secure_api/out/vale_aes_abstract_id
+HACL=$HACL_HOME/secure_api
 
 mkdir -p $1/mitls
 rm $1/mitls/*.c
 rm $1/mitls/*.h
 cp $MITLS_EXTRACT/Kremlin-library/*.c $1/mitls
 cp $MITLS_EXTRACT/Kremlin-library/*.h $1/mitls
-#cp $MITLS_EXTRACT/copied/*.c $1/mitls
-#cp $MITLS_EXTRACT/copied/*.h $1/mitls
-#cp $MITLS_EXTRACT/cstubs/*.c $1/mitls
-#cp $MITLS_EXTRACT/cstubs/*.h $1/mitls
-#cp $MITLS_EXTRACT/include/*.h $1/mitls
-#cp $KREMLIB/*.h $1/mitls
 
-mkdir -p $1/hacl-star
-rm $1/hacl-star/*.c
-rm $1/hacl-star/*.h
-cp $HACL/*.c $1/hacl-star
-cp $HACL/*.h $1/hacl-star
+mkdir -p $1/quiccrypto
+mkdir -p $1/quiccrypto/amd64
+mkdir -p $1/quiccrypto/i386
+DIST_DIR=vale_aes_concrete_id
+rm $1/quiccrypto/*.c
+rm $1/quiccrypto/*.h
+rm $1/quiccrypto/amd64/*.asm
+rm $1/quiccrypto/i386/*.asm
+cp $HACL_HOME/secure_api/QuicProvider/*.c $1/quiccrypto
+cp $HACL_HOME/secure_api/QuicProvider/*.c $1/quiccrypto
+cp $HACL_HOME/secure_api/QuicProvider/*.h $1/quiccrypto
+cp $HACL_HOME/secure_api/out/$DIST_DIR/*.c $1/quiccrypto
+cp $HACL_HOME/secure_api/out/$DIST_DIR/*.h $1/quiccrypto
+cp $HACL_HOME/secure_api/vale/asm/*x86_64*.asm $1/quiccrypto/amd64
+cp $HACL_HOME/secure_api/vale/asm/*i686*.asm $1/quiccrypto/i386
+cp $HACL_HOME/secure_api/vale/asm/*.c $1/quiccrypto
+cp $HACL_HOME/secure_api/vale/asm/*.h $1/quiccrypto
+cp $HACL_HOME/code/curve25519/x25519-c/*.c $1/quiccrypto
+cp $HACL_HOME/code/curve25519/x25519-c/*.h $1/quiccrypto
+cp MLCrypto/*.h $1/quiccrypto
+cp $KREMLIN_HOME/kremlib/kremstr.c $1/quiccrypto
+cp $KREMLIN_HOME/kremlib/*.h $1/quiccrypto
 
 mkdir -p $1/mipki
 rm $1/mipki/*.c
