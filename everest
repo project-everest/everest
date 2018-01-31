@@ -945,6 +945,8 @@ OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
 
   -j n      Set max number of parallel jobs to n (default 1)
+            This option is in two parts
+            (-jn without space is NOT valid)
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
@@ -1061,6 +1063,7 @@ while true; do
 
     *)
       print_usage
+      exit 1
       ;;
   esac
   shift
