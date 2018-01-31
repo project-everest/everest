@@ -35,7 +35,7 @@ cp $MITLS_EXTRACT/Kremlin-library/*.h $1/mitls
 mkdir -p $1/quiccrypto
 mkdir -p $1/quiccrypto/amd64
 mkdir -p $1/quiccrypto/i386
-DIST_DIR=vale_aes_concrete_id
+DIST_DIR=runtime_switch
 rm $1/quiccrypto/*.c
 rm $1/quiccrypto/*.h
 rm $1/quiccrypto/amd64/*.asm
