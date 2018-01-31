@@ -604,6 +604,8 @@ self_update () {
 
 do_pull () {
   self_update
+  source hashes.sh
+  source repositories.sh
   echo Reset working copies
   do_reset
 }
