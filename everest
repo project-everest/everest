@@ -780,6 +780,7 @@ separator () {
 }
 
 export KOPTS="-falloca $KOPTS"
+export KRML_NOUINT128=1
 
 build_fstar () {
   make -C FStar/src/ocaml-output $parallel_opt && \
@@ -787,7 +788,8 @@ build_fstar () {
 }
 
 build_hacl () {
-  make -C hacl-star/code/curve25519 x25519-c/Curve25519.c $parallel_opt && \
+  (KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128_FStar_Int_Cast_Full.h\"' $KOPTS" \
+    make -C hacl-star/code/curve25519 x25519-c/Curve25519.c $parallel_opt) && \
   make -C hacl-star/secure_api $parallel_opt
 }
 
