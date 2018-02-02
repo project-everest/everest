@@ -779,8 +779,11 @@ separator () {
   echo "================================================================================"
 }
 
-export KOPTS="-falloca $KOPTS"
-export KRML_NOUINT128=1
+set_nouint128 () {
+  export KOPTS="-falloca $KOPTS"
+  export KRML_NOUINT128=1
+  export HACL_KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128.h\"' $KOPTS"
+}
 
 build_fstar () {
   make -C FStar/src/ocaml-output $parallel_opt && \
@@ -788,8 +791,7 @@ build_fstar () {
 }
 
 build_hacl () {
-  (KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128.h\"' $KOPTS" \
-    make -C hacl-star/code/curve25519 x25519-c/Curve25519.c $parallel_opt) && \
+  (KOPTS="$HACL_KOPTS" make -C hacl-star/code/curve25519 x25519-c/Curve25519.c $parallel_opt) && \
   make -C hacl-star/secure_api $parallel_opt
 }
 
@@ -954,6 +956,8 @@ OPTION:
             This option is in two parts
             (-jn without space is NOT valid)
 
+  -fnouint128 Build without using the target compiler __int128_t
+
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
     FStar kremlin mitls-fstar hacl-star vale MLCrypto
@@ -1009,6 +1013,10 @@ while true; do
       # (max number of parallel jobs)
       shift
       parallel_opt="-j $1"
+      ;;
+
+    -fnouint128)
+      set_nouint128
       ;;
 
     check)
