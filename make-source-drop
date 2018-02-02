@@ -93,5 +93,11 @@ rm -f $1/mipki/win/*.h
 cp mitls-fstar/src/pki/win/*.c $1/mipki/win
 cp mitls-fstar/src/pki/win/*.h $1/mipki/win
 
-
-
+# binaries
+mkdir -p $1/bin_openssl
+rm -f $1/bin_openssl/*.dll
+cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin_openssl
+cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin_openssl
+# todo: build and drop libquiccrypto.dll using mingw
+# todo: build and drop mipki.dll using mingw
+cp mitls-fstar/src/pki/libmipki.dll $1/bin_openssl
