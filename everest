@@ -781,7 +781,11 @@ separator () {
 
 set_nouint128 () {
   export KOPTS="-falloca $KOPTS"
+  # Note: the Makefiles in secure_api and src/tls know about KRML_NOUINT128 and
+  # will flip KOPTS accordingly
   export KRML_NOUINT128=1
+  # Note: the Makefile in code/curve25519 has no such customization and we nudge
+  # it via a set of KOPTS specified here.
   export HACL_KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128.h\"' $KOPTS"
 }
 
