@@ -788,7 +788,7 @@ build_fstar () {
 }
 
 build_hacl () {
-  (KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128_FStar_Int_Cast_Full.h\"' $KOPTS" \
+  (KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128.h\"' $KOPTS" \
     make -C hacl-star/code/curve25519 x25519-c/Curve25519.c $parallel_opt) && \
   make -C hacl-star/secure_api $parallel_opt
 }
