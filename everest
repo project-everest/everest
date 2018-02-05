@@ -898,10 +898,10 @@ do_verify () {
 do_clean ()
 {
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
-    FStar/ucontrib/CoreCrypto/ml/{,openssl} \
+    MLCrypto/{,openssl} \
     kremlin \
-    FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls} \
-    MLCrypto; do
+    hacl-star/{code/curve25519,secure_api} \
+    ; do
     make -C "$d" clean
   done
   clean_vale
