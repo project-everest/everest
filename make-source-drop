@@ -90,3 +90,6 @@ cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin_openssl
 # todo: build and drop libquiccrypto.dll using mingw
 # todo: build and drop mipki.dll using mingw
 cp mitls-fstar/src/pki/libmipki.dll $1/bin_openssl
+
+# hashes
+cp hashes.sh $1/
