@@ -14,3 +14,4 @@ sedlex sedlex
 ctypes ctypes
 ulex ulex
 visitors visitors
+ctypes.foreign ctypes-foreign
