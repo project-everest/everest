@@ -316,6 +316,13 @@ do_check ()
     fi
     echo "... no suspicious cygwin packages"
 
+    if ! (flexlink.exe -help 2>&1 || true) | grep "0.35fdopen2" >/dev/null; then
+        red "Warning: you have an unknown version of flexlink"
+        red "Please use the version from https://fdopen.github.io/opam-repository-mingw/"
+    else
+        echo "... flexlink is good"
+    fi
+
     # The list of required cygwin packages
     for p in $(cat cygwin-packages); do
       if ! cygwin_has $p; then
