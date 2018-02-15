@@ -809,7 +809,9 @@ build_hacl () {
 build_mitls () {
   make -C mitls-fstar/libs/ffi $parallel_opt && \
   make -C mitls-fstar/src/pki $parallel_opt && \
-  make -C mitls-fstar/src/tls $parallel_opt
+  make -C mitls-fstar/src/tls $parallel_opt && \
+  make -C mitls-fstar/apps/cmitls $parallel_opt && \
+  make -C mitls-fstar/apps/quicMinusNet $parallel_opt
 }
 
 do_make ()
@@ -860,8 +862,10 @@ do_test () {
   hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
   hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
   make -C hacl-star/secure_api -f Makefile.extract test
-  # These tests assume the current working directory is src/tls
+  # These tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && make $parallel_opt test)
+  (cd mitls-fstar/apps/cmitls && make test)
+  (cd mitls-fstar/apps/quicMinusNet && make test)
   set +x
   separator
 }
