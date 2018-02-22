@@ -689,8 +689,8 @@ do_merge ()
 
 do_forall ()
 {
-  blue "Executing on toplevel"
-  "$@"
+  #blue "Executing on toplevel"
+  #"$@"
   for r in ${!repositories[@]}; do
     echo
     blue "Executing in $r"
