@@ -985,7 +985,7 @@ call nmake -f makefile.vs
 cd "$DIR\everest\mitls"
 call nmake -f makefile.vs
 cd "$DIR"
-call nmake -f makefile.vs
+REM call nmake -f makefile.vs
 EOF
   chmod +x "$NMAKE_INVOKE_FILE"
   "./$NMAKE_INVOKE_FILE"
