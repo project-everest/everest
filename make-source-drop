@@ -30,7 +30,9 @@ HACL=$HACL_HOME/secure_api
 mkdir -p $1/mitls
 mkdir -p $1/mitls/amd64
 mkdir -p $1/mitls/i386
-rm -f $1/mitls/*.c
+#Don't remove dllmain.c
+#rm -f $1/mitls/*.c
+find $1/mitls -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
 rm -f $1/mitls/*.h
 rm -f $1/mitls/amd64/*.asm
 rm -f $1/mitls/i386/*.asm
@@ -55,8 +57,11 @@ mkdir -p $1/quiccrypto
 mkdir -p $1/quiccrypto/amd64
 mkdir -p $1/quiccrypto/i386
 DIST_DIR=runtime_switch
-rm -f $1/quiccrypto/*.c
-rm -f $1/quiccrypto/*.h
+#Don't remove dllmain.c and CommonInclude.h
+#rm -f $1/quiccrypto/*.c
+#rm -f $1/quiccrypto/*.h
+find $1/quiccrypto -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
+find $1/quiccrypto -maxdepth 1 -type f -and -name '*.h' -and -not -name CommonInclude.h | xargs rm -f
 rm -f $1/quiccrypto/amd64/*.asm
 rm -f $1/quiccrypto/i386/*.asm
 cp $HACL_HOME/secure_api/QuicProvider/*.{c,h} $1/quiccrypto
