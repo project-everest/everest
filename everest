@@ -979,12 +979,13 @@ do_qbuild ()
   DIR=$(cygpath -w "$(pwd)")
   cat > "$NMAKE_INVOKE_FILE" <<EOF
 call $VS_ENV_CMD
+set MAKEFLAGS=
 set KRML_HOME=..\..\..\kremlin
 cd "$DIR\everest\quiccrypto"
 call nmake -f makefile.vs
 cd "$DIR\everest\mitls"
 call nmake -f makefile.vs
-cd "$DIR"
+REM cd "$DIR"
 REM call nmake -f makefile.vs
 EOF
   chmod +x "$NMAKE_INVOKE_FILE"
