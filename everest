@@ -241,13 +241,10 @@ install_all_opam_packages () {
 }
 
 try_git_clone () {
-  if ! git clone --recursive $1 $2; then
+  if ! git clone --recursive $1 $3; then
     magenta "Proceed with https? [Yn]"
     prompt_yes true "exit 1"
-    url=$1
-    url=${url/:/\/}
-    url=https://${url#*@}
-    git clone --recursive $url $2
+    git clone --recursive $2 $3
   fi
 }
 
@@ -465,7 +462,7 @@ OCAML
   # version
   if ! [[ -d fstarlang_binaries ]]; then
     echo "... cloning FStarLang/binaries"
-    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
+    try_git_clone "git@github.com:FStarLang/binaries" "https://github.com/FStarLang/binaries" fstarlang_binaries
   fi
   (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
 
@@ -634,7 +631,7 @@ do_reset ()
           cloned the repository elsewhere
         warned=true
       fi
-      try_git_clone ${repositories[$r]} $r
+      try_git_clone ${repositories[$r]} ${https[$r]} $r
     fi
 
     # Note: the snapshot command guarantees that the commit was pushed to a
@@ -827,7 +824,6 @@ do_make ()
   build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
-
 
   # Order matters.
   for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
