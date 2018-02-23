@@ -983,11 +983,11 @@ do_qbuild ()
 call $VS_ENV_CMD
 set MAKEFLAGS=
 set KRML_HOME=..\..\..\kremlin
-cd "$DIR\everest\quiccrypto"
-call nmake -f makefile.vs
-cd "$DIR\everest\mitls"
-call nmake -f makefile.vs
-REM cd "$DIR"
+cd "$DIR\everest\quiccrypto" &&^
+call nmake -f makefile.vs &&^
+cd "$DIR\everest\mitls" &&^
+call nmake -f makefile.vs &&^
+REM cd "$DIR" &&^
 REM call nmake -f makefile.vs
 EOF
   chmod +x "$NMAKE_INVOKE_FILE"
