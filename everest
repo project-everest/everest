@@ -786,7 +786,7 @@ separator () {
   echo "================================================================================"
 }
 
-set_nouint128 () {
+set_windows () {
   export KOPTS="-falloca -ftail-calls $KOPTS"
   # Note: the Makefiles in secure_api and src/tls know about KRML_NOUINT128 and
   # will flip KOPTS accordingly
@@ -1031,8 +1031,13 @@ while true; do
       parallel_opt="-j $1"
       ;;
 
+    -windows)
+      set_windows
+      ;;
+
     -fnouint128)
-      set_nouint128
+      red "Warning: the -fnouint128 option is deprecated; use -windows instead"
+      set_windows
       ;;
 
     check)
