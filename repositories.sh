@@ -1,4 +1,5 @@
 declare -A repositories
+declare -A https
 
 repositories[QUIC]=msresearch@vs-ssh.visualstudio.com:22/DefaultCollection/Everest/_ssh/QUIC
 https[QUIC]=https://msresearch.visualstudio.com/DefaultCollection/Everest/_git/QUIC
