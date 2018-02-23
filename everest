@@ -958,6 +958,8 @@ do_drop ()
 
 do_qbuild ()
 {
+  setup_env
+
   blue "Building QUICFStar"
   export KRML_HOME=../../../kremlin
   cd QUIC/experiments/QUICFStar && make QuicKremlin
