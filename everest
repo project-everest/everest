@@ -952,6 +952,8 @@ MSG
 
 do_drop ()
 {
+  setup_env
+
   blue "Dropping into QUIC"
   ./make-source-drop QUIC/experiments/QUICFStar/everest  
 }
