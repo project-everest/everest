@@ -1,9 +1,9 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=d5ac323516ed775600889e4f530ba2cf10df03c4
-branches[mitls-fstar]=quic2c_parsers
 hashes[vale]=e7443d77a0c5953d591e24b807146ef2efb3e557
 branches[vale]=master
+hashes[mitls-fstar]=12d0b229ed3bde07991ae1e598f5a6d54091fed7
+branches[mitls-fstar]=quic2c_parsers
 hashes[FStar]=598c1562f5f558022c647ab21305c0b76ee8b0d8
 branches[FStar]=master
 hashes[MLCrypto]=806647fcdc7f1da1db38191e3520988e7500331a
