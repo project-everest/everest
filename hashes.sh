@@ -12,3 +12,5 @@ hashes[hacl-star]=a546acb8027319df7df8d957be5a3bcbe8ba5646
 branches[hacl-star]=c_mitls2c
 hashes[kremlin]=70b72f4e2d7d3a355c2edc4a129d553cdc36600c
 branches[kremlin]=fstar-master
+hashes[QUIC]=3cc517d393337635ad910b2ab08fc936a9667885
+branches[QUIC]=master

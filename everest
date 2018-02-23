@@ -954,6 +954,12 @@ must run commit and push.
 MSG
 }
 
+do_drop ()
+{
+  blue "Dropping into QUIC"
+  ./make-source-drop QUIC/experiments/QUICFStar/everest  
+}
+
 # ------------------------------------------------------------------------------
 # Usage and parsing arguments
 # ------------------------------------------------------------------------------
@@ -1006,6 +1012,10 @@ COMMAND:
   test      launch the test artifacts
 
   verify    run verification for all projects
+
+  drop      drop extraced C and assembly files from miTLS and Hacl* into QUIC
+
+  qbuild    build QUIC using Visual Studio
 
   clean     clean all projects
 
@@ -1087,6 +1097,10 @@ while true; do
       do_snapshot
       ;;
 
+    drop)
+      do_drop
+      ;;
+    
     "")
       break
       ;;
