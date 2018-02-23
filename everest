@@ -956,6 +956,42 @@ do_drop ()
   ./make-source-drop QUIC/experiments/QUICFStar/everest  
 }
 
+do_qbuild ()
+{
+  blue "Building QUICFStar"
+  export KRML_HOME=../../../kremlin
+  cd QUIC/experiments/QUICFStar && make QuicKremlin
+  # Instead of invoking cmd.exe /c, which would force us to
+  # rely on its flaky semantics for double quotes,
+  # we go through a batch file.
+  THIS_PID=$$
+  # Find an unambiguous file name for our .bat file
+  NMAKE_EXECS=0
+  while
+    NMAKE_INVOKE_FILE="everest$THIS_PID""nmake$NMAKE_EXECS"".bat" &&
+    [[ -e "$NMAKE_INVOKE_FILE" ]]
+  do
+    NMAKE_EXECS=$(($NMAKE_EXECS + 1))
+  done
+  # Then create, run and remove the .bat file
+  DIR=$(cygpath -w "$(pwd)")
+  cat > "$NMAKE_INVOKE_FILE" <<EOF
+call $VS_ENV_CMD
+set KRML_HOME=..\..\..\kremlin
+cd "$DIR\everest\quiccrypto"
+call nmake -f makefile.vs
+cd "$DIR\everest\mitls"
+call nmake -f makefile.vs
+cd "$DIR"
+call nmake -f makefile.vs
+EOF
+  chmod +x "$NMAKE_INVOKE_FILE"
+  "./$NMAKE_INVOKE_FILE"
+  NMAKE_RETCODE=$?
+  rm -f "$NMAKE_INVOKE_FILE"
+  return $NMAKE_RETCODE
+}
+
 # ------------------------------------------------------------------------------
 # Usage and parsing arguments
 # ------------------------------------------------------------------------------
@@ -1095,6 +1131,10 @@ while true; do
 
     drop)
       do_drop
+      ;;
+
+    qbuild)
+      do_qbuild
       ;;
     
     "")
