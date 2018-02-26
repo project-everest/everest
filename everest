@@ -241,13 +241,10 @@ install_all_opam_packages () {
 }
 
 try_git_clone () {
-  if ! git clone --recursive $1 $2; then
+  if ! git clone --recursive $1 $3; then
     magenta "Proceed with https? [Yn]"
     prompt_yes true "exit 1"
-    url=$1
-    url=${url/:/\/}
-    url=https://${url#*@}
-    git clone --recursive $url $2
+    git clone --recursive $2 $3
   fi
 }
 
@@ -465,7 +462,7 @@ OCAML
   # version
   if ! [[ -d fstarlang_binaries ]]; then
     echo "... cloning FStarLang/binaries"
-    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
+    try_git_clone "git@github.com:FStarLang/binaries" "https://github.com/FStarLang/binaries" fstarlang_binaries
   fi
   (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
 
@@ -634,7 +631,7 @@ do_reset ()
           cloned the repository elsewhere
         warned=true
       fi
-      try_git_clone ${repositories[$r]} $r
+      try_git_clone ${repositories[$r]} ${https[$r]} $r
     fi
 
     # Note: the snapshot command guarantees that the commit was pushed to a
@@ -828,7 +825,6 @@ do_make ()
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
 
-
   # Order matters.
   for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
@@ -954,6 +950,49 @@ must run commit and push.
 MSG
 }
 
+do_drop ()
+{
+  setup_env
+
+  blue "Dropping sources for Windows libraries"
+  ./make-source-drop mitls-fstar/src/windows
+}
+
+do_qbuild ()
+{
+  setup_env
+
+  blue "Building Windows libraries"
+  # Instead of invoking cmd.exe /c, which would force us to
+  # rely on its flaky semantics for double quotes,
+  # we go through a batch file.
+  THIS_PID=$$
+  # Find an unambiguous file name for our .bat file
+  NMAKE_EXECS=0
+  while
+    NMAKE_INVOKE_FILE="everest$THIS_PID""nmake$NMAKE_EXECS"".bat" &&
+    [[ -e "$NMAKE_INVOKE_FILE" ]]
+  do
+    NMAKE_EXECS=$(($NMAKE_EXECS + 1))
+  done
+  # Then create, run and remove the .bat file
+  DIR=$(cygpath -w "$(pwd)/mitls-fstar/src/windows")
+  cat > "$NMAKE_INVOKE_FILE" <<EOF
+call $VS_ENV_CMD
+set MAKEFLAGS=
+set KRML_HOME=..\..\..\kremlin
+cd "$DIR\quiccrypto" &&^
+call nmake -f makefile.vs &&^
+cd "$DIR\mitls" &&^
+call nmake -f makefile.vs
+EOF
+  chmod +x "$NMAKE_INVOKE_FILE"
+  "./$NMAKE_INVOKE_FILE"
+  NMAKE_RETCODE=$?
+  rm -f "$NMAKE_INVOKE_FILE"
+  return $NMAKE_RETCODE
+}
+
 # ------------------------------------------------------------------------------
 # Usage and parsing arguments
 # ------------------------------------------------------------------------------
@@ -1006,6 +1045,10 @@ COMMAND:
   test      launch the test artifacts
 
   verify    run verification for all projects
+
+  drop      drop extraced C and assembly files from miTLS and Hacl*
+
+  qbuild    build Windows libraries using Visual Studio
 
   clean     clean all projects
 
@@ -1090,6 +1133,14 @@ while true; do
 
     snapshot)
       do_snapshot
+      ;;
+
+    drop)
+      do_drop
+      ;;
+
+    qbuild)
+      do_qbuild
       ;;
 
     "")
