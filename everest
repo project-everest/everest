@@ -1046,9 +1046,9 @@ COMMAND:
 
   verify    run verification for all projects
 
-  drop      drop extraced C and assembly files from miTLS and Hacl* into QUIC
+  drop      drop extraced C and assembly files from miTLS and Hacl*
 
-  qbuild    build QUIC using Visual Studio
+  qbuild    build Windows libraries using Visual Studio
 
   clean     clean all projects
 
