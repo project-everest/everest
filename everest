@@ -1011,7 +1011,7 @@ OPTION:
             This option is in two parts
             (-jn without space is NOT valid)
 
-  -fnouint128 Build without using the target compiler __int128_t
+  -windows  Build for Windows (no native __int128_t, optimize tail recursion)
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
