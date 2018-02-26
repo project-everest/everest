@@ -492,6 +492,7 @@ OCAML
     find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
     magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
     prompt_yes "write_z3_env_dest_file $new_z3_folder" true
+    ln -sf $new_z3_folder z3
   fi
 
   # We need Nuget for Vale
