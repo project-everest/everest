@@ -1,9 +1,6 @@
 declare -A repositories
 declare -A https
 
-repositories[QUIC]=msresearch@vs-ssh.visualstudio.com:22/DefaultCollection/Everest/_ssh/QUIC
-https[QUIC]=https://msresearch.visualstudio.com/DefaultCollection/Everest/_git/QUIC
-
 repositories[FStar]=git@github.com:FStarLang/FStar.git
 https[FStar]=https://github.com/FStarLang/FStar.git
 

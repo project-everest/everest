@@ -954,17 +954,15 @@ do_drop ()
 {
   setup_env
 
-  blue "Dropping into QUIC"
-  ./make-source-drop QUIC/experiments/QUICFStar/everest  
+  blue "Dropping sources for Windows libraries"
+  ./make-source-drop mitls-fstar/src/windows
 }
 
 do_qbuild ()
 {
   setup_env
 
-  blue "Building QUICFStar"
-  export KRML_HOME=../../../kremlin
-  cd QUIC/experiments/QUICFStar && make QuicKremlin
+  blue "Building Windows libraries"
   # Instead of invoking cmd.exe /c, which would force us to
   # rely on its flaky semantics for double quotes,
   # we go through a batch file.
@@ -978,17 +976,15 @@ do_qbuild ()
     NMAKE_EXECS=$(($NMAKE_EXECS + 1))
   done
   # Then create, run and remove the .bat file
-  DIR=$(cygpath -w "$(pwd)")
+  DIR=$(cygpath -w "$(pwd)/mitls-fstar/src/windows")
   cat > "$NMAKE_INVOKE_FILE" <<EOF
 call $VS_ENV_CMD
 set MAKEFLAGS=
 set KRML_HOME=..\..\..\kremlin
-cd "$DIR\everest\quiccrypto" &&^
+cd "$DIR\quiccrypto" &&^
 call nmake -f makefile.vs &&^
-cd "$DIR\everest\mitls" &&^
-call nmake -f makefile.vs &&^
-REM cd "$DIR" &&^
-REM call nmake -f makefile.vs
+cd "$DIR\mitls" &&^
+call nmake -f makefile.vs
 EOF
   chmod +x "$NMAKE_INVOKE_FILE"
   "./$NMAKE_INVOKE_FILE"
