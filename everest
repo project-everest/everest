@@ -974,6 +974,10 @@ COMMAND:
             (destination file ~/.bash_profile can be overridden with the
             EVEREST_ENV_DEST_FILE environment variable)
 
+  opam      install the needed OPAM packages (implied by check)
+
+  z3        install the right version of z3 (implied by check)
+
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
@@ -989,8 +993,6 @@ COMMAND:
             writes into hashes.sh
 
   make      rebuild all projects
-
-  opam      install the needed OPAM packages
 
   test      launch the test artifacts
 
