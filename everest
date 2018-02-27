@@ -265,6 +265,49 @@ parse_z3_version () {
 # The functions that implement the main actions
 # ------------------------------------------------------------------------------
 
+do_update_z3 () {
+  # Update our clone of FStarLang/binaries and check that we have the blessed z3
+  # version
+  if ! [[ -d fstarlang_binaries ]]; then
+    echo "... cloning FStarLang/binaries"
+    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
+  fi
+  (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
+
+  local current_z3=$(parse_z3_version)
+  echo "... version of z3 found in PATH: $current_z3"
+
+  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
+  if is_windows; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-win.zip
+  elif is_osx; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-osx-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-ubuntu-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  else
+    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  fi
+  local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
+  echo "... version of z3 found in z3-tested is: $new_z3"
+
+  new_z3_file=$(ls $new_z3_file)
+  if [[ $new_z3 != $current_z3 ]]; then
+    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
+    prompt_yes true "exit 1"
+    echo "... unzipping $new_z3_file"
+    unzip $new_z3_file
+    local new_z3_folder=${new_z3_file%%.zip}
+    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
+    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
+    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
+    prompt_yes "write_z3_env_dest_file $new_z3_folder" true
+    ln -sf $new_z3_folder z3
+  fi
+}
+
 do_check ()
 {
   blue "Checking environment"
@@ -458,45 +501,7 @@ OCAML
   fi
   echo "... fsc found in PATH"
 
-  # Update our clone of FStarLang/binaries and check that we have the blessed z3
-  # version
-  if ! [[ -d fstarlang_binaries ]]; then
-    echo "... cloning FStarLang/binaries"
-    try_git_clone "git@github.com:FStarLang/binaries" "https://github.com/FStarLang/binaries" fstarlang_binaries
-  fi
-  (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
-
-  local current_z3=$(parse_z3_version)
-  echo "... version of z3 found in PATH: $current_z3"
-
-  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
-  if is_windows; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-win.zip
-  elif is_osx; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-osx-*.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-ubuntu-*.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
-  else
-    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
-  fi
-  local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
-  echo "... version of z3 found in z3-tested is: $new_z3"
-
-  new_z3_file=$(ls $new_z3_file)
-  if [[ $new_z3 != $current_z3 ]]; then
-    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
-    prompt_yes true "exit 1"
-    echo "... unzipping $new_z3_file"
-    unzip $new_z3_file
-    local new_z3_folder=${new_z3_file%%.zip}
-    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
-    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
-    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
-    prompt_yes "write_z3_env_dest_file $new_z3_folder" true
-  fi
+  do_update_z3
 
   # We need Nuget for Vale
   if ! which nuget >/dev/null 2>&1 ; then
@@ -1024,6 +1029,10 @@ COMMAND:
             (destination file ~/.bash_profile can be overridden with the
             EVEREST_ENV_DEST_FILE environment variable)
 
+  opam      install the needed OPAM packages (implied by check)
+
+  z3        install the right version of z3 (implied by check)
+
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
@@ -1039,8 +1048,6 @@ COMMAND:
             writes into hashes.sh
 
   make      rebuild all projects
-
-  opam      install the needed OPAM packages
 
   test      launch the test artifacts
 
@@ -1115,6 +1122,10 @@ while true; do
 
     opam)
       install_all_opam_packages
+      ;;
+
+    z3)
+      do_update_z3
       ;;
 
     clean)
