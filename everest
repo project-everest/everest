@@ -795,7 +795,21 @@ set_windows () {
   export KRML_NOUINT128=1
   # Note: the Makefile in code/curve25519 has no such customization and we nudge
   # it via a set of KOPTS specified here.
-  export HACL_KOPTS="-fnouint128 -ftail-calls -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128.h\"' $KOPTS"
+  export HACL_KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128.h\"' $KOPTS"
+}
+
+set_opt () {
+  # Picked up by pretty much all the Makefiles
+  export CFLAGS="-funroll-loops -fomit-frame-pointer -O3"
+  # Set by the everest script in build_mitls below as CFLAGS
+  export MITLS_CFLAGS="-DREGION_STATISTICS -DUSE_HEAP_REGIONS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
+  # Picked up by mitls-fstar/src/tls/Makefile.common
+  export MITLS_NODEBUG=1
+}
+
+set_openssl () {
+  # Picked up by mitls-fstar/src/tls/Makefile.Kremlin
+  export MITLS_USE_OPENSSL=1
 }
 
 build_fstar () {
@@ -809,6 +823,7 @@ build_hacl () {
 }
 
 build_mitls () {
+  CFLAGS="$MITLS_CFLAGS" \
   make -C mitls-fstar/libs/ffi $parallel_opt && \
   make -C mitls-fstar/src/pki $parallel_opt && \
   make -C mitls-fstar/src/tls $parallel_opt && \
@@ -1018,6 +1033,12 @@ OPTION:
 
   -windows  Build for Windows (no native __int128_t, optimize tail recursion)
 
+  -opt      Enable classic optimization flags and disable debugging. Note: this
+            does not invalidate previous object files (e.g. in HACL*); consider
+            cleaning.
+
+  -openssl  Use OpenSSL for AEAD in miTLS
+
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
     FStar kremlin mitls-fstar hacl-star vale MLCrypto
@@ -1083,6 +1104,14 @@ while true; do
 
     -windows)
       set_windows
+      ;;
+
+    -openssl)
+      set_openssl
+      ;;
+
+    -opt)
+      set_opt
       ;;
 
     -fnouint128)
