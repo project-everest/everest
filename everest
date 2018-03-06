@@ -241,13 +241,10 @@ install_all_opam_packages () {
 }
 
 try_git_clone () {
-  if ! git clone --recursive $1 $2; then
+  if ! git clone --recursive $1 $3; then
     magenta "Proceed with https? [Yn]"
     prompt_yes true "exit 1"
-    url=$1
-    url=${url/:/\/}
-    url=https://${url#*@}
-    git clone --recursive $url $2
+    git clone --recursive $2 $3
   fi
 }
 
@@ -267,6 +264,49 @@ parse_z3_version () {
 # ------------------------------------------------------------------------------
 # The functions that implement the main actions
 # ------------------------------------------------------------------------------
+
+do_update_z3 () {
+  # Update our clone of FStarLang/binaries and check that we have the blessed z3
+  # version
+  if ! [[ -d fstarlang_binaries ]]; then
+    echo "... cloning FStarLang/binaries"
+    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
+  fi
+  (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
+
+  local current_z3=$(parse_z3_version)
+  echo "... version of z3 found in PATH: $current_z3"
+
+  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
+  if is_windows; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-win.zip
+  elif is_osx; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-osx-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-ubuntu-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  else
+    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  fi
+  local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
+  echo "... version of z3 found in z3-tested is: $new_z3"
+
+  new_z3_file=$(ls $new_z3_file)
+  if [[ $new_z3 != $current_z3 ]]; then
+    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
+    prompt_yes true "exit 1"
+    echo "... unzipping $new_z3_file"
+    unzip $new_z3_file
+    local new_z3_folder=${new_z3_file%%.zip}
+    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
+    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
+    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
+    prompt_yes "write_z3_env_dest_file $new_z3_folder" true
+    ln -sf $new_z3_folder z3
+  fi
+}
 
 do_check ()
 {
@@ -461,45 +501,7 @@ OCAML
   fi
   echo "... fsc found in PATH"
 
-  # Update our clone of FStarLang/binaries and check that we have the blessed z3
-  # version
-  if ! [[ -d fstarlang_binaries ]]; then
-    echo "... cloning FStarLang/binaries"
-    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
-  fi
-  (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
-
-  local current_z3=$(parse_z3_version)
-  echo "... version of z3 found in PATH: $current_z3"
-
-  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
-  if is_windows; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-win.zip
-  elif is_osx; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-osx-*.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-ubuntu-*.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
-  else
-    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
-  fi
-  local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
-  echo "... version of z3 found in z3-tested is: $new_z3"
-
-  new_z3_file=$(ls $new_z3_file)
-  if [[ $new_z3 != $current_z3 ]]; then
-    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
-    prompt_yes true "exit 1"
-    echo "... unzipping $new_z3_file"
-    unzip $new_z3_file
-    local new_z3_folder=${new_z3_file%%.zip}
-    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
-    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
-    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
-    prompt_yes "write_z3_env_dest_file $new_z3_folder" true
-  fi
+  do_update_z3
 
   # We need Nuget for Vale
   if ! which nuget >/dev/null 2>&1 ; then
@@ -634,7 +636,7 @@ do_reset ()
           cloned the repository elsewhere
         warned=true
       fi
-      try_git_clone ${repositories[$r]} $r
+      try_git_clone ${repositories[$r]} ${https[$r]} $r
     fi
 
     # Note: the snapshot command guarantees that the commit was pushed to a
@@ -786,14 +788,28 @@ separator () {
   echo "================================================================================"
 }
 
-set_nouint128 () {
-  export KOPTS="-falloca $KOPTS"
+set_windows () {
+  export KOPTS="-falloca -ftail-calls $KOPTS"
   # Note: the Makefiles in secure_api and src/tls know about KRML_NOUINT128 and
   # will flip KOPTS accordingly
   export KRML_NOUINT128=1
   # Note: the Makefile in code/curve25519 has no such customization and we nudge
   # it via a set of KOPTS specified here.
   export HACL_KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128.h\"' $KOPTS"
+}
+
+set_opt () {
+  # Picked up by pretty much all the Makefiles
+  export CFLAGS="-funroll-loops -fomit-frame-pointer -O3"
+  # Set by the everest script in build_mitls below as CFLAGS
+  export MITLS_CFLAGS="-DREGION_STATISTICS -DUSE_HEAP_REGIONS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
+  # Picked up by mitls-fstar/src/tls/Makefile.common
+  export MITLS_NODEBUG=1
+}
+
+set_openssl () {
+  # Picked up by mitls-fstar/src/tls/Makefile.Kremlin
+  export MITLS_USE_OPENSSL=1
 }
 
 build_fstar () {
@@ -807,6 +823,7 @@ build_hacl () {
 }
 
 build_mitls () {
+  CFLAGS="$MITLS_CFLAGS" \
   make -C mitls-fstar/libs/ffi $parallel_opt && \
   make -C mitls-fstar/src/pki $parallel_opt && \
   make -C mitls-fstar/src/tls $parallel_opt && \
@@ -827,7 +844,6 @@ do_make ()
   build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
-
 
   # Order matters.
   for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
@@ -954,6 +970,49 @@ must run commit and push.
 MSG
 }
 
+do_drop ()
+{
+  setup_env
+
+  blue "Dropping sources for Windows libraries"
+  ./make-source-drop mitls-fstar/src/windows
+}
+
+do_qbuild ()
+{
+  setup_env
+
+  blue "Building Windows libraries"
+  # Instead of invoking cmd.exe /c, which would force us to
+  # rely on its flaky semantics for double quotes,
+  # we go through a batch file.
+  THIS_PID=$$
+  # Find an unambiguous file name for our .bat file
+  NMAKE_EXECS=0
+  while
+    NMAKE_INVOKE_FILE="everest$THIS_PID""nmake$NMAKE_EXECS"".bat" &&
+    [[ -e "$NMAKE_INVOKE_FILE" ]]
+  do
+    NMAKE_EXECS=$(($NMAKE_EXECS + 1))
+  done
+  # Then create, run and remove the .bat file
+  DIR=$(cygpath -w "$(pwd)/mitls-fstar/src/windows")
+  cat > "$NMAKE_INVOKE_FILE" <<EOF
+call $VS_ENV_CMD
+set MAKEFLAGS=
+set KRML_HOME=..\..\..\kremlin
+cd "$DIR\quiccrypto" &&^
+call nmake -f makefile.vs &&^
+cd "$DIR\mitls" &&^
+call nmake -f makefile.vs
+EOF
+  chmod +x "$NMAKE_INVOKE_FILE"
+  "./$NMAKE_INVOKE_FILE"
+  NMAKE_RETCODE=$?
+  rm -f "$NMAKE_INVOKE_FILE"
+  return $NMAKE_RETCODE
+}
+
 # ------------------------------------------------------------------------------
 # Usage and parsing arguments
 # ------------------------------------------------------------------------------
@@ -972,7 +1031,13 @@ OPTION:
             This option is in two parts
             (-jn without space is NOT valid)
 
-  -fnouint128 Build without using the target compiler __int128_t
+  -windows  Build for Windows (no native __int128_t, optimize tail recursion)
+
+  -opt      Enable classic optimization flags and disable debugging. Note: this
+            does not invalidate previous object files (e.g. in HACL*); consider
+            cleaning.
+
+  -openssl  Use OpenSSL for AEAD in miTLS
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
@@ -984,6 +1049,10 @@ COMMAND:
             variables
             (destination file ~/.bash_profile can be overridden with the
             EVEREST_ENV_DEST_FILE environment variable)
+
+  opam      install the needed OPAM packages (implied by check)
+
+  z3        install the right version of z3 (implied by check)
 
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
@@ -1001,11 +1070,13 @@ COMMAND:
 
   make      rebuild all projects
 
-  opam      install the needed OPAM packages
-
   test      launch the test artifacts
 
   verify    run verification for all projects
+
+  drop      drop extraced C and assembly files from miTLS and Hacl*
+
+  qbuild    build Windows libraries using Visual Studio
 
   clean     clean all projects
 
@@ -1031,8 +1102,21 @@ while true; do
       parallel_opt="-j $1"
       ;;
 
+    -windows)
+      set_windows
+      ;;
+
+    -openssl)
+      set_openssl
+      ;;
+
+    -opt)
+      set_opt
+      ;;
+
     -fnouint128)
-      set_nouint128
+      red "Warning: the -fnouint128 option is deprecated; use -windows instead"
+      set_windows
       ;;
 
     check)
@@ -1069,6 +1153,10 @@ while true; do
       install_all_opam_packages
       ;;
 
+    z3)
+      do_update_z3
+      ;;
+
     clean)
       do_clean
       ;;
@@ -1085,6 +1173,14 @@ while true; do
 
     snapshot)
       do_snapshot
+      ;;
+
+    drop)
+      do_drop
+      ;;
+
+    qbuild)
+      do_qbuild
       ;;
 
     "")
