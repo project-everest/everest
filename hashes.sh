@@ -11,4 +11,4 @@ branches[MLCrypto]=master
 hashes[hacl-star]=f6fe76a04bf088f1fb217d83b993877673239128
 branches[hacl-star]=c_mitls2c
 hashes[kremlin]=393d322
-branches[kremlin]=master
+branches[kremlin]=fstar-master
