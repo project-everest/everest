@@ -95,7 +95,7 @@ WORKDIR ${MYHOME}
 ENV OPAMYES 1
 
 # Install OCaml
-ENV ocamlv 4.04.1
+ENV ocamlv 4.05.0
 RUN opam init --auto-setup --compiler=${ocamlv}
 
 # Prepare everest repository
