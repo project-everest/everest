@@ -30,7 +30,9 @@ HACL=$HACL_HOME/secure_api
 mkdir -p $1/mitls
 mkdir -p $1/mitls/amd64
 mkdir -p $1/mitls/i386
-rm -f $1/mitls/*.c
+#Don't remove dllmain.c
+#rm -f $1/mitls/*.c
+find $1/mitls -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
 rm -f $1/mitls/*.h
 rm -f $1/mitls/amd64/*.asm
 rm -f $1/mitls/i386/*.asm
@@ -55,8 +57,11 @@ mkdir -p $1/quiccrypto
 mkdir -p $1/quiccrypto/amd64
 mkdir -p $1/quiccrypto/i386
 DIST_DIR=runtime_switch
-rm -f $1/quiccrypto/*.c
-rm -f $1/quiccrypto/*.h
+#Don't remove dllmain.c and CommonInclude.h
+#rm -f $1/quiccrypto/*.c
+#rm -f $1/quiccrypto/*.h
+find $1/quiccrypto -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
+find $1/quiccrypto -maxdepth 1 -type f -and -name '*.h' -and -not -name CommonInclude.h | xargs rm -f
 rm -f $1/quiccrypto/amd64/*.asm
 rm -f $1/quiccrypto/i386/*.asm
 cp $HACL_HOME/secure_api/QuicProvider/*.{c,h} $1/quiccrypto
@@ -87,8 +92,7 @@ mkdir -p $1/bin_openssl
 rm -f $1/bin_openssl/*.dll
 cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin_openssl
 cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin_openssl
-# todo: build and drop libquiccrypto.dll using mingw
-# todo: build and drop mipki.dll using mingw
+cp hacl-star/secure_api/out/runtime_switch/libquicprovider.dll $1/bin_openssl/libquicrypto.dll
 cp mitls-fstar/src/pki/libmipki.dll $1/bin_openssl
 
 # hashes
