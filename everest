@@ -270,7 +270,7 @@ do_update_z3 () {
   # version
   if ! [[ -d fstarlang_binaries ]]; then
     echo "... cloning FStarLang/binaries"
-    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
+    try_git_clone "git@github.com:FStarLang/binaries" "https://github.com/FStarLang/binaries.git" fstarlang_binaries
   fi
   (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
 
