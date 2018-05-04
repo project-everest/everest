@@ -10,5 +10,5 @@ hashes[MLCrypto]=12f3f1e1eae7e78f1260b04794c481814f6d12a6
 branches[MLCrypto]=master
 hashes[hacl-star]=73578e1a69c70f263a607d23676b76acd8437072
 branches[hacl-star]=cleanup-kremlib-2
-hashes[kremlin]=a79ddf6725560136747f1635d336db31f62931b5
+hashes[kremlin]=dc17838a2d79fc264cb05dea4aeedf8480cf9b87
 branches[kremlin]=cleanup-kremlib-2
