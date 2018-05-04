@@ -814,6 +814,7 @@ set_openssl () {
 
 build_fstar () {
   make -C FStar/src/ocaml-output $parallel_opt && \
+  make -C FStar/ulib $parallel_opt && \
   make -C FStar/ulib/ml $parallel_opt
 }
 
