@@ -3,13 +3,14 @@
 # This script propagates the extracted C and assembly code for miTLS and 
 # HACL* out into standalone directories.
 
+# set -x
 
 print_usage ()
 {
   cat <<HELP
 Usage:  MakeSourceDrop destination_path
   make-source-drop ~/drops/drop12
-  
+
 The directory path will be created if it doesn't already exist.
 HELP
 }
@@ -40,6 +41,7 @@ cp $MITLS_EXTRACT/Kremlin-Library/*.{c,h} $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/curve/*.{c,h} $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/include/*.h $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/kremlib/*.{c,h} $1/mitls
+cp -r $MITLS_EXTRACT/Kremlin-Library/kreminc/* $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/secure/*.{c,h} $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/stub/*.{c,h} $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/uint128/*.{c,h} $1/mitls
@@ -73,7 +75,7 @@ cp $HACL_HOME/secure_api/vale/asm/*.{c,h} $1/quiccrypto
 cp $HACL_HOME/code/curve25519/x25519-c/*.{c,h} $1/quiccrypto
 cp MLCrypto/*.h $1/quiccrypto
 cp $KREMLIN_HOME/kremlib/kremstr.c $1/quiccrypto
-cp $KREMLIN_HOME/kremlib/*.h $1/quiccrypto
+cp -r $KREMLIN_HOME/include/* $1/quiccrypto
 
 # mipki-for-OpenSSL and mipki-for-Windows
 mkdir -p $1/mipki
