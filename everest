@@ -813,7 +813,7 @@ build_fstar () {
 }
 
 build_hacl () {
-  (KOPTS="$HACL_KOPTS" make -C hacl-star/code/curve25519 x25519-c/Curve25519.c $parallel_opt) && \
+  make -C hacl-star/code/curve25519 x25519-c/Hacl_Curve25519.c $parallel_opt && \
   make -C hacl-star/secure_api $parallel_opt
 }
 
