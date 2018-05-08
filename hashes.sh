@@ -1,7 +1,7 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=e77d5725806a1be781d179eb23f29cb1391c8651
-branches[mitls-fstar]=evercrypt
+hashes[mitls-fstar]=84f2a992d0b3e860d3b0fbce2819062941107302
+branches[mitls-fstar]=quic2c
 hashes[vale]=5f0c2bb91599bdde3727126b6d306eedb82ce472
 branches[vale]=master
 hashes[FStar]=7532fd1de11c33b1a627da629ed52349ffca8479
