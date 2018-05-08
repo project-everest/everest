@@ -815,7 +815,7 @@ build_fstar () {
 build_hacl () {
   make -C hacl-star/code/ extract-c $parallel_opt && \
   make -C hacl-star/secure_api $parallel_opt && \
-  make -C hacl-star/provider $parallel_opt
+  make -C hacl-star/providers $parallel_opt
 }
 
 build_mitls () {
