@@ -842,7 +842,7 @@ do_make ()
   build_commands[vale]="build_vale"
 
   # Order matters.
-  for p in FStar kremlin vale hacl-star MLCrypto mitls-fstar; do
+  for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
