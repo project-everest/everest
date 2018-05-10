@@ -843,26 +843,15 @@ do_make ()
 
   # Order matters.
   for p in FStar kremlin vale hacl-star MLCrypto mitls-fstar; do
-    if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
-      continue
-    fi
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
-    if ! ${build_commands[$p]}; then
-      failed="$failed  $p\n"
-    fi
+    ${build_commands[$p]}
     separator
     echo -e "\n\n"
   done
 
-  if [[ $failed != "" ]]; then
-    red "ERROR: build failed for one or more projects"
-    echo -e $failed
-    exit 255
-  else
-    green "SUCCESS"
-  fi
+  green "SUCCESS"
 }
 
 do_test () {
