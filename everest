@@ -843,6 +843,10 @@ do_make ()
 
   # Order matters.
   for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
+    # For individual components, we set ALL_PROJECTS=foo
+    if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
+      continue
+    fi
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
