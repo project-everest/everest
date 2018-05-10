@@ -836,13 +836,13 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="make -C kremlin $parallel_opt"
-  build_commands[hacl-star]="build_hacl"
   build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
+  build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
 
   # Order matters.
-  for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
+  for p in FStar kremlin vale hacl-star MLCrypto mitls-fstar; do
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
     fi
