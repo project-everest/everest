@@ -813,8 +813,9 @@ build_fstar () {
 }
 
 build_hacl () {
-  make -C hacl-star/code/curve25519 extract-c $parallel_opt && \
-  make -C hacl-star/secure_api $parallel_opt
+  make -C hacl-star/code/ extract-c $parallel_opt && \
+  make -C hacl-star/secure_api $parallel_opt && \
+  make -C hacl-star/providers $parallel_opt
 }
 
 build_mitls () {
@@ -835,33 +836,26 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="make -C kremlin $parallel_opt"
-  build_commands[hacl-star]="build_hacl"
   build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
+  build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
 
   # Order matters.
   for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
+    # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
     fi
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
-    if ! ${build_commands[$p]}; then
-      failed="$failed  $p\n"
-    fi
+    ${build_commands[$p]}
     separator
     echo -e "\n\n"
   done
 
-  if [[ $failed != "" ]]; then
-    red "ERROR: build failed for one or more projects"
-    echo -e $failed
-    exit 255
-  else
-    green "SUCCESS"
-  fi
+  green "SUCCESS"
 }
 
 do_test () {
