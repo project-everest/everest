@@ -36,6 +36,10 @@ make_non_interactive () {
 # Use $parallel_opt instead
 unset parallel_opt
 
+# The -k option (to instruct make to keep going upon a failure),
+# disabled by default
+unset keep_going_opt
+
 # The file where to store customized environment variables
 # (default is $HOME/.bash_profile)
 if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
@@ -815,22 +819,22 @@ set_openssl () {
 }
 
 build_fstar () {
-  make -C FStar/src/ocaml-output $parallel_opt && \
-  make -C FStar/ulib/ml $parallel_opt
+  make -C FStar/src/ocaml-output $parallel_opt $keep_going_opt && \
+  make -C FStar/ulib/ml $parallel_opt $keep_going_opt
 }
 
 build_hacl () {
   (KOPTS="$HACL_KOPTS" make -C hacl-star/code/curve25519 x25519-c/Curve25519.c $parallel_opt) && \
-  make -C hacl-star/secure_api $parallel_opt
+  make -C hacl-star/secure_api $parallel_opt $keep_going_opt
 }
 
 build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
-  make -C mitls-fstar/libs/ffi $parallel_opt && \
-  make -C mitls-fstar/src/pki $parallel_opt && \
-  make -C mitls-fstar/src/tls $parallel_opt && \
-  make -C mitls-fstar/apps/cmitls $parallel_opt && \
-  make -C mitls-fstar/apps/quicMinusNet $parallel_opt
+  make -C mitls-fstar/libs/ffi $parallel_opt $keep_going_opt && \
+  make -C mitls-fstar/src/pki $parallel_opt $keep_going_opt && \
+  make -C mitls-fstar/src/tls $parallel_opt $keep_going_opt && \
+  make -C mitls-fstar/apps/cmitls $parallel_opt $keep_going_opt && \
+  make -C mitls-fstar/apps/quicMinusNet $parallel_opt $keep_going_opt
 }
 
 do_make ()
@@ -841,9 +845,9 @@ do_make ()
 
   declare -A build_commands
   build_commands[FStar]="build_fstar"
-  build_commands[kremlin]="make -C kremlin $parallel_opt"
+  build_commands[kremlin]="make -C kremlin $parallel_opt $keep_going_opt"
   build_commands[hacl-star]="build_hacl"
-  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
+  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt $keep_going_opt"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
 
@@ -879,11 +883,11 @@ do_test () {
   set -x
   hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
   hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
-  make -C hacl-star/secure_api -f Makefile.extract test
+  make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
   # These tests make assumption on their current working directory
-  (cd mitls-fstar/src/tls && make $parallel_opt test)
-  (cd mitls-fstar/apps/cmitls && make test)
-  (cd mitls-fstar/apps/quicMinusNet && make test)
+  (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
+  (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
+  (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
   set +x
   separator
 }
@@ -910,7 +914,7 @@ do_verify () {
   setup_env
 
   declare -A verify_commands
-  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt"
+  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt $keep_going_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
   verify_commands[vale]="do_verify_vale"
@@ -1033,6 +1037,8 @@ OPTION:
             This option is in two parts
             (-jn without space is NOT valid)
 
+  -k        Pass the -k (--keep-going) option to "make"
+
   -windows  Build for Windows (no native __int128_t, optimize tail recursion)
 
   -opt      Enable classic optimization flags and disable debugging. Note: this
@@ -1102,6 +1108,10 @@ while true; do
       # (max number of parallel jobs)
       shift
       parallel_opt="-j $1"
+      ;;
+
+    -k)
+      keep_going_opt="-k"
       ;;
 
     -windows)
