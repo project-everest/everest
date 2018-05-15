@@ -95,6 +95,7 @@ cp $HACL_HOME/secure_api/vale/asm/*.{c,h} $1/quiccrypto
 cp $HACL_HOME/code/curve25519/x25519-c/*.{c,h} $1/quiccrypto
 cp MLCrypto/*.h $1/quiccrypto
 cp $KREMLIN_HOME/kremlib/kremstr.c $1/quiccrypto
+cp $KREMLIN_HOME/kremlib/FStar_UInt128_MSVC.c $1/quiccrypto
 cp -r $KREMLIN_HOME/include/* $1/quiccrypto
 
 

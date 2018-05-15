@@ -796,7 +796,7 @@ set_opt () {
   # Picked up by pretty much all the Makefiles
   export CFLAGS="-funroll-loops -fomit-frame-pointer -O3"
   # Set by the everest script in build_mitls below as CFLAGS
-  export MITLS_CFLAGS="-DREGION_STATISTICS -DUSE_HEAP_REGIONS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
+  export MITLS_CFLAGS="-DREGION_STATISTICS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
   # Picked up by mitls-fstar/src/tls/Makefile.common
   export MITLS_NODEBUG=1
 }
@@ -1020,7 +1020,7 @@ OPTION:
             This option is in two parts
             (-jn without space is NOT valid)
 
-  -windows  Build for Windows (no native __int128_t, optimize tail recursion)
+  -windows  Build for Windows (Tune for MSVC compiler:  optimize tail recursion, etc.)
 
   -opt      Enable classic optimization flags and disable debugging. Note: this
             does not invalidate previous object files (e.g. in HACL*); consider
@@ -1101,11 +1101,6 @@ while true; do
 
     -opt)
       set_opt
-      ;;
-
-    -fnouint128)
-      red "Warning: the -fnouint128 option is deprecated; use -windows instead"
-      set_windows
       ;;
 
     check)
