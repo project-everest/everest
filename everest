@@ -435,9 +435,8 @@ MSG
   else
     # OCaml; if this exits, set -e means this is a hard error
     ocaml -noinit -noprompt -stdin <<OCAML
-      if Sys.ocaml_version < "4.02.2" || String.sub Sys.ocaml_version 0 4 = "4.03" then 
-      begin
-        print_endline "ERROR: Everest needs OCaml >= 4.02.3 and <> 4.03.X";
+      if Sys.ocaml_version < "4.04.0" then begin
+        print_endline "ERROR: Everest needs OCaml >= 4.04.0";
         print_endline ("You have OCaml " ^ Sys.ocaml_version);
         exit 1
       end
@@ -795,13 +794,7 @@ separator () {
 }
 
 set_windows () {
-  export KOPTS="-falloca -ftail-calls $KOPTS"
-  # Note: the Makefiles in secure_api and src/tls know about KRML_NOUINT128 and
-  # will flip KOPTS accordingly
-  export KRML_NOUINT128=1
-  # Note: the Makefile in code/curve25519 has no such customization and we nudge
-  # it via a set of KOPTS specified here.
-  export HACL_KOPTS="-fnouint128 -drop FStar.UInt128,FStar.Int.Cast.Full -add-early-include '\"FStar_UInt128.h\"' $KOPTS"
+  export EVEREST_WINDOWS=1
 }
 
 set_opt () {
@@ -819,22 +812,24 @@ set_openssl () {
 }
 
 build_fstar () {
-  make -C FStar/src/ocaml-output $parallel_opt $keep_going_opt && \
-  make -C FStar/ulib/ml $parallel_opt $keep_going_opt
+  make -C FStar/src/ocaml-output $parallel_opt && \
+  make -C FStar/ulib $parallel_opt && \
+  make -C FStar/ulib/ml $parallel_opt
 }
 
 build_hacl () {
-  (KOPTS="$HACL_KOPTS" make -C hacl-star/code/curve25519 x25519-c/Hacl_Curve25519.c $parallel_opt) && \
-  make -C hacl-star/secure_api $parallel_opt $keep_going_opt
+  make -C hacl-star/code/ extract-c $parallel_opt && \
+  make -C hacl-star/secure_api $parallel_opt && \
+  make -C hacl-star/providers $parallel_opt
 }
 
 build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
-  make -C mitls-fstar/libs/ffi $parallel_opt $keep_going_opt && \
-  make -C mitls-fstar/src/pki $parallel_opt $keep_going_opt && \
-  make -C mitls-fstar/src/tls $parallel_opt $keep_going_opt && \
-  make -C mitls-fstar/apps/cmitls $parallel_opt $keep_going_opt && \
-  make -C mitls-fstar/apps/quicMinusNet $parallel_opt $keep_going_opt
+  make -C mitls-fstar/libs/ffi $parallel_opt && \
+  make -C mitls-fstar/src/pki $parallel_opt && \
+  make -C mitls-fstar/src/tls $parallel_opt && \
+  make -C mitls-fstar/apps/cmitls $parallel_opt && \
+  make -C mitls-fstar/apps/quicMinusNet $parallel_opt
 }
 
 do_make ()
@@ -845,34 +840,27 @@ do_make ()
 
   declare -A build_commands
   build_commands[FStar]="build_fstar"
-  build_commands[kremlin]="make -C kremlin $parallel_opt $keep_going_opt"
+  build_commands[kremlin]="make -C kremlin $parallel_opt"
+  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
   build_commands[hacl-star]="build_hacl"
-  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt $keep_going_opt"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
 
   # Order matters.
   for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
+    # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
     fi
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
-    if ! ${build_commands[$p]}; then
-      failed="$failed  $p\n"
-    fi
+    ${build_commands[$p]}
     separator
     echo -e "\n\n"
   done
 
-  if [[ $failed != "" ]]; then
-    red "ERROR: build failed for one or more projects"
-    echo -e $failed
-    exit 255
-  else
-    green "SUCCESS"
-  fi
+  green "SUCCESS"
 }
 
 do_test () {
