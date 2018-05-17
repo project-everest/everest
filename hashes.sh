@@ -11,4 +11,4 @@ branches[MLCrypto]=master
 hashes[hacl-star]=45c3fddf100ebb14b1730d512329a608aef1b819
 branches[hacl-star]=merge_fstar_master_20180510
 hashes[kremlin]=bd76acaf287a58c757fb1b9337cd9c311d4fde08
-branches[kremlin]=fstar-master
+branches[kremlin]=master
