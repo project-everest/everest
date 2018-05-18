@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+
+# This script propagates the extracted C and assembly code for miTLS and 
+# HACL* out into standalone directories.
+
+# set -x
+
+print_usage ()
+{
+  cat <<HELP
+Usage:  MakeSourceDrop destination_path
+  make-source-drop ~/drops/drop12
+
+The directory path will be created if it doesn't already exist.
+HELP
+}
+
+if [[ $1 == "" ]]; then
+  print_usage
+  exit 0
+fi
+
+# set current directory to the directory of this script
+cd "${BASH_SOURCE%/*}" || exit 
+
+MITLS_EXTRACT=mitls-fstar/src/tls/extract
+KREMLIB=kremlin/kremlib
+HACL=$HACL_HOME/secure_api
+HACL_CODE=$HACL_HOME/code
+
+# libmitls sources
+mkdir -p $1/mitls
+mkdir -p $1/mitls/amd64
+mkdir -p $1/mitls/i386
+#Don't remove dllmain.c
+#rm -f $1/mitls/*.c
+find $1/mitls -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
+rm -f $1/mitls/*.h
+rm -f $1/mitls/amd64/*.asm
+rm -f $1/mitls/i386/*.asm
+cp $MITLS_EXTRACT/Kremlin-Library/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/curve/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/include/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/kremlib/*.{c,h} $1/mitls
+cp -r $MITLS_EXTRACT/Kremlin-Library/kreminc/* $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/secure/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/stub/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/uint128/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Library/vale/*.{c,h} $1/mitls
+cp $HACL/vale/asm/*x86_64*.asm $1/mitls/amd64
+cp $HACL/vale/asm/*i686*.asm $1/mitls/i386
+
+cp $HACL_HOME/providers/generated/EverCrypt_*.{c,h} $1/mitls
+cp $HACL_HOME/providers/generated/EverCrypt.{c,h} $1/mitls
+cp $HACL_HOME/providers/generated/C_Failure.{c,h} $1/mitls
+cp $HACL_HOME/providers/generated/FStar_Prims_C_Loops_Spec_Hacl_Spec_Seq.{c,h} $1/mitls
+cp $HACL_HOME/providers/generated/Hacl_UInt128.h $1/mitls
+cp $HACL_HOME/providers/multiplexer/c/*.{c,h} $1/mitls
+cp $HACL_HOME/snapshots/common/vec128.h $1/mitls
+cp $HACL_CODE/salsa-family/chacha-c/Hacl_Chacha20.{c,h} $1/mitls
+cp $HACL_CODE/salsa-family/salsa-c/Hacl_Salsa20.{c,h} $1/mitls
+cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_256.{c,h} $1/mitls
+cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_384.{c,h} $1/mitls
+cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_512.{c,h} $1/mitls
+cp $HACL_CODE/curve25519/x25519-c/Hacl_Curve25519.{c,h} $1/mitls
+cp $HACL_CODE/ed25519/ed25519-c/Hacl_Ed25519.{c,h} $1/mitls
+cp $HACL_CODE/poly1305/poly-c/Hacl_Poly1305_64.{c,h} $1/mitls
+cp $HACL_CODE/hmac/hmac-c/Hacl_HMAC_SHA2_256.{c,h} $1/mitls
+cp $HACL_CODE/poly1305/poly-c/AEAD_Poly1305_64.{c,h} $1/mitls
+cp $HACL_CODE/salsa-family/chacha-vec128-c/Hacl_Chacha20_Vec128.{c,h} $1/mitls
+
+# our public interface
+cp mitls-fstar/libs/ffi/mitlsffi.h $1/
+cp mitls-fstar/src/pki/mipki.h $1/
+cp $HACL/QuicProvider/quic_provider.h $1/
+
+# libqcuicrypto sources
+mkdir -p $1/quiccrypto
+mkdir -p $1/quiccrypto/amd64
+mkdir -p $1/quiccrypto/i386
+DIST_DIR=runtime_switch
+#Don't remove dllmain.c and CommonInclude.h
+#rm -f $1/quiccrypto/*.c
+#rm -f $1/quiccrypto/*.h
+find $1/quiccrypto -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
+find $1/quiccrypto -maxdepth 1 -type f -and -name '*.h' -and -not -name CommonInclude.h | xargs rm -f
+rm -f $1/quiccrypto/amd64/*.asm
+rm -f $1/quiccrypto/i386/*.asm
+cp $HACL_HOME/secure_api/QuicProvider/*.{c,h} $1/quiccrypto
+cp $HACL_HOME/secure_api/out/$DIST_DIR/crypto/*.{c,h} $1/quiccrypto
+cp $HACL_HOME/secure_api/out/$DIST_DIR/uint128/*.{c,h} $1/quiccrypto
+cp $HACL_HOME/secure_api/vale/asm/*x86_64*.asm $1/quiccrypto/amd64
+cp $HACL_HOME/secure_api/vale/asm/*i686*.asm $1/quiccrypto/i386
+cp $HACL_HOME/secure_api/vale/asm/*.{c,h} $1/quiccrypto
+cp $HACL_HOME/code/curve25519/x25519-c/*.{c,h} $1/quiccrypto
+cp MLCrypto/*.h $1/quiccrypto
+cp $KREMLIN_HOME/kremlib/kremstr.c $1/quiccrypto
+cp -r $KREMLIN_HOME/include/* $1/quiccrypto
+
+
+# mipki-for-OpenSSL and mipki-for-Windows
+mkdir -p $1/mipki
+rm -f $1/mipki/*.c
+rm -f $1/mipki/*.h
+cp mitls-fstar/src/pki/*.c $1/mipki
+cp mitls-fstar/src/pki/*.h $1/mipki
+mkdir -p $1/mipki/win
+rm -f $1/mipki/win/*.c
+rm -f $1/mipki/win/*.h
+cp mitls-fstar/src/pki/win/*.c $1/mipki/win
+cp mitls-fstar/src/pki/win/*.h $1/mipki/win
+
+# binaries
+mkdir -p $1/bin_openssl
+rm -f $1/bin_openssl/*.dll
+cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin_openssl
+cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin_openssl
+cp hacl-star/secure_api/out/runtime_switch/libquicprovider.dll $1/bin_openssl/libquiccrypto.dll
+cp mitls-fstar/src/pki/libmipki.dll $1/bin_openssl
+
+# hashes
+cp hashes.sh $1/

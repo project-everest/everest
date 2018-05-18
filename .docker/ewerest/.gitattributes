@@ -1,0 +1,2 @@
+# We want to build Docker Windows images and containers
+Dockerfile eol=crlf

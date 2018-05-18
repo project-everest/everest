@@ -12,23 +12,10 @@ set -o pipefail
 # set -x # uncomment for debugging.
 # set -u
 
-# Known URLs and directories
-OCAML_TARBALL=https://www.dropbox.com/s/p2g539wopa52mvj/ocaml-4.02.3-64bit.tar.bz2?dl=0
-OPAM_TARBALL=https://www.dropbox.com/s/uhgpzgkplviy2mh/opam-4.02.3-64bit.tar.bz2?dl=0
-FLEXDLL_NAME=flexdll-bin-0.35
-FLEXDLL_URL=http://alain.frisch.fr/flexdll/$FLEXDLL_NAME.zip
+# Known URLs, directories and versions
+OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.1/opam64.tar.xz
+OPAM_VERSION=4.05.0+mingw64c
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
-VS_BIN=
-if [[ -v VS140COMNTOOLS ]]; then
-  VS_BIN="$VS140COMNTOOLS"/../../VC/bin
-elif [[ -v VS120COMNTOOLS ]]; then
-  VS_BIN="$VS120COMNTOOLS"/../../VC/bin
-elif [[ -v VS110COMNTOOLS ]]; then
-  VS_BIN="$VS110COMNTOOLS"/../../VC/bin
-else
-  VS_BIN=
-fi
-FS_DIR="C:/Program Files (x86)/Microsoft SDKs/F#/4.0/Framework/v4.0/"
 PYTHON_VER=2.7.13
 PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
 SCONS_INSTALL_POINT=https://downloads.sourceforge.net/project/scons/scons/2.5.1/scons-2.5.1-amd64-setup.exe
@@ -48,6 +35,10 @@ make_non_interactive () {
 # NEVER quote it as "$parallel_opt"
 # Use $parallel_opt instead
 unset parallel_opt
+
+# The -k option (to instruct make to keep going upon a failure),
+# disabled by default
+unset keep_going_opt
 
 # The file where to store customized environment variables
 # (default is $HOME/.bash_profile)
@@ -89,6 +80,50 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
+# Windows only: Visual Studio's command line to set up environment (VS_ENV_CMD)
+if is_windows ; then
+  # Starting from Visual Studio 2017, version 15.2 or later,
+  # we can determine the location of a VS install
+  # using vswhere.exe, see:
+  # https://docs.microsoft.com/en-us/visualstudio/extensibility/locating-visual-studio
+  if
+    VSWHERE_WINDOWS="$(cmd.exe /C 'echo %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe' | sed 's!\r!!g')" &&
+    VSWHERE=$(cygpath -u "$VSWHERE_WINDOWS") &&
+    VS_HOME=$("$VSWHERE" -requires Microsoft.VisualStudio.Component.FSharp -format value -property InstallationPath | sed 's!\r!!g') &&
+    [[ -n "$VS_HOME" ]]
+  then
+    # Visual Studio 2017 (15.2) or later
+    # vcvarsall.bat has been superseded by vsdevcmd.bat, see:
+    # https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/how-to-set-environment-variables-for-the-visual-studio-command-line
+    VSDEVCMD_PATH=$(cygpath -u "$VS_HOME")/Common7/Tools
+    VSDEVCMD=$(cygpath -w "$VSDEVCMD_PATH/VsDevCmd.bat")
+    # Here we assume that BOTH the target platform
+    # and the host platform are amd64.
+    VS_ENV_CMD='"'"$VSDEVCMD"'" -arch=amd64 -host_arch=amd64'
+  else
+    # Older versions are based on vcvarsall.bat
+    if [[ -v VS140COMNTOOLS ]]; then
+      # Visual Studio 2015 (14.x)
+      VS_TOOLS_PATH="$VS140COMNTOOLS"
+    elif [[ -v VS120COMNTOOLS ]]; then
+      # Visual Studio 2012 (12.x)
+      VS_TOOLS_PATH="$VS120COMNTOOLS"
+    elif [[ -v VS110COMNTOOLS ]]; then
+      # Visual Studio 2010 (10.x)
+      VS_TOOLS_PATH="$VS110COMNTOOLS"
+    else
+      # Not found
+      echo Could not find Visual Studio
+      exit 1
+    fi
+    VCVARSALL_PATH="$VS_TOOLS_PATH"/../../VC
+    VCVARSALL=$(cygpath -d "$VCVARSALL_PATH/vcvarsall.bat")
+    # Here we assume that BOTH the target platform
+    # and the host platform are amd64.
+    VS_ENV_CMD="$VCVARSALL amd64"
+  fi
+fi
+
 # May be overridden to include a single project
 ALL_PROJECTS="${!repositories[@]}"
 
@@ -111,6 +146,7 @@ write_to_env_dest_file () {
 # customize "$EVEREST_ENV_DEST_FILE"
 #   $1: name of command to check for
 #   $2: candidate directory where it may reside
+# NOTE: this function is also used to locate python and scons
 windows_check_or_modify_env_dest_file () {
   if ! command -v $1 >/dev/null 2>&1; then
     red "ERROR: $1 not found in PATH"
@@ -130,7 +166,7 @@ windows_check_or_modify_env_dest_file () {
         VS2015, including the C++ components. You can run the VS2015 installer \
         and choose a custom setup, to ensure you have both F# and the C++ \
         components. Download it from: \
-	https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
+        https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
       exit 1
     fi
   fi
@@ -149,26 +185,6 @@ write_nuget_env_dest_file () {
   str="
     # This line automatically added by $0
     export PATH=$(pwd)/nuget/bin:\$PATH"
-  write_to_env_dest_file "$str"
-}
-
-write_flexdll_env_dest_file () {
-  str="
-    # These lines automatically added by $0
-    export PATH=$(pwd)/flexdll:\$PATH"
-  write_to_env_dest_file "$str"
-}
-
-write_ocaml_env_dest_file () {
-  str="
-    # These lines automatically added by $0
-    export PATH=/cygdrive/c/ocamlmgw64/bin/:\$PATH
-    export PATH=\$HOME/.opam/system/bin:\$PATH
-    export PATH=\$HOME/.opam/system/lib/stublibs:\$PATH
-    export PATH=/cygdrive/c/Program\ Files\ \(x86\)/flexdll/:\$PATH
-    export OCAMLFIND_CONF=$(cygpath -m ~/.opam/system/lib/findlib.conf)
-    export MENHIRLIB=$(cygpath -m ~/.opam/system/share/menhir)
-    export OCAML_TOPLEVEL_PATH=$(cygpath -m ~/.opam/system/lib/toplevel/)"
   write_to_env_dest_file "$str"
 }
 
@@ -229,13 +245,10 @@ install_all_opam_packages () {
 }
 
 try_git_clone () {
-  if ! git clone --recursive $1 $2; then
+  if ! git clone --recursive $1 $3; then
     magenta "Proceed with https? [Yn]"
     prompt_yes true "exit 1"
-    url=$1
-    url=${url/:/\/}
-    url=https://${url#*@}
-    git clone --recursive $url $2
+    git clone --recursive $2 $3
   fi
 }
 
@@ -255,6 +268,49 @@ parse_z3_version () {
 # ------------------------------------------------------------------------------
 # The functions that implement the main actions
 # ------------------------------------------------------------------------------
+
+do_update_z3 () {
+  # Update our clone of FStarLang/binaries and check that we have the blessed z3
+  # version
+  if ! [[ -d fstarlang_binaries ]]; then
+    echo "... cloning FStarLang/binaries"
+    try_git_clone "git@github.com:FStarLang/binaries.git" "https://github.com/FStarLang/binaries.git" fstarlang_binaries
+  fi
+  (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
+
+  local current_z3=$(parse_z3_version)
+  echo "... version of z3 found in PATH: $current_z3"
+
+  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
+  if is_windows; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-win.zip
+  elif is_osx; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-osx-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-ubuntu-*.zip
+  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  else
+    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
+    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
+  fi
+  local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
+  echo "... version of z3 found in z3-tested is: $new_z3"
+
+  new_z3_file=$(ls $new_z3_file)
+  if [[ $new_z3 != $current_z3 ]]; then
+    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
+    prompt_yes true "exit 1"
+    echo "... unzipping $new_z3_file"
+    unzip $new_z3_file
+    local new_z3_folder=${new_z3_file%%.zip}
+    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
+    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
+    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
+    prompt_yes "write_z3_env_dest_file $new_z3_folder" true
+    ln -sf $new_z3_folder z3
+  fi
+}
 
 do_check ()
 {
@@ -304,6 +360,13 @@ do_check ()
     fi
     echo "... no suspicious cygwin packages"
 
+    if ! (flexlink.exe -help 2>&1 || true) | grep "0.35fdopen2" >/dev/null; then
+        red "Warning: you have an unknown version of flexlink"
+        red "Please use the version from https://fdopen.github.io/opam-repository-mingw/"
+    else
+        echo "... flexlink is good"
+    fi
+
     # The list of required cygwin packages
     for p in $(cat cygwin-packages); do
       if ! cygwin_has $p; then
@@ -339,17 +402,8 @@ do_check ()
     if is_windows; then
       magenta "No OCaml detected!"
       cat <<MSG
-This script can download and install a binary snapshot of a working OCaml
-system.
 
-- If you intend to do some development work (e.g. try a 32-bit toolchain)
-  then you DO NOT want this. Instead; you want to abort this script and install
-  OCaml & OPAM from https://fdopen.github.io/opam-repository-mingw/
-
-- If you're ok with a system that can be setup automatically but that may or may
-  not work in the future, then you want the binary snapshot.
-
-Proceed with the binary snapshot?
+Proceed with the download?
 MSG
       prompt_yes true "exit 1"
       if [ -e ~/.opam ]; then
@@ -360,15 +414,13 @@ MSG
         red "Warning: stale /cygdrive/c/ocamlmgw64; continue? [Yn]"
         prompt_yes true "exit 1"
       fi
-      (cd c:/ && wget -O - $OCAML_TARBALL | tar xjvf -)
-      (cd ~ && wget -O - $OPAM_TARBALL | tar xjvf -)
-      (cd ~/.opam/system/lib && find . -iname '*.cmxs' -exec chmod a+x {} \;)
-      (cd ~/.opam/system/lib &&
-        echo -e "destdir=\"$(cygpath -m $(pwd))\"\npath=\"$(cygpath -m $(pwd))\"" > findlib.conf.new &&
-        tail -n +3 findlib.conf >> findlib.conf.new &&
-        mv findlib.conf.new findlib.conf)
-      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
-      prompt_yes write_ocaml_env_dest_file true
+      # Download and Install OPAM
+      wget $OPAM_URL
+      tar -xf 'opam64.tar.xz'
+      rm -f 'opam64.tar.xz'
+      bash opam64/install.sh
+      opam init mingw 'https://github.com/fdopen/opam-repository-mingw.git' --comp $OPAM_VERSION --switch $OPAM_VERSION
+      eval $(opam config env)
     else
       red "ERROR: no ocaml found in PATH"
       if is_osx; then
@@ -383,24 +435,13 @@ MSG
   else
     # OCaml; if this exits, set -e means this is a hard error
     ocaml -noinit -noprompt -stdin <<OCAML
-      if Sys.ocaml_version < "4.02.2" then begin
-        print_endline "ERROR: Everest needs OCaml >= 4.02.3";
+      if Sys.ocaml_version < "4.04.0" then begin
+        print_endline "ERROR: Everest needs OCaml >= 4.04.0";
+        print_endline ("You have OCaml " ^ Sys.ocaml_version);
         exit 1
       end
 OCAML
     echo "... ocaml minimum version requirements met"
-  fi
-
-  # Flexlink detection (Windows-specific)
-  if is_windows && ! command -v flexlink >/dev/null 2>&1; then
-    magenta "No flexdll found; download? [Yn]"
-    prompt_yes true "exit 1"
-    wget $FLEXDLL_URL
-    mkdir -p flexdll && cd flexdll && unzip ../$FLEXDLL_NAME.zip && cd ..
-    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the the magic variables you need? [Yn]"
-    prompt_yes write_flexdll_env_dest_file true
-  elif is_windows; then
-    echo "... flexdll ok"
   fi
 
   # OCamlfind & extra packages. Required OPAM packages are stored in
@@ -458,57 +499,18 @@ OCAML
 
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
-    windows_check_or_modify_env_dest_file "fsc.exe" "$FS_DIR"
-    windows_check_or_modify_env_dest_file "nmake.exe" "$VS_BIN"
-    windows_check_or_modify_env_dest_file "ml64.exe" "$VS_BIN/amd64"
+    # note: nothing left, we will use vcvarsall.bat/vsdevcmd.bat instead
+    true
   else
     success_or "fsharpc" "brew install mono or use your favorite package manager"
   fi
   echo "... fsc found in PATH"
 
-  # Update our clone of FStarLang/binaries and check that we have the blessed z3
-  # version
-  if ! [[ -d fstarlang_binaries ]]; then
-    echo "... cloning FStarLang/binaries"
-    try_git_clone "git@github.com:FStarLang/binaries" fstarlang_binaries
-  fi
-  (cd fstarlang_binaries && git checkout master && git fetch && git reset --hard origin/master)
-
-  local current_z3=$(parse_z3_version)
-  echo "... version of z3 found in PATH: $current_z3"
-
-  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
-  if is_windows; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-win.zip
-  elif is_osx; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-osx-*.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-ubuntu-*.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
-  else
-    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
-    local new_z3_file=fstarlang_binaries/z3-tested/*-x64-debian-*.zip
-  fi
-  local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
-  echo "... version of z3 found in z3-tested is: $new_z3"
-
-  new_z3_file=$(ls $new_z3_file)
-  if [[ $new_z3 != $current_z3 ]]; then
-    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
-    prompt_yes true "exit 1"
-    echo "... unzipping $new_z3_file"
-    unzip $new_z3_file
-    local new_z3_folder=${new_z3_file%%.zip}
-    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
-    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
-    magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
-    prompt_yes "write_z3_env_dest_file $new_z3_folder" true
-  fi
+  do_update_z3
 
   # We need Nuget for Vale
   if ! which nuget >/dev/null 2>&1 ; then
-    red "ERROR: nuget doesn't seem to be installed"
+    red "ERROR: nuget doesn\'t seem to be installed"
     if is_windows; then
       magenta "Download it from the internet? [Yn]"
       prompt_yes true "exit 1"
@@ -525,39 +527,38 @@ OCAML
   echo "... nuget found in PATH"
 
   # We need Scons for Vale which needs Python 2.7
-  #
-  # What we really should do instead of checking for a directory name is looking at the
-  # registry. These are the four possible values:
-  #
-  # regtool get \HKLM\Software\Python\PythonCore\2.7\InstallPath\
-  # regtool get \HKCU\Software\Python\PythonCore\2.7\InstallPath\
-  # regtool get \HKLM\Software\WOW6432Node\Python\PythonCore\2.7\InstallPath\
-  # regtool get \HKCU\Software\WOW6432Node\Python\PythonCore\2.7\InstallPath\
-  #
-  #
   if is_windows; then
-    if ! [ -d "/cygdrive/c/Python27" ]; then
-      red "ERROR: C:\\Python27 not found -- install a *WINDOWS* Python 2.7? (y/n)"
+    if [ -z ${PY27DIR+x} ]; then
+      PY27DIR=$(bash -c "regtool -q get /HKLM/Software/Python/PythonCore/2.7/InstallPath/ || true")
+      if ! [ -d "$PY27DIR" ]; then 
+          PY27DIR=$(bash -c "regtool -q get /HKCU/Software/Python/PythonCore/2.7/InstallPath/ || true")
+      fi
+      if ! [ -d "$PY27DIR" ]; then
+          PY27DIR="/cygdrive/c/Python27"
+      fi
+    fi
+    if ! [ -d $PY27DIR ]; then
+      red "ERROR: Python not found -- install a *WINDOWS* Python 2.7? (y/n)"
       if prompt_yes true "exit 1"; then
         wget $PYTHON_INSTALL_POINT
         chmod a+x python-$PYTHON_VER.amd64.msi
         msiexec /i python-$PYTHON_VER.amd64.msi /quiet
-        windows_check_or_modify_env_dest_file "python.exe" "C:\\Python27"
+        windows_check_or_modify_env_dest_file "python.exe" "$PY27DIR"
       fi
-    else
-      echo "... Python $PYTHON_VER found"
     fi
+    PY27VER=$($PY27DIR/python.exe -V 2>&1 | dos2unix | cut -d ' ' -f 2 || true)
+    echo "... Python $PY27VER found at $PY27DIR"
 
     if ! command -v scons.bat >/dev/null 2>&1; then
       red "ERROR: scons.bat was not found so scons will need to be installed."
-      red "NOTE: scons requires Python $PYTHON_VER. Choose Python $PYTHON_VER in the second page of the scons install wizard."
+      red "NOTE: scons requires Python 2.7. Choose the one installed at $PY27DIR in the second page of the scons install wizard."
       red "Start the install wizard for scons (Y/n)?"
       if prompt_yes true "exit 1"; then
         wget $SCONS_INSTALL_POINT
         chmod a+x scons-2.5.1-amd64-setup.exe
         ./scons-2.5.1-amd64-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
         # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
-        windows_check_or_modify_env_dest_file "scons.bat" "C:\\Python27\\Scripts"
+        windows_check_or_modify_env_dest_file "scons.bat" "$PY27DIR\\Scripts"
       fi
     else
       echo "... scons.bat found in PATH"
@@ -574,6 +575,14 @@ OCAML
   if [[ -z "$EVEREST_SCONS_CACHE_DIR" ]]; then
     echo "Warning: Scons cache directory not set. Set it?"
     prompt_yes write_everest_env_dest_file true
+  fi
+
+  if is_windows; then
+    if [[ $(echo $FSTAR_HOME | cut -c 1 | tr -d '\r\n' ) == "/" ]]; then
+      magenta "You are on windows but your FSTAR_HOME is a Cygwin-style path."
+      magenta "Don't do that, follow the suggestion below, and check all your other *_HOME variables."
+      unset FSTAR_HOME
+    fi
   fi
 
   echo
@@ -609,6 +618,8 @@ self_update () {
 
 do_pull () {
   self_update
+  source hashes.sh
+  source repositories.sh
   echo Reset working copies
   do_reset
 }
@@ -630,7 +641,7 @@ do_reset ()
           cloned the repository elsewhere
         warned=true
       fi
-      try_git_clone ${repositories[$r]} $r
+      try_git_clone ${repositories[$r]} ${https[$r]} $r
     fi
 
     # Note: the snapshot command guarantees that the commit was pushed to a
@@ -685,8 +696,8 @@ do_merge ()
 
 do_forall ()
 {
-  blue "Executing on toplevel"
-  "$@"
+  #blue "Executing on toplevel"
+  #"$@"
   for r in ${!repositories[@]}; do
     echo
     blue "Executing in $r"
@@ -706,33 +717,37 @@ run_scons () {
   cmd="$1"
 
   if is_windows; then
-    VARS=$(cygpath -d "$VS_BIN\\..\\vcvarsall.bat")
-    DIR=$(cygpath -d "$(pwd)"/vale)
-    CMD=$(cygpath -u "$COMSPEC")
-    $CMD /C "cd $DIR && $VARS amd64 && scons.bat $cmd $parallel_opt"
+    DIR=$(cygpath -w "$(pwd)"/vale)
+    # Instead of invoking cmd.exe /c, which would force us to
+    # rely on its flaky semantics for double quotes,
+    # we go through a batch file.
+    THIS_PID=$$
+    # Find an unambiguous file name for our .bat file
+    SCONS_EXECS=0
+    while
+      SCONS_INVOKE_FILE="everest$THIS_PID""scons$SCONS_EXECS"".bat" &&
+      [[ -e "$SCONS_INVOKE_FILE" ]]
+    do
+      SCONS_EXECS=$(($SCONS_EXECS + 1))
+    done
+    # Then create, run and remove the .bat file
+    cat > "$SCONS_INVOKE_FILE" <<EOF
+call $VS_ENV_CMD
+cd "$DIR"
+call scons.bat $cmd $parallel_opt
+EOF
+    chmod +x "$SCONS_INVOKE_FILE"
+    "./$SCONS_INVOKE_FILE"
+    SCONS_RETCODE=$?
+    rm -f "$SCONS_INVOKE_FILE"
+    return $SCONS_RETCODE
   else
     scons -C vale $cmd $parallel_opt
   fi
 }
 
 build_vale () {
-  set -x
-
-  # This function is called in a subshell in a test context (via possibly_log)
-  # which means that -e is not inherited. Explicit failures here via || return.
-  run_nuget || return 1
-  run_scons "--NOVERIFY" || return 1
-
-  # Import fresh crypto from Vale into HACL*
-  cd hacl-star
-  make -C secure_api/vale/asm import || return 1
-  # Ignore other changes (e.g. submodules)
-  if ! git diff --exit-code secure_api/vale/asm ; then
-    magenta "New assemblies from Vale, diff is above"
-  fi
-  cd ..
-
-  set +x
+    echo "Skipping Vale"
 }
 
 clean_vale () {
@@ -744,16 +759,22 @@ setup_env () {
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
+    export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
+    export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
   else
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
+    export HACL_HOME=$(pwd)/hacl-star
+    export MLCRYPTO_HOME=$(pwd)/MLCrypto
   fi
-  export OPENSSL_HOME=$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl
+  export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
   magenta "exported KREMLIN_HOME=$KREMLIN_HOME"
   magenta "exported VALE_HOME=$VALE_HOME"
+  magenta "exported HACL_HOME=$HACL_HOME"
+  magenta "exported MLCRYPTO_HOME=$MLCRYPTO_HOME"
   export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
 
   if is_windows; then
@@ -772,16 +793,43 @@ separator () {
   echo "================================================================================"
 }
 
+set_windows () {
+  export EVEREST_WINDOWS=1
+}
+
+set_opt () {
+  # Picked up by pretty much all the Makefiles
+  export CFLAGS="-funroll-loops -fomit-frame-pointer -O3"
+  # Set by the everest script in build_mitls below as CFLAGS
+  export MITLS_CFLAGS="-DREGION_STATISTICS -DUSE_HEAP_REGIONS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
+  # Picked up by mitls-fstar/src/tls/Makefile.common
+  export MITLS_NODEBUG=1
+}
+
+set_openssl () {
+  # Picked up by mitls-fstar/src/tls/Makefile.Kremlin
+  export MITLS_USE_OPENSSL=1
+}
+
 build_fstar () {
-  make -C FStar/src/ocaml-output $parallel_opt -k && \
-  make -C FStar/ulib/ml $parallel_opt -k && \
-  make -C FStar/ucontrib/CoreCrypto/ml $parallel_opt -k
+  make -C FStar/src/ocaml-output $parallel_opt && \
+  make -C FStar/ulib $parallel_opt && \
+  make -C FStar/ulib/ml $parallel_opt
 }
 
 build_hacl () {
-  # HACL* Makefile does not encode ependencies properly.
-  make -C hacl-star $parallel_opt -k extract-specs extract-all && \
-  make -C hacl-star $parallel_opt -k build-make
+  make -C hacl-star/code/ extract-c $parallel_opt && \
+  make -C hacl-star/secure_api $parallel_opt && \
+  make -C hacl-star/providers $parallel_opt
+}
+
+build_mitls () {
+  CFLAGS="$MITLS_CFLAGS" \
+  make -C mitls-fstar/libs/ffi $parallel_opt && \
+  make -C mitls-fstar/src/pki $parallel_opt && \
+  make -C mitls-fstar/src/tls $parallel_opt && \
+  make -C mitls-fstar/apps/cmitls $parallel_opt && \
+  make -C mitls-fstar/apps/quicMinusNet $parallel_opt
 }
 
 do_make ()
@@ -792,33 +840,27 @@ do_make ()
 
   declare -A build_commands
   build_commands[FStar]="build_fstar"
-  build_commands[kremlin]="make -C kremlin $parallel_opt -k"
+  build_commands[kremlin]="make -C kremlin $parallel_opt"
+  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
   build_commands[hacl-star]="build_hacl"
+  build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
-  build_commands[mitls-fstar]="make -C mitls-fstar/src/tls $parallel_opt build -k"
 
   # Order matters.
-  for p in kremlin FStar vale hacl-star mitls-fstar; do
+  for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
+    # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
     fi
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
-    if ! ${build_commands[$p]}; then
-      failed="$failed  $p\n"
-    fi
+    ${build_commands[$p]}
     separator
     echo -e "\n\n"
   done
 
-  if [[ $failed != "" ]]; then
-    red "ERROR: build failed for one or more projects"
-    echo -e $failed
-    exit 255
-  else
-    green "SUCCESS"
-  fi
+  green "SUCCESS"
 }
 
 do_test () {
@@ -827,24 +869,45 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
-  make -C hacl-star test-all package -k
-  hacl-star/secure_api/krml-test-hacl.exe
-  hacl-star/secure_api/krml-test-vale.exe
-  # These tests assume the current working directory is src/tls
-  (cd mitls-fstar/src/tls && make $parallel_opt test)
+  hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
+  hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
+  make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
+  # These tests make assumption on their current working directory
+  (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
+  (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
+  (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
   set +x
   separator
+}
+
+do_verify_vale () {
+  if is_windows ; then
+    # Use the same Z3 for Dafny as for F*
+    # i.e. the one in the PATH
+    Z3PATH_UNIX=$(which z3.exe)
+    Z3PATH=$(cygpath -w "$Z3PATH_UNIX")
+    # Here the path to z3 might have whitespaces,
+    # so it must be enclosed into double quotes
+    # to be treated correctly by scons and Dafny.
+    # Moreover, it must fit in the single argument to
+    # run_scons, which is why we cannot quote the command
+    # as a member of the verify_commands array
+    run_scons "--DARGS=/z3exe:\"$Z3PATH\""
+  else
+    run_scons
+  fi
 }
 
 do_verify () {
   setup_env
 
   declare -A verify_commands
-  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt"
+  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt $keep_going_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
-  verify_commands[vale]="run_scons"
+  verify_commands[vale]="do_verify_vale"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
+  verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
 
   for p in $ALL_PROJECTS; do
     separator
@@ -857,9 +920,10 @@ do_verify () {
 do_clean ()
 {
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
-    FStar/ucontrib/CoreCrypto/ml/{,openssl} \
+    MLCrypto/{,openssl} \
     kremlin \
-    FStar/examples/low-level/{,spartan_aes,LowCProvider} mitls-fstar/src/{,tls}; do
+    hacl-star/{code/curve25519,secure_api} \
+    ; do
     make -C "$d" clean
   done
   clean_vale
@@ -900,6 +964,49 @@ must run commit and push.
 MSG
 }
 
+do_drop ()
+{
+  setup_env
+
+  blue "Dropping sources for Windows libraries"
+  ./make-source-drop mitls-fstar/src/windows
+}
+
+do_qbuild ()
+{
+  setup_env
+
+  blue "Building Windows libraries"
+  # Instead of invoking cmd.exe /c, which would force us to
+  # rely on its flaky semantics for double quotes,
+  # we go through a batch file.
+  THIS_PID=$$
+  # Find an unambiguous file name for our .bat file
+  NMAKE_EXECS=0
+  while
+    NMAKE_INVOKE_FILE="everest$THIS_PID""nmake$NMAKE_EXECS"".bat" &&
+    [[ -e "$NMAKE_INVOKE_FILE" ]]
+  do
+    NMAKE_EXECS=$(($NMAKE_EXECS + 1))
+  done
+  # Then create, run and remove the .bat file
+  DIR=$(cygpath -w "$(pwd)/mitls-fstar/src/windows")
+  cat > "$NMAKE_INVOKE_FILE" <<EOF
+call $VS_ENV_CMD
+set MAKEFLAGS=
+set KRML_HOME=..\..\..\kremlin
+cd "$DIR\quiccrypto" &&^
+call nmake -f makefile.vs &&^
+cd "$DIR\mitls" &&^
+call nmake -f makefile.vs
+EOF
+  chmod +x "$NMAKE_INVOKE_FILE"
+  "./$NMAKE_INVOKE_FILE"
+  NMAKE_RETCODE=$?
+  rm -f "$NMAKE_INVOKE_FILE"
+  return $NMAKE_RETCODE
+}
+
 # ------------------------------------------------------------------------------
 # Usage and parsing arguments
 # ------------------------------------------------------------------------------
@@ -915,10 +1022,22 @@ OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
 
   -j n      Set max number of parallel jobs to n (default 1)
+            This option is in two parts
+            (-jn without space is NOT valid)
+
+  -k        Pass the -k (--keep-going) option to "make"
+
+  -windows  Build for Windows (no native __int128_t, optimize tail recursion)
+
+  -opt      Enable classic optimization flags and disable debugging. Note: this
+            does not invalidate previous object files (e.g. in HACL*); consider
+            cleaning.
+
+  -openssl  Use OpenSSL for AEAD in miTLS
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
-    FStar kremlin mitls-fstar hacl-star vale
+    FStar kremlin mitls-fstar hacl-star vale MLCrypto
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -926,6 +1045,10 @@ COMMAND:
             variables
             (destination file ~/.bash_profile can be overridden with the
             EVEREST_ENV_DEST_FILE environment variable)
+
+  opam      install the needed OPAM packages (implied by check)
+
+  z3        install the right version of z3 (implied by check)
 
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
@@ -946,6 +1069,10 @@ COMMAND:
   test      launch the test artifacts
 
   verify    run verification for all projects
+
+  drop      drop extraced C and assembly files from miTLS and Hacl*
+
+  qbuild    build Windows libraries using Visual Studio
 
   clean     clean all projects
 
@@ -971,6 +1098,27 @@ while true; do
       parallel_opt="-j $1"
       ;;
 
+    -k)
+      keep_going_opt="-k"
+      ;;
+
+    -windows)
+      set_windows
+      ;;
+
+    -openssl)
+      set_openssl
+      ;;
+
+    -opt)
+      set_opt
+      ;;
+
+    -fnouint128)
+      red "Warning: the -fnouint128 option is deprecated; use -windows instead"
+      set_windows
+      ;;
+
     check)
       do_check
       ;;
@@ -989,7 +1137,7 @@ while true; do
       break
       ;;
 
-    vale|FStar|mitls-fstar|kremlin|hacl-star)
+    vale|FStar|mitls-fstar|kremlin|hacl-star|MLCrypto)
       ALL_PROJECTS=$1
       ;;
 
@@ -1001,12 +1149,22 @@ while true; do
       do_make
       ;;
 
+    opam)
+      install_all_opam_packages
+      ;;
+
+    z3)
+      do_update_z3
+      ;;
+
     clean)
       do_clean
       ;;
 
     verify)
-      do_verify
+#      Disable verification for now
+#      do_verify
+       true
       ;;
 
     test)
@@ -1017,12 +1175,21 @@ while true; do
       do_snapshot
       ;;
 
+    drop)
+      do_drop
+      ;;
+
+    qbuild)
+      do_qbuild
+      ;;
+
     "")
       break
       ;;
 
     *)
       print_usage
+      exit 1
       ;;
   esac
   shift
