@@ -1,7 +1,7 @@
 declare -A hashes
 declare -A branches
 hashes[mitls-fstar]=acec7131bbf58d5dc80b99fe9451cbd2e329c28c
-branches[mitls-fstar]=merge_fstar_master_20180510
+branches[mitls-fstar]=master
 hashes[vale]=5f0c2bb91599bdde3727126b6d306eedb82ce472
 branches[vale]=master
 hashes[FStar]=f464bd99a01b202c16531d12547201deea5af4b3
