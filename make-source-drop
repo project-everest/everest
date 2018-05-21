@@ -65,7 +65,7 @@ cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_512.{c,h} $1/mitls
 cp $HACL_CODE/curve25519/x25519-c/Hacl_Curve25519.{c,h} $1/mitls
 cp $HACL_CODE/ed25519/ed25519-c/Hacl_Ed25519.{c,h} $1/mitls
 cp $HACL_CODE/poly1305/poly-c/Hacl_Poly1305_64.{c,h} $1/mitls
-cp $HACL_CODE/hmac/hmac-c/Hacl_HMAC_SHA2_256.{c,h} $1/mitls
+cp $HACL_CODE/hmac/hmac-sha256-c/Hacl_HMAC_SHA2_256.{c,h} $1/mitls
 cp $HACL_CODE/poly1305/poly-c/AEAD_Poly1305_64.{c,h} $1/mitls
 cp $HACL_CODE/salsa-family/chacha-vec128-c/Hacl_Chacha20_Vec128.{c,h} $1/mitls
 
