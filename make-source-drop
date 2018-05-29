@@ -53,8 +53,7 @@ cp $HACL/vale/asm/*i686*.asm $1/mitls/i386
 cp $HACL_HOME/providers/generated/EverCrypt_*.{c,h} $1/mitls
 cp $HACL_HOME/providers/generated/EverCrypt.{c,h} $1/mitls
 cp $HACL_HOME/providers/generated/C_Failure.{c,h} $1/mitls
-cp $HACL_HOME/providers/generated/FStar_Prims_C_Loops_Spec_Hacl_Spec_Seq.{c,h} $1/mitls
-cp $HACL_HOME/providers/generated/Hacl_UInt128.h $1/mitls
+cp $HACL_HOME/providers/generated/C_Loops.{c,h} $1/mitls
 cp $HACL_HOME/providers/multiplexer/c/*.{c,h} $1/mitls
 cp $HACL_HOME/snapshots/common/vec128.h $1/mitls
 cp $HACL_CODE/salsa-family/chacha-c/Hacl_Chacha20.{c,h} $1/mitls
@@ -68,6 +67,7 @@ cp $HACL_CODE/poly1305/poly-c/Hacl_Poly1305_64.{c,h} $1/mitls
 cp $HACL_CODE/hmac/hmac-sha256-c/Hacl_HMAC_SHA2_256.{c,h} $1/mitls
 cp $HACL_CODE/poly1305/poly-c/AEAD_Poly1305_64.{c,h} $1/mitls
 cp $HACL_CODE/salsa-family/chacha-vec128-c/Hacl_Chacha20_Vec128.{c,h} $1/mitls
+cp $HACL_CODE/api/aead-c/Hacl_*.{c,h} $1/mitls
 
 # our public interface
 cp mitls-fstar/libs/ffi/mitlsffi.h $1/
