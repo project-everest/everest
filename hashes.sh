@@ -10,5 +10,5 @@ hashes[MLCrypto]=048fd71bf111e5020e6f47d884741d595cdb9ab3
 branches[MLCrypto]=master
 hashes[hacl-star]=0bf7bde7ea9d0bdef68b0824d7ad417adf6ad26a
 branches[hacl-star]=protz_uint128
-hashes[kremlin]=1af32bf574b61e1a1392b525ade870e774c6feee
+hashes[kremlin]=ae7c22b7bdfca12046e850867218e49cd3e093dd
 branches[kremlin]=protz_uint128
