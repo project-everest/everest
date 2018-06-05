@@ -862,7 +862,7 @@ do_make ()
     blue "Running: ${build_commands[$p]}"
     if ! ${build_commands[$p]} ; then
       separator
-      red FAILURE: build failed for $p
+      red "FAILURE: build failed for $p"
       return 2
     fi
     separator
