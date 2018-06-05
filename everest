@@ -860,7 +860,11 @@ do_make ()
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
-    ${build_commands[$p]}
+    if ! ${build_commands[$p]} ; then
+      separator
+      red FAILURE: build failed for $p
+      return 2
+    fi
     separator
     echo -e "\n\n"
   done
