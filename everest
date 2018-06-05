@@ -817,6 +817,11 @@ build_fstar () {
   make -C FStar/ulib/ml $parallel_opt
 }
 
+build_kremlin () {
+  make -C kremlin $parallel_opt &&
+  make -C kremlin/kremlib $parallel_opt
+}
+
 build_hacl () {
   make -C hacl-star/code/ extract-c $parallel_opt && \
   make -C hacl-star/secure_api $parallel_opt && \
@@ -840,7 +845,7 @@ do_make ()
 
   declare -A build_commands
   build_commands[FStar]="build_fstar"
-  build_commands[kremlin]="make -C kremlin $parallel_opt"
+  build_commands[kremlin]="build_kremlin"
   build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
