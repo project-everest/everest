@@ -14,4 +14,5 @@ sedlex sedlex
 ctypes ctypes
 ulex ulex
 visitors visitors
+ctypes.foreign.unthreaded ctypes-foreign
 ocaml-migrate-parsetree ocaml-migrate-parsetree
