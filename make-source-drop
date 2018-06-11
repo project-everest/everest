@@ -54,7 +54,9 @@ cp $HACL_HOME/providers/generated/EverCrypt_*.{c,h} $1/mitls
 cp $HACL_HOME/providers/generated/EverCrypt.{c,h} $1/mitls
 cp $HACL_HOME/providers/generated/C_Failure.{c,h} $1/mitls
 cp $HACL_HOME/providers/generated/C_Loops.{c,h} $1/mitls
-cp $HACL_HOME/providers/multiplexer/c/*.{c,h} $1/mitls
+cp $HACL_HOME/providers/generated/C_Nullity.{c,h} $1/mitls
+cp $HACL_HOME/providers/generated/Vale_Hash_SHA2_256.h $1/mitls
+cp $HACL_HOME/providers/evercrypt/c/*.{c,h} $1/mitls
 cp $HACL_HOME/snapshots/common/vec128.h $1/mitls
 cp $HACL_CODE/salsa-family/chacha-c/Hacl_Chacha20.{c,h} $1/mitls
 cp $HACL_CODE/salsa-family/salsa-c/Hacl_Salsa20.{c,h} $1/mitls
