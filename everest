@@ -917,6 +917,15 @@ do_verify () {
   done
 }
 
+do_clean_c ()
+{
+  for d in kremlin/kremlib hacl-star/{providers,secure_api,code} \
+    mitls-fstar/src/tls
+  do
+    make -C "$d" clean-c
+  done
+}
+
 do_clean ()
 {
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
@@ -1074,6 +1083,8 @@ COMMAND:
 
   qbuild    build Windows libraries using Visual Studio
 
+  clean-c   only clean generated C files, useful when switching to -windows
+
   clean     clean all projects
 
   help      print the current message
@@ -1154,6 +1165,10 @@ while true; do
 
     clean)
       do_clean
+      ;;
+
+    clean-c)
+      do_clean_c
       ;;
 
     verify)
