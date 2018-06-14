@@ -797,8 +797,12 @@ set_opt () {
   export CFLAGS="-funroll-loops -fomit-frame-pointer -O3"
   # Set by the everest script in build_mitls below as CFLAGS
   export MITLS_CFLAGS="-DREGION_STATISTICS -DUSE_HEAP_REGIONS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
+
   # Picked up by mitls-fstar/src/tls/Makefile.common
-  export MITLS_NODEBUG=1
+  # We want logging on always in the opt build, so the calls are extracted.  The C layer
+  # has options to disable logging output, direct to printf() or OutputDebugString(), or
+  # into a host-provided logging callback.
+  # export MITLS_NODEBUG=1
 }
 
 set_openssl () {
