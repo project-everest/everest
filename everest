@@ -1004,6 +1004,8 @@ do_qbuild ()
 call $VS_ENV_CMD
 set MAKEFLAGS=
 set KRML_HOME=..\..\..\kremlin
+cd "$DIR\kremlib" &&^
+call nmake -f makefile.vs &&^
 cd "$DIR\quiccrypto" &&^
 call nmake -f makefile.vs &&^
 cd "$DIR\mitls" &&^
