@@ -1006,6 +1006,8 @@ set MAKEFLAGS=
 set KRML_HOME=..\..\..\kremlin
 cd "$DIR\kremlib" &&^
 call nmake -f makefile.vs &&^
+cd "$DIR\evercrypt" &&^
+call nmake -f makefile.vs &&^
 cd "$DIR\quiccrypto" &&^
 call nmake -f makefile.vs &&^
 cd "$DIR\mitls" &&^
