@@ -801,7 +801,7 @@ set_opt () {
   # Picked up by pretty much all the Makefiles
   export CFLAGS="-funroll-loops -fomit-frame-pointer -O3"
   # Set by the everest script in build_mitls below as CFLAGS
-  export MITLS_CFLAGS="-DREGION_STATISTICS -DUSE_HEAP_REGIONS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
+  export MITLS_CFLAGS="-DREGION_STATISTICS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
   # Picked up by mitls-fstar/src/tls/Makefile.common
   export MITLS_NODEBUG=1
 }
@@ -926,6 +926,15 @@ do_verify () {
   done
 }
 
+do_clean_c ()
+{
+  for d in kremlin/kremlib hacl-star/{providers,secure_api,code} \
+    mitls-fstar/src/tls
+  do
+    make -C "$d" clean-c
+  done
+}
+
 do_clean ()
 {
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
@@ -1004,6 +1013,10 @@ do_qbuild ()
 call $VS_ENV_CMD
 set MAKEFLAGS=
 set KRML_HOME=..\..\..\kremlin
+cd "$DIR\kremlib" &&^
+call nmake -f makefile.vs &&^
+cd "$DIR\evercrypt" &&^
+call nmake -f makefile.vs &&^
 cd "$DIR\quiccrypto" &&^
 call nmake -f makefile.vs &&^
 cd "$DIR\mitls" &&^
@@ -1034,9 +1047,9 @@ OPTION:
             This option is in two parts
             (-jn without space is NOT valid)
 
-  -k        Pass the -k (--keep-going) option to "make"
+  -windows  Build for Windows (Tune for MSVC compiler: optimize tail recursion, etc.)
 
-  -windows  Build for Windows (no native __int128_t, optimize tail recursion)
+  -k        Pass the -k (--keep-going) option to "make"
 
   -opt      Enable classic optimization flags and disable debugging. Note: this
             does not invalidate previous object files (e.g. in HACL*); consider
@@ -1083,6 +1096,8 @@ COMMAND:
 
   qbuild    build Windows libraries using Visual Studio
 
+  clean-c   only clean generated C files, useful when switching to -windows
+
   clean     clean all projects
 
   help      print the current message
@@ -1121,11 +1136,6 @@ while true; do
 
     -opt)
       set_opt
-      ;;
-
-    -fnouint128)
-      red "Warning: the -fnouint128 option is deprecated; use -windows instead"
-      set_windows
       ;;
 
     check)
@@ -1168,6 +1178,10 @@ while true; do
 
     clean)
       do_clean
+      ;;
+
+    clean-c)
+      do_clean_c
       ;;
 
     verify)
