@@ -89,7 +89,7 @@ if is_windows ; then
   if
     VSWHERE_WINDOWS="$(cmd.exe /C 'echo %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe' | sed 's!\r!!g')" &&
     VSWHERE=$(cygpath -u "$VSWHERE_WINDOWS") &&
-    VS_HOME=$("$VSWHERE" -requires Microsoft.VisualStudio.Component.FSharp -format value -property InstallationPath | sed 's!\r!!g') &&
+    VS_HOME=$("$VSWHERE" -format value -property InstallationPath | sed 's!\r!!g') &&
     [[ -n "$VS_HOME" ]]
   then
     # Visual Studio 2017 (15.2) or later
