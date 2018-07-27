@@ -818,6 +818,7 @@ build_fstar () {
 }
 
 build_kremlin () {
+  # TODO: run the kremlin testsuite too
   make -C kremlin $parallel_opt &&
   make -C kremlin/kremlib $parallel_opt
 }
@@ -825,7 +826,8 @@ build_kremlin () {
 build_hacl () {
   make -C hacl-star/code/ extract-c $parallel_opt && \
   make -C hacl-star/secure_api $parallel_opt && \
-  make -C hacl-star/providers $parallel_opt
+  make -C hacl-star/providers $parallel_opt && \
+  make -C hacl-star/providers test $parallel_opt
 }
 
 build_mitls () {
