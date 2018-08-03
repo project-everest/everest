@@ -36,6 +36,10 @@ make_non_interactive () {
 # Use $parallel_opt instead
 unset parallel_opt
 
+# The -k option (to instruct make to keep going upon a failure),
+# disabled by default
+unset keep_going_opt
+
 # The file where to store customized environment variables
 # (default is $HOME/.bash_profile)
 if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
@@ -356,7 +360,7 @@ do_check ()
     fi
     echo "... no suspicious cygwin packages"
 
-    if ! (flexlink.exe -help 2>&1 || true) | grep "0.35fdopen2" >/dev/null; then
+    if ! (flexlink.exe -help 2>&1 || true) | grep "fdopen" >/dev/null; then
         red "Warning: you have an unknown version of flexlink"
         red "Please use the version from https://fdopen.github.io/opam-repository-mingw/"
     else
@@ -433,6 +437,7 @@ MSG
     ocaml -noinit -noprompt -stdin <<OCAML
       if Sys.ocaml_version < "4.04.0" then begin
         print_endline "ERROR: Everest needs OCaml >= 4.04.0";
+        print_endline ("You have OCaml " ^ Sys.ocaml_version);
         exit 1
       end
 OCAML
@@ -816,17 +821,24 @@ build_fstar () {
   make -C FStar/ulib/ml $parallel_opt
 }
 
+build_kremlin () {
+  # TODO: run the kremlin testsuite too
+  make -C kremlin $parallel_opt &&
+  make -C kremlin/kremlib $parallel_opt
+}
+
 build_hacl () {
   make -C hacl-star/code/ extract-c $parallel_opt && \
   make -C hacl-star/secure_api $parallel_opt && \
-  make -C hacl-star/providers $parallel_opt
+  make -C hacl-star/providers $parallel_opt && \
+  make -C hacl-star/providers test $parallel_opt
 }
 
 build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
   make -C mitls-fstar/libs/ffi $parallel_opt && \
   make -C mitls-fstar/src/pki $parallel_opt && \
-  make -C mitls-fstar/src/tls $parallel_opt && \
+  VERIFY_LOWPARSE=1 make -C mitls-fstar/src/tls $parallel_opt && \
   make -C mitls-fstar/apps/cmitls $parallel_opt && \
   make -C mitls-fstar/apps/quicMinusNet $parallel_opt
 }
@@ -839,7 +851,7 @@ do_make ()
 
   declare -A build_commands
   build_commands[FStar]="build_fstar"
-  build_commands[kremlin]="make -C kremlin $parallel_opt"
+  build_commands[kremlin]="build_kremlin"
   build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
@@ -854,7 +866,11 @@ do_make ()
     separator
     blue "Rebuilding $p"
     blue "Running: ${build_commands[$p]}"
-    ${build_commands[$p]}
+    if ! ${build_commands[$p]} ; then
+      separator
+      red "FAILURE: build failed for $p"
+      return 2
+    fi
     separator
     echo -e "\n\n"
   done
@@ -870,11 +886,11 @@ do_test () {
   set -x
   hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
   hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
-  make -C hacl-star/secure_api -f Makefile.extract test
+  IMPL_CHOICE=runtime_switch make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
   # These tests make assumption on their current working directory
-  (cd mitls-fstar/src/tls && make $parallel_opt test)
-  (cd mitls-fstar/apps/cmitls && make test)
-  (cd mitls-fstar/apps/quicMinusNet && make test)
+  (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
+  (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
+  (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
   set +x
   separator
 }
@@ -901,7 +917,7 @@ do_verify () {
   setup_env
 
   declare -A verify_commands
-  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt"
+  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt $keep_going_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
   verify_commands[vale]="do_verify_vale"
@@ -913,6 +929,15 @@ do_verify () {
     blue "Running verification for: $p"
     ${verify_commands[$p]}
     separator
+  done
+}
+
+do_clean_c ()
+{
+  for d in kremlin/kremlib hacl-star/{providers,secure_api,code} \
+    mitls-fstar/src/tls
+  do
+    make -C "$d" clean-c
   done
 }
 
@@ -994,6 +1019,10 @@ do_qbuild ()
 call $VS_ENV_CMD
 set MAKEFLAGS=
 set KRML_HOME=..\..\..\kremlin
+cd "$DIR\kremlib" &&^
+call nmake -f makefile.vs &&^
+cd "$DIR\evercrypt" &&^
+call nmake -f makefile.vs &&^
 cd "$DIR\quiccrypto" &&^
 call nmake -f makefile.vs &&^
 cd "$DIR\mitls" &&^
@@ -1024,7 +1053,9 @@ OPTION:
             This option is in two parts
             (-jn without space is NOT valid)
 
-  -windows  Build for Windows (no native __int128_t, optimize tail recursion)
+  -windows  Build for Windows (Tune for MSVC compiler: optimize tail recursion, etc.)
+
+  -k        Pass the -k (--keep-going) option to "make"
 
   -opt      Enable classic optimization flags and disable debugging. Note: this
             does not invalidate previous object files (e.g. in HACL*); consider
@@ -1071,6 +1102,8 @@ COMMAND:
 
   qbuild    build Windows libraries using Visual Studio
 
+  clean-c   only clean generated C files, useful when switching to -windows
+
   clean     clean all projects
 
   help      print the current message
@@ -1095,6 +1128,10 @@ while true; do
       parallel_opt="-j $1"
       ;;
 
+    -k)
+      keep_going_opt="-k"
+      ;;
+
     -windows)
       set_windows
       ;;
@@ -1105,11 +1142,6 @@ while true; do
 
     -opt)
       set_opt
-      ;;
-
-    -fnouint128)
-      red "Warning: the -fnouint128 option is deprecated; use -windows instead"
-      set_windows
       ;;
 
     check)
@@ -1152,6 +1184,10 @@ while true; do
 
     clean)
       do_clean
+      ;;
+
+    clean-c)
+      do_clean_c
       ;;
 
     verify)
