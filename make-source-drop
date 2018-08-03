@@ -128,14 +128,7 @@ find $1/quiccrypto -maxdepth 1 -type f -and -name '*.h' -and -not -name CommonIn
 rm -f $1/quiccrypto/amd64/*.asm
 rm -f $1/quiccrypto/i386/*.asm
 cp -R kremlin/include/* $1/quiccrypto
-cp $HACL_HOME/secure_api/QuicProvider/*.{c,h} $1/quiccrypto
-cp $HACL_HOME/secure_api/out/$DIST_DIR/crypto/*.{c,h} $1/quiccrypto
-cp $HACL_HOME/secure_api/out/$DIST_DIR/uint128/*.{c,h} $1/quiccrypto
-cp $HACL_HOME/secure_api/vale/asm/*x86_64*.asm $1/quiccrypto/amd64
-cp $HACL_HOME/secure_api/vale/asm/*i686*.asm $1/quiccrypto/i386
-cp $HACL_HOME/secure_api/vale/asm/*.{c,h} $1/quiccrypto
-cp $HACL_HOME/code/curve25519/x25519-c/*.{c,h} $1/quiccrypto
-cp MLCrypto/*.h $1/quiccrypto
+cp $HACL_HOME/providers/quic_provider/*.{c,h} $1/quiccrypto
 
 # our public interface
 cp mitls-fstar/libs/ffi/mitlsffi.h $1/
@@ -159,8 +152,9 @@ mkdir -p $1/bin_openssl
 rm -f $1/bin_openssl/*.dll
 cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin_openssl
 cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin_openssl
-cp hacl-star/secure_api/out/runtime_switch/libquicprovider.dll $1/bin_openssl/libquiccrypto.dll
+cp hacl-star/providers/quic_provider/libquiccrypto.dll $1/bin_openssl/libquiccrypto.dll
 cp mitls-fstar/src/pki/libmipki.dll $1/bin_openssl
 
 # hashes
 cp hashes.sh $1/
+
