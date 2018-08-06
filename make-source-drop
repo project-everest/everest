@@ -22,7 +22,6 @@ fi
 
 # set current directory to the directory of this script
 cd "${BASH_SOURCE%/*}" || exit
-mkdir -p $1
 
 MITLS_EXTRACT=mitls-fstar/src/tls/extract
 KREMLIB=kremlin/kremlib
@@ -30,22 +29,32 @@ HACL=hacl-star/secure_api
 HACL_HOME=hacl-star
 HACL_CODE=hacl-star/code
 
+# Headers #####################################################################
+
+mkdir -p $1/include
+cp mitls-fstar/libs/ffi/mitlsffi.h $1/include
+cp hacl-star/providers/quic_provider/quic_provider.h $1/include
+cp hacl-star/providers/include/EverCrypt.h $1/include
+cp hacl-star/providers/include/EverCrypt_Bytes.h $1/include
+cp kremlin/include/kremlib.h $1/include
+cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.h $1/include
+cp -R kremlin/include/* $1/include
+
 # libkremlib ##################################################################
 cp kremlin/kremlib/extracted/*.h $1/kremlib
 cp kremlin/kremlib/c/*.c $1/kremlib
-cp -R kremlin/include/* $1/kremlib
+cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.c $1/kremlib
 
 # libevercrypt ################################################################
 cp hacl-star/providers/generated/*.{c,h} $1/evercrypt
 cp hacl-star/providers/evercrypt/c/*.c $1/evercrypt
-cp -R kremlin/include/* $1/evercrypt
 
 # these are the individual implementations from Hacl; they override
 # corresponding files from the provider that only contain "extern" definitions;
 # technically each one of these algorithms should be compiled seperately into
 # its own .obj then linked together at the end
 touch $1/evercrypt/WasmSupport.h
-cp $HACL_HOME/snapshots/common/vec128.h $1/evercrypt
+#cp $HACL_HOME/snapshots/common/vec128.h $1/evercrypt
 cp $HACL_CODE/salsa-family/chacha-c/Hacl_Chacha20.{c,h} $1/evercrypt
 cp $HACL_CODE/salsa-family/salsa-c/Hacl_Salsa20.{c,h} $1/evercrypt
 cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_256.{c,h} $1/evercrypt
@@ -56,7 +65,7 @@ cp $HACL_CODE/ed25519/ed25519-c/Hacl_Ed25519.{c,h} $1/evercrypt
 cp $HACL_CODE/poly1305/poly-c/Hacl_Poly1305_64.{c,h} $1/evercrypt
 cp $HACL_CODE/hmac/hmac-sha256-c/Hacl_HMAC_SHA2_256.{c,h} $1/evercrypt
 cp $HACL_CODE/poly1305/poly-c/AEAD_Poly1305_64.{c,h} $1/evercrypt
-cp $HACL_CODE/salsa-family/chacha-vec128-c/Hacl_Chacha20_Vec128.{c,h} $1/evercrypt
+#cp $HACL_CODE/salsa-family/chacha-vec128-c/Hacl_Chacha20_Vec128.{c,h} $1/evercrypt
 cp $HACL_CODE/api/aead-c/Hacl_*.{c,h} $1/evercrypt
 cp $HACL_CODE/api/policies-c/Hacl_Policies.{c,h} $1/evercrypt
 
@@ -71,75 +80,32 @@ cp $HACL/vale/asm/*i686*.asm $1/evercrypt/i386
 
 # libmitls ####################################################################
 mkdir -p $1/mitls
-mkdir -p $1/mitls/amd64
-mkdir -p $1/mitls/i386
 #Don't remove dllmain.c
 #rm -f $1/mitls/*.c
 find $1/mitls -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
 rm -f $1/mitls/*.h
-rm -f $1/mitls/amd64/*.asm
-rm -f $1/mitls/i386/*.asm
 cp $MITLS_EXTRACT/Kremlin-Library/*.{c,h} $1/mitls
-cp $MITLS_EXTRACT/Kremlin-Library/curve/*.{c,h} $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/include/*.h $1/mitls
-cp -r $MITLS_EXTRACT/Kremlin-Library/kreminc/* $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/secure/*.{c,h} $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/stub/*.{c,h} $1/mitls
-cp $MITLS_EXTRACT/Kremlin-Library/vale/*.{c,h} $1/mitls
-cp $HACL/vale/asm/*x86_64*.asm $1/mitls/amd64
-cp $HACL/vale/asm/*i686*.asm $1/mitls/i386
-
-cp $HACL_HOME/providers/generated/EverCrypt_*.{c,h} $1/mitls
-cp $HACL_HOME/providers/generated/EverCrypt.{c,h} $1/mitls
-cp $HACL_HOME/providers/generated/C_Failure.{c,h} $1/mitls
-cp $HACL_HOME/providers/generated/C_Loops.{c,h} $1/mitls
-cp $HACL_HOME/providers/generated/Vale_Hash_SHA2_256.h $1/mitls
-cp $HACL_HOME/providers/evercrypt/c/*.c $1/mitls
-#cp $HACL_HOME/snapshots/common/vec128.h $1/mitls
-cp $HACL_CODE/salsa-family/chacha-c/Hacl_Chacha20.{c,h} $1/mitls
-cp $HACL_CODE/salsa-family/salsa-c/Hacl_Salsa20.{c,h} $1/mitls
-cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_256.{c,h} $1/mitls
-cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_384.{c,h} $1/mitls
-cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_512.{c,h} $1/mitls
-cp $HACL_CODE/curve25519/x25519-c/Hacl_Curve25519.{c,h} $1/mitls
-cp $HACL_CODE/ed25519/ed25519-c/Hacl_Ed25519.{c,h} $1/mitls
-cp $HACL_CODE/poly1305/poly-c/Hacl_Poly1305_64.{c,h} $1/mitls
-cp $HACL_CODE/hmac/hmac-sha256-c/Hacl_HMAC_SHA2_256.{c,h} $1/mitls
-cp $HACL_CODE/poly1305/poly-c/AEAD_Poly1305_64.{c,h} $1/mitls
-#cp $HACL_CODE/salsa-family/chacha-vec128-c/Hacl_Chacha20_Vec128.{c,h} $1/mitls
-cp $HACL_CODE/api/aead-c/Hacl_*.{c,h} $1/mitls
+rm $1/mitls/RegionAllocator.*
 
 # libquiccrypto ###############################################################
 mkdir -p $1/quiccrypto
-DIST_DIR=runtime_switch
 find $1/quiccrypto -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
 find $1/quiccrypto -maxdepth 1 -type f -and -name '*.h' -and -not -name CommonInclude.h | xargs rm -f
-cp -R kremlin/include/* $1/quiccrypto
-cp hacl-star/providers/quic_provider/*.{c,h} $1/quiccrypto
 
-# our public interface
-cp mitls-fstar/libs/ffi/mitlsffi.h $1/
-cp mitls-fstar/src/pki/mipki.h $1/
-cp hacl-star/providers/quic_provider/quic_provider.h $1/
-
-# mipki-for-OpenSSL and mipki-for-Windows
-mkdir -p $1/mipki
-rm -f $1/mipki/*.c
-rm -f $1/mipki/*.h
-cp mitls-fstar/src/pki/*.c $1/mipki
-cp mitls-fstar/src/pki/*.h $1/mipki
-mkdir -p $1/mipki/win
-rm -f $1/mipki/win/*.c
-rm -f $1/mipki/win/*.h
-cp mitls-fstar/src/pki/win/*.c $1/mipki/win
+cp hacl-star/providers/quic_provider/Crypto_HKDF_Crypto_HMAC.{c,h} $1/quiccrypto 
+cp hacl-star/providers/quic_provider/quic_provider.c $1/quiccrypto
+cp hacl-star/providers/quic_provider/test.c $1/quiccrypto
 
 # binaries
-mkdir -p $1/bin_openssl
-rm -f $1/bin_openssl/*.dll
-cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin_openssl
-cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin_openssl
-cp hacl-star/providers/quic_provider/libquiccrypto.dll $1/bin_openssl/libquiccrypto.dll
-cp mitls-fstar/src/pki/libmipki.dll $1/bin_openssl
+mkdir -p $1/bin
+rm -f $1/bin/*.dll
+cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin
+cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin
+cp hacl-star/providers/quic_provider/libquiccrypto.dll $1/bin
+cp hacl-star/providers/out/libevercrypt.dll $1/bin
 
 # hashes
 cp hashes.sh $1/
