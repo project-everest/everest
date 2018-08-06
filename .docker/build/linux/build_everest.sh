@@ -31,32 +31,33 @@ function everest_rebuild() {
 }
 
 function exec_build() {
-    result_file="result.txt"
+    cd everest
+
+    result_file="../result.txt"
 
     # $status_file is the name of a file that contains true if and
     # only if the F* regression suite failed, false otherwise
-    status_file="status.txt"
+    status_file="../status.txt"
     echo false >$status_file
-
-    ORANGE_FILE="orange_file.txt"
-    echo '' >$ORANGE_FILE
 
     # Clone all projects together and make sure they test and build together
     if ! [ -x everest ]; then
         echo "Not in the right directory"
-        return
-    fi
-
-    if [[ $target == "everest-ci" ]]; then
-        everest_rebuild && echo true >$status_file
-    elif [[ $localTarget == "everest-ci-windows" ]]; then
-        exit 1
-    elif [[ $localTarget == "everest-nightly-check" ]]; then
-        exit 1
-    elif [[ $localTarget == "everest-nightly-move" ]]; then
     else
-        echo "Invalid target"
-        return
+        if [[ $target == "everest-ci" ]]; then
+            everest_rebuild && echo true >$status_file
+        elif [[ $localTarget == "everest-ci-windows" ]]; then
+            # TODO
+            exit 1
+        elif [[ $localTarget == "everest-nightly-check" ]]; then
+            # TODO
+            exit 1
+        elif [[ $localTarget == "everest-nightly-move" ]]; then
+            # TODO
+            exit 1
+        else
+            echo "Invalid target"
+        fi
     fi
 
     if [[ $(cat $status_file) != "true" ]]; then
@@ -66,6 +67,8 @@ function exec_build() {
         echo "Everest succeeded"
         echo Success >$result_file
     fi
+
+    cd ..
 }
 
 # Some environment variables we want
