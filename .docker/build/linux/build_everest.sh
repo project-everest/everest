@@ -5,6 +5,7 @@
 target=$1
 out_file=$2
 threads=$3
+branchname=$4
 
 function export_home() {
     if command -v cygpath >/dev/null 2>&1; then
@@ -22,12 +23,91 @@ function everest_rebuild() {
     fi
 
     git clean -ffdx
-    $gnutime ./everest --yes -j $threads check reset make &&
+    $gnutime ./everest --yes -j $threads $1 check reset make &&
         echo "done with check reset make, timing above" &&
-        $gnutime ./everest --yes -j $threads test &&
+        $gnutime ./everest --yes -j $threads $1 test &&
         echo "done with test, timing above" &&
-        $gnutime ./everest --yes -j $threads verify &&
+        $gnutime ./everest --yes -j $threads $1 verify &&
         echo "done with verify, timing above"
+}
+
+function everest_move() {
+
+    slack_file="../slackmsg.txt"
+
+    # Figure out the branch
+    CI_BRANCH=${branchname##refs/heads/}
+    echo "Current branch_name=$CI_BRANCH"
+
+    # This function is called from a test... so it needs to fast-fail because "set
+    # -e" does not apply within subshells.
+
+    # VSTS does not clean things properly... no point in fighting that, let's just
+    # do it ourselves
+    git clean -ffdx
+    # Sanity check that will fail if something is off the rails
+    ./everest --yes -j $threads check reset || return 1
+    # Update every project to its know good version and branch, then for each
+    # project run git pull
+    source hashes.sh
+    source repositories.sh
+    local fresh=false
+    local versions=""
+    local url=""
+    for r in ${!hashes[@]}; do
+        cd $r
+        git pull
+        if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
+            fresh=true
+            url=${repositories[$r]#git@github.com:}
+            url="https://www.github.com/${url%.git}/compare/${hashes[$r]}...$(git rev-parse HEAD)"
+            versions="$versions\n    *$r* <$url|moves to $(git rev-parse HEAD | cut -c 1-8)> on branch ${branches[$r]}"
+        else
+            versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
+        fi
+        cd ..
+    done
+    versions="$versions\n"
+    local msg=""
+    if ! $fresh; then
+        # Bail out early if there's nothing to do
+        MsgToSlack=":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
+        echo $MsgToSlack >$slack_file
+    elif ! ./everest --yes -j $threads -windows make test verify drop qbuild; then
+        # Provide a meaningful summary of what we tried
+        msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
+        MsgToSlack="$msg"
+        echo $MsgToSlack >$slack_file
+        return 255
+    else
+        # Life is good, record new revisions and commit.
+        msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
+        MsgToSlack="$msg"
+        git checkout $CI_BRANCH &&
+            git pull &&
+            ./everest --yes snapshot &&
+            git commit -am "[CI] automatic upgrade" &&
+            git push git@github.com:project-everest/everest.git $CI_BRANCH ||
+            MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
+
+        echo $MsgToSlack >$slack_file
+
+        # Import Vale assemblies into HACL*
+        cd hacl-star
+        # Ignore other changes (e.g. submodules)
+        if ! git diff --exit-code secure_api/vale/asm; then
+            echo "New assemblies from Vale, committing"
+            git add -u secure_api/vale/asm
+            git commit -m "[CI] New assemblies coming from Vale"
+            local commit=$(git rev-parse HEAD)
+            local branch=${branches[hacl - star]}
+            git fetch
+            git reset --hard origin/$branch
+            git merge -Xours $commit
+            git push
+        fi
+        cd ..
+    fi
 }
 
 function exec_build() {
@@ -45,16 +125,16 @@ function exec_build() {
         echo "Not in the right directory"
     else
         if [[ $target == "everest-ci" ]]; then
-            everest_rebuild && echo true >$status_file
-        elif [[ $localTarget == "everest-ci-windows" ]]; then
-            # TODO
-            exit 1
-        elif [[ $localTarget == "everest-nightly-check" ]]; then
-            # TODO
-            exit 1
-        elif [[ $localTarget == "everest-nightly-move" ]]; then
-            # TODO
-            exit 1
+            if [[ "$OS" == "Windows_NT" ]]; then
+                everest_rebuild -windows && echo true >$status_file
+            else
+                everest_rebuild && echo true >$status_file
+            fi
+        elif [[ $target == "everest-qbuild" ]]; then
+            # collect sources and build with MSVC
+            ./everest drop qbuild && echo true >$status_file
+        elif [[ $localTarget == "everest-move" ]]; then
+            everest_move && echo true >$status_file
         else
             echo "Invalid target"
         fi

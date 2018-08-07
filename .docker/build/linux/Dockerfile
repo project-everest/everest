@@ -4,6 +4,7 @@ FROM everest_base_image:1
 ARG BUILDLOGFILE
 ARG MAXTHREADS
 ARG TARGET
+ARG BRANCHNAME
 
 WORKDIR ${MYHOME}
 
@@ -34,7 +35,7 @@ COPY --chown=everest build_everest.sh ${MYHOME}/build_everest.sh
 RUN chmod +x build_everest.sh
 COPY --chown=everest build.sh ${MYHOME}/build.sh
 RUN chmod +x build.sh
-RUN ./build.sh ${TARGET} ${BUILDLOGFILE} ${MAXTHREADS} || true
+RUN ./build.sh ${TARGET} ${BUILDLOGFILE} ${MAXTHREADS} ${BRANCHNAME} || true
 
 RUN echo $(date -u '+%Y-%m-%d %H:%M:%S') >> ${BUILDLOGFILE}
 
