@@ -513,12 +513,15 @@ OCAML
       test $(echo "$NODEJS_MSI" | grep -o '\.msi' | wc -l) -eq 1
       # Finally, launch Windows installer in unattended mode
       msiexec /i "https://nodejs.org/dist/latest/$NODEJS_MSI" /quiet /passive
+      # Test whether Node.js installed properly
+      which node > /dev/null 2>&1
     else
       echo 'Please go to https://nodejs.org/ to know how to'
       echo 'install it on your platform'
       exit 1
     fi
   fi
+  echo "... Node.js found in PATH"
 
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
