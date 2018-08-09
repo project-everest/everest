@@ -906,6 +906,7 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
+  make -C kremlin/test $parallel_opt everything
   hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
   hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
   IMPL_CHOICE=runtime_switch make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
