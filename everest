@@ -497,6 +497,29 @@ OCAML
       and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your "$EVEREST_ENV_DEST_FILE"
   fi
 
+  # Check for Node.js
+  if ! which node >/dev/null 2>&1 ; then
+    red "ERROR: Node.js doesn\'t seem to be installed"
+    if is_windows ; then
+      magenta "Download it from the internet? [Yn]"
+      prompt_yes true "exit 1"
+      # There is no clean way to determine the latest version of
+      # Node.js available. However, the URL below points to a HTML
+      # page containing a list of files, and there, there is exactly
+      # one link to a .msi file corresponding to 64-bit platforms. So
+      # we just need to extract its name from the page.
+      NODEJS_MSI=$(wget --output-document=- --no-verbose --quiet https://nodejs.org/dist/latest/ | grep -o '"node-[^-]*-x64\.msi"' | sed 's!"!!g')
+      # Check that there are exactly one .msi file there
+      test $(echo "$NODEJS_MSI" | grep -o '\.msi' | wc -l) -eq 1
+      # Finally, launch Windows installer in unattended mode
+      msiexec /i "https://nodejs.org/dist/latest/$NODEJS_MSI" /quiet /passive
+    else
+      echo 'Please go to https://nodejs.org/ to know how to'
+      echo 'install it on your platform'
+      exit 1
+    fi
+  fi
+
   # F# and MS compilers (note: nothing for OSX/Linux right now)
   if is_windows; then
     # note: nothing left, we will use vcvarsall.bat/vsdevcmd.bat instead
