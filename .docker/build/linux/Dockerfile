@@ -25,16 +25,16 @@ COPY --chown=everest / ${MYHOME}/everest/
 
 # Do another cleanup
 RUN rm ${MYHOME}/everest/Dockerfile
-RUN rm ${MYHOME}/everest/build_everest.sh
 RUN rm ${MYHOME}/everest/build.sh
+RUN rm ${MYHOME}/everest/build_helper.sh
 RUN rm ${MYHOME}/everest/id_rsa
 RUN rm ${MYHOME}/everest/commitinfofilename.json
 
 RUN echo $(date -u '+%Y-%m-%d %H:%M:%S') >> ${BUILDLOGFILE}
-COPY --chown=everest build_everest.sh ${MYHOME}/build_everest.sh
-RUN chmod +x build_everest.sh
 COPY --chown=everest build.sh ${MYHOME}/build.sh
 RUN chmod +x build.sh
+COPY --chown=everest build_helper.sh ${MYHOME}/build_helper.sh
+RUN chmod +x build_helper.sh
 RUN ./build.sh ${TARGET} ${BUILDLOGFILE} ${MAXTHREADS} ${BRANCHNAME} || true
 
 RUN echo $(date -u '+%Y-%m-%d %H:%M:%S') >> ${BUILDLOGFILE}

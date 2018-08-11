@@ -91,22 +91,6 @@ function everest_move() {
             MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
 
         echo $MsgToSlack >$slack_file
-
-        # Import Vale assemblies into HACL*
-        cd hacl-star
-        # Ignore other changes (e.g. submodules)
-        if ! git diff --exit-code secure_api/vale/asm; then
-            echo "New assemblies from Vale, committing"
-            git add -u secure_api/vale/asm
-            git commit -m "[CI] New assemblies coming from Vale"
-            local commit=$(git rev-parse HEAD)
-            local branch=${branches[hacl - star]}
-            git fetch
-            git reset --hard origin/$branch
-            git merge -Xours $commit
-            git push
-        fi
-        cd ..
     fi
 }
 
@@ -125,14 +109,16 @@ function exec_build() {
         echo "Not in the right directory"
     else
         if [[ $target == "everest-ci" ]]; then
-            if [[ "$OS" == "Windows_NT" ]]; then
-                everest_rebuild -windows && echo true >$status_file
+            everest_rebuild && echo true >$status_file
+        elif [[ $target == "everest-ci-windows" ]]; then
+        if [[ "$OS" == "Windows_NT" ]]; then
+                everest_rebuild -windows &&
+                # collect sources and build with MSVC
+                ./everest drop qbuild &&
+                echo true >$status_file
             else
-                everest_rebuild && echo true >$status_file
+                echo "Invalid target for platform"
             fi
-        elif [[ $target == "everest-qbuild" ]]; then
-            # collect sources and build with MSVC
-            ./everest drop qbuild && echo true >$status_file
         elif [[ $localTarget == "everest-move" ]]; then
             everest_move && echo true >$status_file
         else
