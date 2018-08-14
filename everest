@@ -899,7 +899,7 @@ build_vale () {
 
 clean_hacl () {
   for f in \
-    hacl-star/{code/curve25519,secure_api} \
+    hacl-star/{code,secure_api,providers} \
   ; do
     if test -d "$f" ; then
       make -C "$f" clean
