@@ -330,17 +330,12 @@ do_update_z3 () {
 
 # Windows-only: print out the directory of the Python associated to SCons
 windows_scons_python_dir () {
-    # We rely on the directory where Python 3.6 was installed
-    pydir_var=PY"$SCONS_PYTHON_MAJOR""$SCONS_PYTHON_MINOR"DIR
-    PYDIR="${!pydir_var}"
+    PYDIR=$(regtool -q get "/HKLM/Software/Python/PythonCore/$SCONS_PYTHON_MAJOR_MINOR/InstallPath/" || true)
     if ! [[ -d $PYDIR ]] ; then
-      PYDIR=$(bash -c "regtool -q get /HKLM/Software/Python/PythonCore/$SCONS_PYTHON_MAJOR_MINOR/InstallPath/ || true")
-      if ! [[ -d $PYDIR ]] ; then
-        PYDIR=$(bash -c "regtool -q get /HKCU/Software/Python/PythonCore/$SCONS_PYTHON_MAJOR_MINOR/InstallPath/ || true")
-      fi
+      PYDIR=$(regtool -q get "/HKCU/Software/Python/PythonCore/$SCONS_PYTHON_MAJOR_MINOR/InstallPath/" || true)
     fi
     if ! [[ -d $PYDIR ]] ; then
-      red "ERROR: Python $SCONS_PYTHON_VER was not installed properly"
+      red "ERROR: Python $SCONS_PYTHON_MAJOR_MINOR was not installed properly"
       exit 1
     fi
     echo "$PYDIR"
