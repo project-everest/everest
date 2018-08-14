@@ -16,9 +16,19 @@ set -o pipefail
 OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.1/opam64.tar.xz
 OPAM_VERSION=4.05.0+mingw64c
 NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
-PYTHON_VER=2.7.13
-PYTHON_INSTALL_POINT=https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi
-SCONS_INSTALL_POINT=https://downloads.sourceforge.net/project/scons/scons/2.5.1/scons-2.5.1-amd64-setup.exe
+# Provide for a Python, necessary for scons
+# (all other occurrences of python can use whatever python 2 is in the PATH, be it Windows or Cygwin)
+# NOTE: if you change SCONS_PYTHON_MAJOR and/or SCONS_PYTHON_MINOR, then please also update scons-python-version-test.py
+SCONS_PYTHON_MAJOR=3
+SCONS_PYTHON_MINOR=6
+SCONS_PYTHON_MAJOR_MINOR=$SCONS_PYTHON_MAJOR.$SCONS_PYTHON_MINOR
+SCONS_PYTHON_REVISION=6
+SCONS_PYTHON_VER=$SCONS_PYTHON_MAJOR_MINOR.$SCONS_PYTHON_REVISION
+# NOTE: if you change SCONS_VER, then please also update scons-python-version-test.py
+SCONS_VER=3.0.1
+SCONS_INSTALL_DIR=scons-$SCONS_VER
+SCONS_INSTALL_FILE=$SCONS_INSTALL_DIR.tar.gz
+SCONS_INSTALL_POINT=https://downloads.sourceforge.net/project/scons/scons/$SCONS_VER/$SCONS_INSTALL_FILE
 SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
 
 # No-interaction when this script is used for CI purposes
@@ -141,6 +151,17 @@ write_to_env_dest_file () {
   magenta "Remember to run source \"$EVEREST_ENV_DEST_FILE\" in your terminal afterwards!"
 }
 
+# Append $1 to the (Cygwin) path
+windows_append_path () {
+  path=$(cygpath -m -d "$1")
+  path=$(cygpath "$path")
+  str="
+    # This line automatically added by $0
+    export PATH=\"$path\":\$PATH"
+  write_to_env_dest_file "$str"
+  export PATH="$path":"$PATH"
+}
+
 # Windows requires several tools that can be installed via Visual Studio, but
 # these usually aren't in the PATH. Check in the usual locations, then offer to
 # customize "$EVEREST_ENV_DEST_FILE"
@@ -153,12 +174,7 @@ windows_check_or_modify_env_dest_file () {
     if [ -f "$2"/$1 ]; then
       magenta "$1 found in $2; add to PATH via $EVEREST_ENV_DEST_FILE ? [Yn]"
       if prompt_yes true false; then
-        path=$(cygpath -m -d "$2")
-        path=$(cygpath "$path")
-        str="
-          # This line automatically added by $0
-          export PATH=\"$path\":\$PATH"
-        write_to_env_dest_file "$str"
+        windows_append_path "$2"
       fi
     else
       red "$1 not found in $2, bailing"
@@ -312,6 +328,78 @@ do_update_z3 () {
   fi
 }
 
+# Windows-only: print out the directory of the Python associated to SCons
+windows_scons_python_dir () {
+    # We rely on the directory where Python 3.6 was installed
+    pydir_var=PY"$SCONS_PYTHON_MAJOR""$SCONS_PYTHON_MINOR"DIR
+    PYDIR="${!pydir_var}"
+    if ! [[ -d $PYDIR ]] ; then
+      PYDIR=$(bash -c "regtool -q get /HKLM/Software/Python/PythonCore/$SCONS_PYTHON_MAJOR_MINOR/InstallPath/ || true")
+      if ! [[ -d $PYDIR ]] ; then
+        PYDIR=$(bash -c "regtool -q get /HKCU/Software/Python/PythonCore/$SCONS_PYTHON_MAJOR_MINOR/InstallPath/ || true")
+      fi
+    fi
+    if ! [[ -d $PYDIR ]] ; then
+      red "ERROR: Python $SCONS_PYTHON_VER was not installed properly"
+      exit 1
+    fi
+    echo "$PYDIR"
+}
+
+# check_windows_scons: (Windows only) checks if Python 3.x and a
+# corresponding Scons are installed; and if not, propose to install
+# scons along with its required Python
+check_windows_scons ()
+{
+  if command -v scons.bat > /dev/null 2>&1 ; then
+    echo "... scons.bat found in PATH"
+    # Check whether it corresponds to the right expected version of Python
+    scons.bat --file=scons-python-version-test.py
+    echo "... scons is well configured for Python $SCONS_PYTHON_MAJOR_MINOR"
+  else
+    magenta "Warning: scons.bat not found in PATH"
+    if ! PYDIR=$(windows_scons_python_dir) ; then
+      red "ERROR: No Python $SCONS_PYTHON_MAJOR_MINOR found"
+      magenta "Do you want to install Windows Python $SCONS_PYTHON_VER , and scons for that version of Python?"
+      prompt_yes true "exit 1"
+      local python_file_name="python-$SCONS_PYTHON_VER-amd64.exe"
+      wget "https://www.python.org/ftp/python/$SCONS_PYTHON_VER/$python_file_name"
+      chmod +x "$python_file_name"
+      # From: https://docs.python.org/3/using/windows.html
+      "./$python_file_name" /passive
+      PYDIR=$(windows_scons_python_dir)
+    else
+      echo "... Python $SCONS_PYTHON_MAJOR_MINOR found"
+    fi
+    if "$PYDIR/python.exe" "$PYDIR/Scripts/scons.py" -f scons-python-version-test.py ; then
+      echo '... SCons for Python $SCONS_PYTHON_MAJOR_MINOR was detected'
+    else
+      red "No SCons detected for Python $SCONS_PYTHON_MAJOR_MINOR"
+      magenta "Do you want to install SCons $SCONS_VER for Python $SCONS_PYTHON_MAJOR_MINOR ?"
+      prompt_yes true "exit 1"
+      wget $SCONS_INSTALL_POINT
+      tar xf "$SCONS_INSTALL_FILE"
+      pushd "$SCONS_INSTALL_DIR"
+      "$PYDIR/python.exe" setup.py install # --prefix=$scons_target_wdir
+      popd
+      # Test whether SCons was installed properly
+      "$PYDIR/python.exe" "$PYDIR/Scripts/scons.py" -f scons-python-version-test.py
+    fi
+    magenta 'The default scons.bat is installed in a directory that cannot be added to PATH,'
+    magenta 'because that directory contains a python.exe, which would shadow the already'
+    magenta 'existing python command that shall point to a Python 2.x.'
+    magenta 'Do you want to create a new scons.bat and have PATH point to it?'
+    if prompt_yes true false
+    then
+      pydir_dos=$(cygpath -d $PYDIR)
+      mkdir -p scons
+      echo "$pydir_dos/python.exe $pydir_dos/Scripts/scons.py "'%*' > scons/scons.bat
+      chmod +x scons/scons.bat
+      windows_append_path "$PWD/scons"
+    fi
+  fi
+}
+
 do_check ()
 {
   blue "Checking environment"
@@ -332,6 +420,7 @@ do_check ()
       prompt_yes "$cygsetup $cygsetup_args --packages=git"
     else
       red "ERROR: git not found; install it via your favorite package manager"
+      exit 1
     fi
   fi
 
@@ -514,7 +603,9 @@ OCAML
       # Finally, launch Windows installer in unattended mode
       msiexec /i "https://nodejs.org/dist/latest/$NODEJS_MSI" /quiet /passive
       # Test whether Node.js installed properly
-      which node > /dev/null 2>&1
+      # Impossible: Windows PATH has changed, we cannot refresh it
+      # which node > /dev/null 2>&1
+      red "CRITICAL: Windows PATH has changed, please restart a new Cygwin window"
     else
       echo 'Please go to https://nodejs.org/ to know how to'
       echo 'install it on your platform'
@@ -552,49 +643,50 @@ OCAML
   fi
   echo "... nuget found in PATH"
 
-  # We need Scons for Vale which needs Python 2.7
-  if is_windows; then
-    if [ -z ${PY27DIR+x} ]; then
-      PY27DIR=$(bash -c "regtool -q get /HKLM/Software/Python/PythonCore/2.7/InstallPath/ || true")
-      if ! [ -d "$PY27DIR" ]; then 
-          PY27DIR=$(bash -c "regtool -q get /HKCU/Software/Python/PythonCore/2.7/InstallPath/ || true")
-      fi
-      if ! [ -d "$PY27DIR" ]; then
-          PY27DIR="/cygdrive/c/Python27"
-      fi
-    fi
-    if ! [ -d $PY27DIR ]; then
-      red "ERROR: Python not found -- install a *WINDOWS* Python 2.7? (y/n)"
-      if prompt_yes true "exit 1"; then
-        wget $PYTHON_INSTALL_POINT
-        chmod a+x python-$PYTHON_VER.amd64.msi
-        msiexec /i python-$PYTHON_VER.amd64.msi /quiet
-        windows_check_or_modify_env_dest_file "python.exe" "$PY27DIR"
-      fi
-    fi
-    PY27VER=$($PY27DIR/python.exe -V 2>&1 | dos2unix | cut -d ' ' -f 2 || true)
-    echo "... Python $PY27VER found at $PY27DIR"
-
-    if ! command -v scons.bat >/dev/null 2>&1; then
-      red "ERROR: scons.bat was not found so scons will need to be installed."
-      red "NOTE: scons requires Python 2.7. Choose the one installed at $PY27DIR in the second page of the scons install wizard."
-      red "Start the install wizard for scons (Y/n)?"
-      if prompt_yes true "exit 1"; then
-        wget $SCONS_INSTALL_POINT
-        chmod a+x scons-2.5.1-amd64-setup.exe
-        ./scons-2.5.1-amd64-setup.exe # requires user interaction - prefer to find a way to run this in quiet mode
-        # sconsetup=./scons-2.5.0-setup.exe  # runs it quiet but doesn't actually install so can't do this
-        windows_check_or_modify_env_dest_file "scons.bat" "$PY27DIR\\Scripts"
-      fi
+  # Check whether python points to a python2
+  if which python > /dev/null 2>&1 ; then
+    # nasty: python outputs its version on STDERR
+    if python --version 2>&1 | grep '^Python 2\.' 2>/dev/null ; then
+      echo "... python found in PATH, points to some Python 2.x"
     else
-      echo "... scons.bat found in PATH"
+      red "ERROR: python points to something that is not a Python 2.x"
+      red "Please fix this according to your platform"
+      exit 1
     fi
+  else
+    magenta "WARNING: python not found in PATH"
+  fi
+
+  # Check for Python 2
+  if ! which python2 >/dev/null 2>&1 ; then
+    red "ERROR: python2 not found in PATH"
+    magenta "Do you want to install a Cygwin python2?"
+    find_cygsetup
+    cygcmd="$cygsetup $cygsetup_args --packages=python2"
+    echo "$cygcmd"
+    prompt_yes "$cygcmd"
+  else
+    echo "... python2 found in PATH"
+  fi
+
+  # We need Scons for Vale which needs Python 3
+  if is_windows; then
+    check_windows_scons
   else # *nix
     if ! command -v scons >/dev/null 2>&1; then
       red "ERROR: scons not installed -- please install"
       exit 1
     else
       echo "... scons found in PATH"
+      if ! which python$SCONS_PYTHON_MAJOR_MINOR > /dev/null 2>&1 ; then
+        red "ERROR: python$SCONS_PYTHON_MAJOR_MINOR not found in PATH"
+        red "Please install Python $SCONS_PYTHON_MAJOR_MINOR or higher"
+        exit 1
+      fi
+      echo "... python$SCONS_PYTHON_MAJOR_MINOR found in PATH"
+      # Check whether it corresponds to a Python 3.6 or above
+      python$SCONS_PYTHON_MAJOR_MINOR $(which scons) --file=scons-python-version-test.py
+      echo "... python$SCONS_PYTHON_MAJOR_MINOR is recent enough"
     fi
   fi
 
@@ -737,13 +829,20 @@ run_nuget () {
   nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc
 }
 
-# OS-independent scons. Passes $1 to scons.
+# OS-independent scons. chdir to $1, then passes $2 to scons.
 # The return status is that of the last command.
 run_scons () {
+  short_dir="$1"
+  shift
   cmd="$1"
-
+  
+  if is_windows ; then
+    DIR=$(cygpath -w "$(pwd)"/"$short_dir")
+  else
+    DIR="$short_dir"
+  fi
+  
   if is_windows; then
-    DIR=$(cygpath -w "$(pwd)"/vale)
     # Instead of invoking cmd.exe /c, which would force us to
     # rely on its flaky semantics for double quotes,
     # we go through a batch file.
@@ -760,24 +859,62 @@ run_scons () {
     cat > "$SCONS_INVOKE_FILE" <<EOF
 call $VS_ENV_CMD
 cd "$DIR"
-call scons.bat $cmd $parallel_opt
 EOF
+    if command -v scons.bat > /dev/null 2>&1 ; then
+      echo "call scons.bat $cmd $parallel_opt" >> "$SCONS_INVOKE_FILE"
+    else
+      PYDIR=$(cygpath -d $(windows_scons_python_dir))
+      echo "$PYDIR/python.exe $PYDIR/Scripts/scons.py $cmd $parallel_opt" >> "$SCONS_INVOKE_FILE"
+    fi
     chmod +x "$SCONS_INVOKE_FILE"
     "./$SCONS_INVOKE_FILE"
     SCONS_RETCODE=$?
     rm -f "$SCONS_INVOKE_FILE"
     return $SCONS_RETCODE
   else
-    scons -C vale $cmd $parallel_opt
+    python$SCONS_PYTHON_MAJOR_MINOR $(which scons) -C "$DIR" $cmd $parallel_opt
   fi
 }
 
+run_vale_scons () {
+  if is_windows ; then
+    # Use the same Z3 for Dafny as for F*
+    # i.e. the one in the PATH
+    Z3PATH_UNIX=$(which z3.exe)
+    Z3PATH=$(cygpath -w "$Z3PATH_UNIX")
+    # Here the path to z3 might have whitespaces,
+    # so it must be enclosed into double quotes
+    # to be treated correctly by scons and Dafny.
+    # Moreover, it must fit in the single argument to
+    # run_vale_scons, which is why we cannot quote the command
+    # as a member of the verify_commands array
+    run_scons vale "--DARGS=/z3exe:\"$Z3PATH\" $1"
+  else
+    run_scons vale "$1"
+  fi
+}
+
+run_hacl_vale_scons () {
+  run_scons hacl-star/vale "$1"
+}
+
 build_vale () {
-    echo "Skipping Vale"
+  run_vale_scons '--FSTAR-MY-VERSION'
+}
+
+clean_hacl () {
+  for f in \
+    hacl-star/{code/curve25519,secure_api} \
+  ; do
+    if test -d "$f" ; then
+      make -C "$f" clean
+    fi
+  done
+  run_hacl_vale_scons "--clean"
 }
 
 clean_vale () {
-  run_scons "--clean"
+  run_vale_scons "--clean"
 }
 
 setup_env () {
@@ -853,7 +990,8 @@ build_hacl () {
   make -C hacl-star/code/ extract-c $parallel_opt && \
   make -C hacl-star/secure_api $parallel_opt && \
   make -C hacl-star/providers $parallel_opt && \
-  make -C hacl-star/providers test $parallel_opt
+  make -C hacl-star/providers test $parallel_opt &&
+  run_hacl_vale_scons '--FSTAR-MY-VERSION'
 }
 
 build_mitls () {
@@ -919,21 +1057,7 @@ do_test () {
 }
 
 do_verify_vale () {
-  if is_windows ; then
-    # Use the same Z3 for Dafny as for F*
-    # i.e. the one in the PATH
-    Z3PATH_UNIX=$(which z3.exe)
-    Z3PATH=$(cygpath -w "$Z3PATH_UNIX")
-    # Here the path to z3 might have whitespaces,
-    # so it must be enclosed into double quotes
-    # to be treated correctly by scons and Dafny.
-    # Moreover, it must fit in the single argument to
-    # run_scons, which is why we cannot quote the command
-    # as a member of the verify_commands array
-    run_scons "--DARGS=/z3exe:\"$Z3PATH\""
-  else
-    run_scons
-  fi
+  echo Everything already verified for Vale
 }
 
 do_verify () {
@@ -960,7 +1084,9 @@ do_clean_c ()
   for d in kremlin/kremlib hacl-star/{providers,secure_api,code} \
     mitls-fstar/src/tls
   do
-    make -C "$d" clean-c
+    if test -d "$d" ; then
+      make -C "$d" clean-c
+    fi
   done
 }
 
@@ -969,10 +1095,12 @@ do_clean ()
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     MLCrypto/{,openssl} \
     kremlin \
-    hacl-star/{code/curve25519,secure_api} \
     ; do
-    make -C "$d" clean
+    if test -d "$d" ; then
+      make -C "$d" clean
+    fi
   done
+  clean_hacl
   clean_vale
 }
 
