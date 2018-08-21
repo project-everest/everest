@@ -1011,9 +1011,10 @@ do_make ()
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
+  build_commands[quackyducky]="make -C quackyducky"
 
   # Order matters.
-  for p in FStar kremlin vale MLCrypto hacl-star mitls-fstar; do
+  for p in FStar kremlin vale MLCrypto hacl-star quackyducky mitls-fstar; do
     # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
@@ -1043,6 +1044,8 @@ do_test () {
   hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
   hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
   IMPL_CHOICE=runtime_switch make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
+  make -C quackyducky gen
+  make -C quackyducky/out $parallel_opt $keep_going_opt
   # These tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
   (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
@@ -1065,6 +1068,7 @@ do_verify () {
   verify_commands[vale]="do_verify_vale"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
+  verify_commands[quackyducky]="echo nothing to verify for quackyducky"
 
   for p in $ALL_PROJECTS; do
     separator
@@ -1089,6 +1093,7 @@ do_clean ()
 {
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     MLCrypto/{,openssl} \
+    quackyducky/out quackyducky \
     kremlin \
     ; do
     if test -d "$d" ; then
@@ -1211,7 +1216,7 @@ OPTION:
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
-    FStar kremlin mitls-fstar hacl-star vale MLCrypto
+    FStar kremlin mitls-fstar hacl-star vale MLCrypto quackyducky
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1308,7 +1313,7 @@ while true; do
       break
       ;;
 
-    vale|FStar|mitls-fstar|kremlin|hacl-star|MLCrypto)
+    vale|FStar|mitls-fstar|kremlin|hacl-star|MLCrypto|quackyducky)
       ALL_PROJECTS=$1
       ;;
 
