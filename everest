@@ -1096,6 +1096,7 @@ do_clean ()
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     MLCrypto/{,openssl} \
     quackyducky/out quackyducky \
+    mitls-fstar/src/tls \
     kremlin \
     ; do
     if test -d "$d" ; then
