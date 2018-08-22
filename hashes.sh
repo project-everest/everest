@@ -3,7 +3,7 @@ declare -A branches
 hashes[mitls-fstar]=db782e06f473484664af2a30a1b4fec2fad745c2
 branches[mitls-fstar]=master
 hashes[quackyducky]=3294416970d6e5c48e75239baa25ec47a95b88eb
-branches[quackyducky]=_single_field_struct
+branches[quackyducky]=master
 hashes[vale]=2947d3b39bd30d1ae10ac6eef92454cf48edca97
 branches[vale]=master
 hashes[FStar]=e41101d40db10d7f0974ad258890fbaeb8ea2c42
