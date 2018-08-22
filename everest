@@ -890,11 +890,11 @@ run_vale_scons () {
 }
 
 run_hacl_vale_scons () {
-  run_scons hacl-star/vale "$1"
+  run_scons hacl-star/vale "--FSTAR-MY-VERSION $1"
 }
 
 build_vale () {
-  run_vale_scons '--FSTAR-MY-VERSION'
+  run_vale_scons
 }
 
 clean_hacl () {
@@ -986,7 +986,7 @@ build_hacl () {
   make -C hacl-star/secure_api $parallel_opt && \
   make -C hacl-star/providers $parallel_opt && \
   make -C hacl-star/providers test $parallel_opt &&
-  run_hacl_vale_scons '--FSTAR-MY-VERSION'
+  run_hacl_vale_scons
 }
 
 build_mitls () {
@@ -1080,6 +1080,7 @@ do_verify () {
 
 do_clean_c ()
 {
+  setup_env
   for d in kremlin/kremlib hacl-star/{providers,secure_api,code} \
     mitls-fstar/src/tls
   do
@@ -1091,6 +1092,7 @@ do_clean_c ()
 
 do_clean ()
 {
+  setup_env
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     MLCrypto/{,openssl} \
     quackyducky/out quackyducky \
