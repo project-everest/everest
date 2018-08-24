@@ -43,3 +43,7 @@ which
 xz
 zip
 dos2unix
+rsync
+diffutils
+curl
+perl
