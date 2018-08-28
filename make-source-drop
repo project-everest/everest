@@ -43,7 +43,7 @@ cp -R kremlin/include/* $1/include
 # libkremlib ##################################################################
 cp kremlin/kremlib/extracted/*.h $1/kremlib
 for w in 8 16 32 64; do
-  cp kremlin/kremlib/extracted/FStar_UInt$w.c $1/kremlib/${w}_generated.c
+  cp kremlin/kremlib/extracted/FStar_UInt$w.c $1/kremlib/fstar_uint${w}_generated.c
 done
 cp kremlin/kremlib/c/*.c $1/kremlib
 cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.c $1/kremlib
