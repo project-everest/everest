@@ -47,3 +47,4 @@ rsync
 diffutils
 curl
 perl
+menhir
