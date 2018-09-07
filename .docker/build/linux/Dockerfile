@@ -1,5 +1,5 @@
 # Everest build container
-FROM FROM everest-base-linux:1
+FROM everest-base-linux:1
 
 ARG BUILDLOGFILE
 ARG MAXTHREADS
