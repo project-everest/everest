@@ -6,6 +6,8 @@ ARG MAXTHREADS
 ARG TARGET
 ARG BRANCHNAME
 
+WORKDIR ${MYHOME}
+
 # ADD SSH KEY
 RUN mkdir -p ${MYHOME}/.ssh
 RUN chown everest ${MYHOME}/.ssh

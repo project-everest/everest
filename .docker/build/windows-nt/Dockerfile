@@ -1,5 +1,5 @@
 # Everest build container
-FROM everest-base-windows:1
+FROM everest-base-windows-nt:1
 
 ARG BUILDLOGFILE
 ARG MAXTHREADS
