@@ -6,8 +6,6 @@ ARG MAXTHREADS
 ARG TARGET
 ARG BRANCHNAME
 
-WORKDIR ${MYHOME}
-
 # ADD SSH KEY
 RUN mkdir -p ${MYHOME}/.ssh
 RUN chown everest ${MYHOME}/.ssh
@@ -20,8 +18,6 @@ RUN rm -rf ${MYHOME}/everest
 # Copy Everest source code.
 RUN mkdir ${MYHOME}/everest
 COPY --chown=everest / ${MYHOME}/everest/
-
-WORKDIR ${MYHOME}
 
 # Do another cleanup
 RUN rm ${MYHOME}/everest/Dockerfile
