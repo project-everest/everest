@@ -15,7 +15,7 @@ WORKDIR ".."
 # Now, using bash we copy the file, set the correct security and remove the previous folder
 RUN Invoke-BashCmd '"cd .ssh && cp ../everestsshkey/id_rsa . && chmod 600 id_rsa && rm -rf ../everestsshkey"'
 
-RUN Remove-Item .\everest -Force -Recurse
+RUN Invoke-BashCmd rm -rf everest
 
 # Copy source files
 WORKDIR "everest"
