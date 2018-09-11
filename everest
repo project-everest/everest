@@ -386,7 +386,7 @@ check_windows_scons ()
     magenta 'Do you want to create a new scons.bat and have PATH point to it?'
     if prompt_yes true false
     then
-      pydir_dos=$(cygpath -d $PYDIR)
+      pydir_dos=$(cygpath -d "$PYDIR")
       mkdir -p scons
       echo "$pydir_dos/python.exe $pydir_dos/Scripts/scons.py "'%*' > scons/scons.bat
       chmod +x scons/scons.bat
