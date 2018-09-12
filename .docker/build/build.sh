@@ -118,7 +118,11 @@ function exec_build() {
                 everest_rebuild && echo true >$status_file
             fi
         elif [[ $localTarget == "everest-move" ]]; then
-            everest_move && echo true >$status_file
+            if [[ "$OS" == "Windows_NT" ]]; then
+                everest_move && echo true >$status_file
+            else
+                echo "Invalid target"
+            fi
         else
             echo "Invalid target"
         fi
