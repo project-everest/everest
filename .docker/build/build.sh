@@ -109,15 +109,13 @@ function exec_build() {
         echo "Not in the right directory"
     else
         if [[ $target == "everest-ci" ]]; then
-            everest_rebuild && echo true >$status_file
-        elif [[ $target == "everest-ci-windows" ]]; then
-        if [[ "$OS" == "Windows_NT" ]]; then
+            if [[ "$OS" == "Windows_NT" ]]; then
                 everest_rebuild -windows &&
                 # collect sources and build with MSVC
                 ./everest drop qbuild &&
                 echo true >$status_file
             else
-                echo "Invalid target for platform"
+                everest_rebuild && echo true >$status_file
             fi
         elif [[ $localTarget == "everest-move" ]]; then
             everest_move && echo true >$status_file
