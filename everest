@@ -45,7 +45,7 @@ make_non_interactive () {
   export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
   export GIT_TERMINAL_PROMPT=0
   export OPAMYES=1
-  export OPAM_AUTO_SETUP=--auto-setup
+  OPAM_AUTO_SETUP=--auto-setup
 }
 
 # The parallel option, either empty (by default), or -j n,
@@ -512,7 +512,13 @@ MSG
       tar -xf 'opam64.tar.xz'
       rm -f 'opam64.tar.xz'
       bash opam64/install.sh
+      echo "Interactive is: $INTERACTIVE ; auto-setup is: $OPAM_AUTO_SETUP ; dot-profile is: $EVEREST_ENV_DEST_FILE ;"
       opam init mingw 'https://github.com/fdopen/opam-repository-mingw.git' --comp $OPAM_VERSION --switch $OPAM_VERSION --dot-profile "$EVEREST_ENV_DEST_FILE" $OPAM_AUTO_SETUP
+      if { ! $INTERACTIVE ; } && ! grep 'opam-init' "$EVEREST_ENV_DEST_FILE"  >/dev/null ; then
+        # --auto-setup might not have worked, so manually do it here.
+        # Do not expand variables in the textual output.
+        echo '. "$HOME/.opam/opam-init/init.sh" > /dev/null 2>/dev/null' >> "$EVEREST_ENV_DEST_FILE"
+      fi
       eval $(opam config env)
     else
       red "ERROR: no ocaml found in PATH"
