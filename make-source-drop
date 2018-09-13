@@ -35,7 +35,6 @@ mkdir -p $1/include
 cp mitls-fstar/libs/ffi/mitlsffi.h $1/include
 cp hacl-star/providers/quic_provider/quic_provider.h $1/include
 cp hacl-star/providers/include/EverCrypt.h $1/include
-cp hacl-star/providers/include/EverCrypt_Bytes.h $1/include
 cp kremlin/include/kremlib.h $1/include
 cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.h $1/include
 cp -R kremlin/include/* $1/include
@@ -73,7 +72,8 @@ cp $HACL_CODE/api/aead-c/Hacl_*.{c,h} $1/evercrypt
 cp $HACL_CODE/api/policies-c/Hacl_Policies.{c,h} $1/evercrypt
 
 # vale thingies
-cp $HACL/vale/asm/*.{c,h} $1/evercrypt
+cp $HACL/vale/asm/{aes.h,vale_aes_glue.c} $1/evercrypt
+cp $HACL/vale/asm/{DafnyLib.h,sha256_main_i.h,sha256_main_i.c,Vale_Hash_SHA2_256.c} $1/evercrypt
 
 mkdir -p $1/evercrypt
 mkdir -p $1/evercrypt/amd64
@@ -89,7 +89,6 @@ find $1/mitls -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | x
 rm -f $1/mitls/*.h
 cp $MITLS_EXTRACT/Kremlin-Library/*.{c,h} $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/include/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-Library/secure/*.{c,h} $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Library/stub/*.{c,h} $1/mitls
 rm $1/mitls/RegionAllocator.*
 
@@ -98,7 +97,6 @@ mkdir -p $1/quiccrypto
 find $1/quiccrypto -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
 find $1/quiccrypto -maxdepth 1 -type f -and -name '*.h' -and -not -name CommonInclude.h | xargs rm -f
 
-cp hacl-star/providers/quic_provider/Crypto_HKDF_Crypto_HMAC.{c,h} $1/quiccrypto 
 cp hacl-star/providers/quic_provider/quic_provider.c $1/quiccrypto
 cp hacl-star/providers/quic_provider/test.c $1/quiccrypto
 
