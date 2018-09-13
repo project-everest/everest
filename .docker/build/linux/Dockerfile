@@ -21,8 +21,6 @@ RUN rm -rf ${MYHOME}/everest
 RUN mkdir ${MYHOME}/everest
 COPY --chown=everest / ${MYHOME}/everest/
 
-WORKDIR ${MYHOME}
-
 # Do another cleanup
 RUN rm ${MYHOME}/everest/Dockerfile
 RUN rm ${MYHOME}/everest/build.sh

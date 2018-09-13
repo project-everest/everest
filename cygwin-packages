@@ -44,3 +44,9 @@ xz
 zip
 dos2unix
 curl
+rsync
+diffutils
+perl
+vim
+emacs
+less
