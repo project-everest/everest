@@ -31,12 +31,21 @@ SCONS_INSTALL_FILE=$SCONS_INSTALL_DIR.tar.gz
 SCONS_INSTALL_POINT=https://downloads.sourceforge.net/project/scons/scons/$SCONS_VER/$SCONS_INSTALL_FILE
 SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
 
+# OPAM_AUTO_SETUP defines the opam command-line option to
+# automatically setup environment variables into
+# $EVEREST_ENV_DEST_FILE . By default, it is left empty, but it is set
+# to --auto-setup if everest is run with --yes, i.e. in
+# non-interactive mode
+OPAM_AUTO_SETUP=
+
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
 make_non_interactive () {
   INTERACTIVE=false
   export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
   export GIT_TERMINAL_PROMPT=0
+  export OPAMYES=1
+  OPAM_AUTO_SETUP=--auto-setup
 }
 
 # The parallel option, either empty (by default), or -j n,
@@ -386,7 +395,7 @@ check_windows_scons ()
     magenta 'Do you want to create a new scons.bat and have PATH point to it?'
     if prompt_yes true false
     then
-      pydir_dos=$(cygpath -d $PYDIR)
+      pydir_dos=$(cygpath -d "$PYDIR")
       mkdir -p scons
       echo "$pydir_dos/python.exe $pydir_dos/Scripts/scons.py "'%*' > scons/scons.bat
       chmod +x scons/scons.bat
@@ -503,7 +512,13 @@ MSG
       tar -xf 'opam64.tar.xz'
       rm -f 'opam64.tar.xz'
       bash opam64/install.sh
-      opam init mingw 'https://github.com/fdopen/opam-repository-mingw.git' --comp $OPAM_VERSION --switch $OPAM_VERSION
+      echo "Interactive is: $INTERACTIVE ; auto-setup is: $OPAM_AUTO_SETUP ; dot-profile is: $EVEREST_ENV_DEST_FILE ;"
+      opam init mingw 'https://github.com/fdopen/opam-repository-mingw.git' --comp $OPAM_VERSION --switch $OPAM_VERSION --dot-profile "$EVEREST_ENV_DEST_FILE" $OPAM_AUTO_SETUP
+      if { ! $INTERACTIVE ; } && ! grep 'opam-init' "$EVEREST_ENV_DEST_FILE"  >/dev/null ; then
+        # --auto-setup might not have worked, so manually do it here.
+        # Do not expand variables in the textual output.
+        echo '. "$HOME/.opam/opam-init/init.sh" > /dev/null 2>/dev/null' >> "$EVEREST_ENV_DEST_FILE"
+      fi
       eval $(opam config env)
     else
       red "ERROR: no ocaml found in PATH"
@@ -958,10 +973,6 @@ set_windows () {
 set_opt () {
   # Picked up by pretty much all the Makefiles
   export CFLAGS="-funroll-loops -fomit-frame-pointer -O3"
-  # Set by the everest script in build_mitls below as CFLAGS
-  export MITLS_CFLAGS="-DREGION_STATISTICS -DLOG_TO_CHOICE -include regions.h $CFLAGS"
-  # Picked up by mitls-fstar/src/tls/Makefile.common
-  export MITLS_NODEBUG=1
 }
 
 set_openssl () {
@@ -1044,8 +1055,8 @@ do_test () {
   hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
   hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
   IMPL_CHOICE=runtime_switch make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
-  make -C quackyducky gen
-  make -C quackyducky/out $parallel_opt $keep_going_opt
+#  make -C quackyducky gen
+#  make -C quackyducky/out $parallel_opt $keep_going_opt
   # These tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
   (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)

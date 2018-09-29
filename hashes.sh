@@ -1,16 +1,16 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=29cfe395207a1bfc4ec4e9fa633aca70d6e1708e
+hashes[mitls-fstar]=e0ebde8c7a0dac49177dd17928c11dafb7525c25
 branches[mitls-fstar]=master
 hashes[quackyducky]=6c15bdbbc63046e919c3c3ba822d8f6ae62078bb
 branches[quackyducky]=master
-hashes[vale]=27dc638909758deef6b6f44bd7f8ac4367c62180
+hashes[vale]=ff5b04adbc49d5abe5de7cadb28e5eed13b6cc68
 branches[vale]=master
-hashes[FStar]=513adb354eb73f6d1f87a1893ac317be13ab5b4f
-branches[FStar]=joonwonc_lowstar_vector
-hashes[MLCrypto]=048fd71bf111e5020e6f47d884741d595cdb9ab3
+hashes[FStar]=d24915d34b5d4f4612f319a7b47eb61d13f58529
+branches[FStar]=master
+hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[hacl-star]=f1096c5b19c408352efe123b219e3444a12903b1
-branches[hacl-star]=joonwonc_merkle_tree
-hashes[kremlin]=71d04d2aad5606e5891e477bb23b90d4b8a4b209
+hashes[hacl-star]=6d51624025a1b2559db98381509d6ff89c15e290
+branches[hacl-star]=fstar-master
+hashes[kremlin]=253bedf6b98364c63d87005d9e4b8880240d8796
 branches[kremlin]=master
