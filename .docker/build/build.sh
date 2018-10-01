@@ -91,6 +91,9 @@ function everest_move() {
             MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
 
         echo $MsgToSlack >$slack_file
+        if [[ $MsgToSlack = *"could not push fresh commit on branch"* ]]; then
+            return 255
+        fi
     fi
 }
 
