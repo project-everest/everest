@@ -351,8 +351,8 @@ windows_scons_python_dir () {
 }
 
 # check_windows_scons: (Windows only) checks if Python 3.x and a
-# corresponding Scons are installed; and if not, propose to install
-# scons along with its required Python
+# corresponding Scons and pywin32 are installed; and if not, propose
+# to install scons and pywin32 along with its required Python
 check_windows_scons ()
 {
   if command -v scons.bat > /dev/null 2>&1 ; then
@@ -401,6 +401,20 @@ check_windows_scons ()
       chmod +x scons/scons.bat
       windows_append_path "$PWD/scons"
     fi
+  fi
+  # Also test for pywin32
+  echo "checking for pywin32"
+  if ! PYDIR=$(windows_scons_python_dir) ; then
+    red "ERROR: Python $SCONS_PYTHON_MAJOR_MINOR was not installed properly"
+    exit 1
+  fi
+  if "$PYDIR/Scripts/pip.exe" show pywin32 ; then
+    echo "... pywin32 found"
+  else
+    red "pywin32 does not seem to be installed for Python $SCONS_PYTHON_MAJOR_MINOR"
+    magenta "Do you want to install it?"
+    prompt_yes true "exit 1"
+    "$PYDIR/Scripts/pip.exe" install pywin32
   fi
 }
 
