@@ -61,9 +61,9 @@ function everest_move() {
             fresh=true
             url=${repositories[$r]#git@github.com:}
             url="https://www.github.com/${url%.git}/compare/${hashes[$r]}...$(git rev-parse HEAD)"
-            versions="$versions\n    *$r* <$url|moves to $(git rev-parse HEAD | cut -c 1-8)> on branch ${branches[$r]}"
+            versions="$versions\n    *($r)* <$url|moves to $(git rev-parse HEAD | cut -c 1-8)> on branch ${branches[$r]}"
         else
-            versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
+            versions="$versions\n    *($r)* stays at $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
         fi
         cd ..
     done
