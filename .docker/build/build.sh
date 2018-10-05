@@ -67,16 +67,22 @@ function everest_move() {
         fi
         cd ..
     done
+
     versions="$versions\n"
+    echo "Versions content: $versions"
+
     local msg=""
     if ! $fresh; then
         # Bail out early if there's nothing to do
         MsgToSlack=":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
+        echo "MsgToSlack content: $MsgToSlack"
         echo $MsgToSlack >$slack_file
     elif ! ./everest --yes -j $threads -windows make test verify drop qbuild; then
         # Provide a meaningful summary of what we tried
         msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
         MsgToSlack="$msg"
+
+        echo "MsgToSlack content: $MsgToSlack"
         echo $MsgToSlack >$slack_file
         return 255
     else
@@ -90,6 +96,7 @@ function everest_move() {
             git push git@github.com:project-everest/everest.git $CI_BRANCH ||
             MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
 
+        echo "MsgToSlack content: $MsgToSlack"
         echo $MsgToSlack >$slack_file
         if [[ $MsgToSlack = *"could not push fresh commit on branch"* ]]; then
             return 255
