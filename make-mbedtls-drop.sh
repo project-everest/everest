@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Note: mbedTLS requires C89, i.e. which does not support designated initializers. 
+# Currently, this means that we need a patched version of KreMLin 
+# (see https://github.com/FStarLang/kremlin/pull/95).
+
 if [ ! -z "$1" ]; then
    EVEREST_HOME=$(realpath $1)
 else
