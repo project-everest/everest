@@ -48,5 +48,5 @@ rsync
 diffutils
 perl
 vim
-emacs
 less
+gdb
