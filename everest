@@ -1373,7 +1373,7 @@ while true; do
 #      Disable verification for now
 #      do_verify
       red "The 'verify' command is obsoleted by 'make'. Just run './everest make' instead."
-      exit 1
+      exit 0
       ;;
 
     test)
