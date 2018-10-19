@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=e41a2289412ed92485e55e8308163579973c6db4
+hashes[mitls-fstar]=13f5dc55b38674897f1ed1ff2d3a607f1546d0a6
 branches[mitls-fstar]=master
 hashes[quackyducky]=6c15bdbbc63046e919c3c3ba822d8f6ae62078bb
 branches[quackyducky]=master
@@ -10,7 +10,7 @@ hashes[FStar]=059db0c8f527948202ced33ed871c0aa4a0fa3a4
 branches[FStar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[hacl-star]=c2e06270cf8aa732ba6edce571bb0c690c32b3dd
+hashes[hacl-star]=ede2a063e058e094eb49a9990275d72da483bd4c
 branches[hacl-star]=fstar-master
 hashes[kremlin]=4df9a4eddf6738e86f51533b580a120269c69502
 branches[kremlin]=master
