@@ -1036,7 +1036,7 @@ do_make ()
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[vale]="build_vale"
-  build_commands[quackyducky]="make -C quackyducky"
+  build_commands[quackyducky]="make -C quackyducky $parallel_opt"
 
   # Order matters.
   for p in FStar kremlin vale MLCrypto hacl-star quackyducky mitls-fstar; do
@@ -1069,8 +1069,7 @@ do_test () {
   hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
   hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
   IMPL_CHOICE=runtime_switch make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
-#  make -C quackyducky gen
-#  make -C quackyducky/out $parallel_opt $keep_going_opt
+  make -C quackyducky $parallel_opt test
   # These tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
   (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
