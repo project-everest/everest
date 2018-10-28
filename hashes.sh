@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=fc2b6bdfb5fca11660ca8dcd518f78c78827e145
+hashes[mitls-fstar]=8726816ccdff19bac65348ba779bccb72804b97b
 branches[mitls-fstar]=master
 hashes[quackyducky]=2a6d52a2021c26426e4cfefa53576d97e0714f9d
 branches[quackyducky]=master
