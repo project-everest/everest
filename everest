@@ -919,7 +919,7 @@ run_vale_scons () {
 }
 
 run_hacl_vale_scons () {
-  run_scons hacl-star/vale "--FSTAR-MY-VERSION $1"
+  run_scons hacl-star/vale "--FSTAR-MY-VERSION $1 --FSTAR-EXTRACT"
 }
 
 build_vale () {
