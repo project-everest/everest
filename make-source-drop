@@ -56,9 +56,6 @@ cp hacl-star/providers/generated/*.{c,h} $1/evercrypt
 cp hacl-star/providers/evercrypt/c/*.c $1/evercrypt
 cp hacl-star/code/dist/compact/*.{c,h} $1/evercrypt
 cp hacl-star/vale/obj/*.asm $1/evercrypt/amd64
-# temporary
-sed -i 's/sha256rnds2 \([^\r]*\)/sha256rnds2 \1, xmm0/g' \
-  mitls-fstar/src/windows/evercrypt/amd64/*.asm
 
 # legacy! to be deleted
 cp $HACL/vale/asm/aes-x86_64-msvc.asm $1/evercrypt/amd64
