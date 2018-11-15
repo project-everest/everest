@@ -919,7 +919,7 @@ run_vale_scons () {
 }
 
 run_hacl_vale_scons () {
-  run_scons hacl-star/vale "--FSTAR-MY-VERSION $1"
+  run_scons hacl-star/vale "--FSTAR-MY-VERSION $1 --FSTAR-EXTRACT"
 }
 
 build_vale () {
@@ -1008,10 +1008,10 @@ build_kremlin () {
 
 build_hacl () {
   make -C hacl-star/code/ extract-c $parallel_opt && \
+  run_hacl_vale_scons && \
   make -C hacl-star/secure_api $parallel_opt && \
   make -C hacl-star/providers $parallel_opt && \
-  make -C hacl-star/providers test $parallel_opt &&
-  run_hacl_vale_scons
+  make -C hacl-star/providers test $parallel_opt
 }
 
 build_mitls () {
@@ -1066,9 +1066,8 @@ do_test () {
   blue "Running tests (commands shown below)"
   set -x
   make -C kremlin/test $parallel_opt everything
-  hacl-star/secure_api/out/vale_aes_concrete_id/krml-test.exe
-  hacl-star/secure_api/out/hacl_aes_concrete_id/krml-test.exe
   IMPL_CHOICE=runtime_switch make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
+  hacl-star/secure_api/out/runtime_switch/krml-test.exe
   make -C quackyducky $parallel_opt test
   # These tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)

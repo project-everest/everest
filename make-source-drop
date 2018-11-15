@@ -48,38 +48,19 @@ cp kremlin/kremlib/c/*.c $1/kremlib
 cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.c $1/kremlib
 
 # libevercrypt ################################################################
-cp hacl-star/providers/generated/*.{c,h} $1/evercrypt
-cp hacl-star/providers/evercrypt/c/*.c $1/evercrypt
-
-# these are the individual implementations from Hacl; they override
-# corresponding files from the provider that only contain "extern" definitions;
-# technically each one of these algorithms should be compiled seperately into
-# its own .obj then linked together at the end
-touch $1/evercrypt/WasmSupport.h
-#cp $HACL_HOME/snapshots/common/vec128.h $1/evercrypt
-cp $HACL_CODE/salsa-family/chacha-c/Hacl_Chacha20.{c,h} $1/evercrypt
-cp $HACL_CODE/salsa-family/salsa-c/Hacl_Salsa20.{c,h} $1/evercrypt
-cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_256.{c,h} $1/evercrypt
-cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_384.{c,h} $1/evercrypt
-cp $HACL_CODE/hash/sha2-c/Hacl_SHA2_512.{c,h} $1/evercrypt
-cp $HACL_CODE/curve25519/x25519-c/Hacl_Curve25519.{c,h} $1/evercrypt
-cp $HACL_CODE/ed25519/ed25519-c/Hacl_Ed25519.{c,h} $1/evercrypt
-cp $HACL_CODE/poly1305/poly-c/Hacl_Poly1305_64.{c,h} $1/evercrypt
-cp $HACL_CODE/hmac/hmac-sha256-c/Hacl_HMAC_SHA2_256.{c,h} $1/evercrypt
-cp $HACL_CODE/poly1305/poly-c/AEAD_Poly1305_64.{c,h} $1/evercrypt
-#cp $HACL_CODE/salsa-family/chacha-vec128-c/Hacl_Chacha20_Vec128.{c,h} $1/evercrypt
-cp $HACL_CODE/api/aead-c/Hacl_*.{c,h} $1/evercrypt
-cp $HACL_CODE/api/policies-c/Hacl_Policies.{c,h} $1/evercrypt
-
-# vale thingies
-cp $HACL/vale/asm/{aes.h,vale_aes_glue.c} $1/evercrypt
-cp $HACL/vale/asm/{DafnyLib.h,sha256_main_i.h,sha256_main_i.c,Vale_Hash_SHA2_256.c} $1/evercrypt
-
 mkdir -p $1/evercrypt
 mkdir -p $1/evercrypt/amd64
 mkdir -p $1/evercrypt/i386
-cp $HACL/vale/asm/*x86_64*.asm $1/evercrypt/amd64
-cp $HACL/vale/asm/*i686*.asm $1/evercrypt/i386
+
+cp hacl-star/providers/generated/*.{c,h} $1/evercrypt
+cp hacl-star/providers/evercrypt/c/*.c $1/evercrypt
+cp hacl-star/code/dist/compact/*.{c,h} $1/evercrypt
+cp hacl-star/vale/obj/*.asm $1/evercrypt/amd64
+
+# legacy! to be deleted
+cp $HACL/vale/asm/aes-x86_64-msvc.asm $1/evercrypt/amd64
+cp $HACL/vale/asm/aes-i686.asm $1/evercrypt/i386
+cp $HACL/vale/asm/{aes.h,vale_aes_glue.c} $1/evercrypt
 
 # libmitls ####################################################################
 mkdir -p $1/mitls
