@@ -1,16 +1,16 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=28cb1eb51ceb5007452e1421292ee350fe5c0802
-branches[mitls-fstar]=protz_hash_integration
-hashes[quackyducky]=91a935e534709aaf2e6b6703718bcfca4c60db3a
+hashes[mitls-fstar]=0682c6cf46483ef157373cdc65fef03c5e9ec7ca
+branches[mitls-fstar]=master
+hashes[quackyducky]=6c15bdbbc63046e919c3c3ba822d8f6ae62078bb
 branches[quackyducky]=master
-hashes[vale]=2cf07174b7f0bbe5702e6f1e99aacba0a10502f8
+hashes[vale]=b84b63bf1541c3bf955d6e51e083157a732ca3dc
 branches[vale]=master
-hashes[FStar]=88c7053f9f70cfd991c1d9ac877dc60a234fef9d
-branches[FStar]=master
+hashes[FStar]=1b972746dde0d9325c672de05d2f48f22655146d
+branches[FStar]=nik_dep
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[hacl-star]=07e81cf9a6c4463146694d7c7705cd22ba4a9c90
-branches[hacl-star]=protz_hash_integration
-hashes[kremlin]=d94ac163e1258cc291cff969709815bc76c961c6
-branches[kremlin]=master
+hashes[hacl-star]=27e1f263ab87cd64b564e5cbf51facd555ae8b1f
+branches[hacl-star]=protz_already_cached
+hashes[kremlin]=952c43eefa3529c18eb7f9ef65c0acb993e0efb9
+branches[kremlin]=protz_already_cached
