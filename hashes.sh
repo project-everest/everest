@@ -12,5 +12,5 @@ hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[hacl-star]=99da2f0cb359ebf7c7e12187f68243f8779ff1a8
 branches[hacl-star]=joonwonc_merkle_tree
-hashes[kremlin]=6f69c671883bd28722f1fb400a09c8caf53f191c
-branches[kremlin]=cwinter_int_cast
+hashes[kremlin]=d94ac163e1258cc291cff969709815bc76c961c6
+branches[kremlin]=master
