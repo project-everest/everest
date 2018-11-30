@@ -15,6 +15,8 @@ RUN chmod 700 ${MYHOME}/.ssh
 COPY --chown=everest id_rsa ${MYHOME}/.ssh/id_rsa
 RUN chmod 600 ${MYHOME}/.ssh/id_rsa
 
+RUN echo ${MYHOME}/everest
+RUN ls -la ${MYHOME}/everest
 RUN rm -rf ${MYHOME}/everest
 
 # Copy Everest source code.
