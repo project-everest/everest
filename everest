@@ -759,7 +759,6 @@ self_update () {
 }
 
 do_pull () {
-  self_update
   source hashes.sh
   source repositories.sh
   echo Reset working copies
@@ -1326,6 +1325,11 @@ while true; do
       ;;
 
     pull)
+      self_update
+      do_pull
+      ;;
+
+    pull_projects)
       do_pull
       ;;
 
