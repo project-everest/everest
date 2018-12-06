@@ -12,5 +12,5 @@ hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[hacl-star]=7886d7a1d7a3bdc1c5f045494c6690a2aed12e8c
 branches[hacl-star]=protz_bundling
-hashes[kremlin]=c1c49ad76b144b149150bd4ee44016644303e0c5
+hashes[kremlin]=9768dccd3277b1e144f6810809b3b7844a5f76e6
 branches[kremlin]=protz_bundling
