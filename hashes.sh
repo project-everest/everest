@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[mitls-fstar]=9b163597f41de1b614f14ca9ca2f9c486a7894bc
 branches[mitls-fstar]=protz_bundling
-hashes[quackyducky]=c70ea695dcaacb106d26efe512b2ed00a6ec4457
+hashes[quackyducky]=20a9b7d3f21b4d40ac29074d9b88862c21a95786
 branches[quackyducky]=master
 hashes[vale]=c6e4545f1a2e4b5c062429e6da5cecad7a578033
 branches[vale]=master
