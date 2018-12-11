@@ -60,6 +60,7 @@ mkdir -p $1/mitls
 find $1/mitls -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
 rm -f $1/mitls/*.h
 cp $MITLS_EXTRACT/Kremlin-Msvc-Library/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Msvc-Library/include/*.h $1/mitls
 cp $MITLS_EXTRACT/Kremlin-Msvc-Library/stub/*.{c,h} $1/mitls
 rm $1/mitls/RegionAllocator.*
 
