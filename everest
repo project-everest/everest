@@ -1006,11 +1006,8 @@ build_kremlin () {
 }
 
 build_hacl () {
-  make -C hacl-star/code/ extract-c $parallel_opt && \
-  run_hacl_vale_scons && \
-  make -C hacl-star/secure_api $parallel_opt && \
-  make -C hacl-star/providers $parallel_opt && \
-  make -C hacl-star/providers test $parallel_opt
+  make -C hacl-star $parallel_opt && \
+  make -C hacl-star test $parallel_opt
 }
 
 build_mitls () {

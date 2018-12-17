@@ -34,17 +34,13 @@ HACL_CODE=hacl-star/code
 mkdir -p $1/include
 cp mitls-fstar/libs/ffi/mitlsffi.h $1/include
 cp hacl-star/providers/quic_provider/quic_provider.h $1/include
-cp hacl-star/providers/include/EverCrypt.h $1/include
+cp hacl-star/providers/dist/header/EverCrypt.h $1/include
 cp kremlin/include/kremlib.h $1/include
 cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.h $1/include
 cp -R kremlin/include/* $1/include
 
 # libkremlib ##################################################################
-cp kremlin/kremlib/extracted/*.h $1/kremlib
-for w in 8 16 32 64; do
-  cp kremlin/kremlib/extracted/FStar_UInt$w.c $1/kremlib/fstar_uint${w}_generated.c
-done
-cp kremlin/kremlib/c/*.c $1/kremlib
+cp -R kremlin/kremlib/dist/generic/*.{c,h} $1/kremlib/
 cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.c $1/kremlib
 
 # libevercrypt ################################################################
@@ -52,15 +48,10 @@ mkdir -p $1/evercrypt
 mkdir -p $1/evercrypt/amd64
 mkdir -p $1/evercrypt/i386
 
-cp hacl-star/providers/generated/*.{c,h} $1/evercrypt
-cp hacl-star/providers/evercrypt/c/*.c $1/evercrypt
 cp hacl-star/code/dist/compact/*.{c,h} $1/evercrypt
-cp hacl-star/vale/obj/*.asm $1/evercrypt/amd64
-
-# legacy! to be deleted
-cp $HACL/vale/asm/aes-x86_64-msvc.asm $1/evercrypt/amd64
-cp $HACL/vale/asm/aes-i686.asm $1/evercrypt/i386
-cp $HACL/vale/asm/{aes.h,vale_aes_glue.c} $1/evercrypt
+cp hacl-star/providers/dist/compact-msvc/*x86_64*.asm $1/evercrypt/amd64
+cp hacl-star/providers/dist/compact-msvc/*i686*.asm $1/evercrypt/i386
+cp hacl-star/providers/dist/compact-msvc/*.{c,h} $1/evercrypt
 
 # libmitls ####################################################################
 mkdir -p $1/mitls
@@ -68,9 +59,9 @@ mkdir -p $1/mitls
 #rm -f $1/mitls/*.c
 find $1/mitls -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
 rm -f $1/mitls/*.h
-cp $MITLS_EXTRACT/Kremlin-Library/*.{c,h} $1/mitls
-cp $MITLS_EXTRACT/Kremlin-Library/include/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-Library/stub/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Msvc-Library/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Msvc-Library/include/*.h $1/mitls
+cp $MITLS_EXTRACT/Kremlin-Msvc-Library/stub/*.{c,h} $1/mitls
 rm $1/mitls/RegionAllocator.*
 
 # libquiccrypto ###############################################################
@@ -87,7 +78,7 @@ rm -f $1/bin/*.dll
 cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin
 cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin
 cp hacl-star/providers/quic_provider/libquiccrypto.dll $1/bin
-cp hacl-star/providers/out/libevercrypt.dll $1/bin
+cp hacl-star/providers/dist/compact/libevercrypt.dll $1/bin
 
 # hashes
 cp hashes.sh $1/
