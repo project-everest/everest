@@ -48,7 +48,7 @@ mkdir -p $1/evercrypt
 mkdir -p $1/evercrypt/amd64
 mkdir -p $1/evercrypt/i386
 
-cp hacl-star/code/dist/compact/*.{c,h} $1/evercrypt
+cp hacl-star/dist/compact/*.{c,h} $1/evercrypt
 cp hacl-star/providers/dist/compact-msvc/*x86_64*.asm $1/evercrypt/amd64
 cp hacl-star/providers/dist/compact-msvc/*i686*.asm $1/evercrypt/i386
 cp hacl-star/providers/dist/compact-msvc/*.{c,h} $1/evercrypt
