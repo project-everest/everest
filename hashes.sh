@@ -13,4 +13,4 @@ branches[MLCrypto]=master
 hashes[hacl-star]=e4b61ede0574ff03ba0a1f4fde334fef49e614d6
 branches[hacl-star]=fstar-master
 branches[kremlin]=less-dependencies
-hashes[kremlin]=559e01d601250ad8e72a3db64f4c5113038c02ac
+hashes[kremlin]=12dfa7fa79a8d1393bde9b06894ef8a6d2a68b3a
