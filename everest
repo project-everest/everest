@@ -15,7 +15,6 @@ set -o pipefail
 # Known URLs, directories and versions
 OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.1/opam64.tar.xz
 OPAM_VERSION=4.05.0+mingw64c
-NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 # Provide for a Python, necessary for scons
 # (all other occurrences of python can use whatever python 2 is in the PATH, be it Windows or Cygwin)
 # NOTE: if you change SCONS_PYTHON_MAJOR and/or SCONS_PYTHON_MINOR, then please also update scons-python-version-test.py
@@ -203,13 +202,6 @@ write_z3_env_dest_file () {
   str="
     # This line automatically added by $0
     export PATH=$(pwd)/$1/bin:\$PATH"
-  write_to_env_dest_file "$str"
-}
-
-write_nuget_env_dest_file () {
-  str="
-    # This line automatically added by $0
-    export PATH=$(pwd)/nuget/bin:\$PATH"
   write_to_env_dest_file "$str"
 }
 
@@ -649,24 +641,6 @@ OCAML
 
   do_update_z3
 
-  # We need Nuget for Vale
-  if ! which nuget >/dev/null 2>&1 ; then
-    red "ERROR: nuget doesn\'t seem to be installed"
-    if is_windows; then
-      magenta "Download it from the internet? [Yn]"
-      prompt_yes true "exit 1"
-      mkdir -p nuget/bin && cd nuget/bin && wget $NUGET_URL && chmod a+x nuget.exe && cd ../..
-      magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the nuget path? [Yn]"
-      prompt_yes write_nuget_env_dest_file true
-    else
-      echo "Hint: brew install nuget (OSX)"
-      echo "Hint: sudo apt-get install nuget (Ubuntu 16.04)"
-      echo "Hint: most recent versions available at https://dist.nuget.org"
-      exit 1
-    fi
-  fi
-  echo "... nuget found in PATH"
-
   # Check whether python points to a python2
   if which python > /dev/null 2>&1 ; then
     # nasty: python outputs its version on STDERR
@@ -745,6 +719,17 @@ OCAML
     magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
 
+get_vale ()
+{
+  mkdir vale
+  vale_version=$(<hacl-star/vale/.vale_version)
+  wget "https://github.com/project-everest/vale/releases/download/v${vale_version}/vale-release-${vale_version}.zip" -O vale/vale-release.zip
+  rm -rf "vale/vale-release-${vale_version}"
+  unzip -o vale/vale-release.zip -d vale
+  rm -rf "vale/bin"
+  mv "vale/vale-release-${vale_version}/bin" vale/
+}
+
 self_update () {
   old_revision=$(git rev-parse HEAD)
   git pull --rebase
@@ -820,6 +805,7 @@ do_reset ()
     git submodule update --init
     cd ..
   done
+  get_vale
 }
 
 do_merge ()
@@ -846,10 +832,6 @@ do_forall ()
     "$@"
     cd ..
   done
-}
-
-run_nuget () {
-  nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc
 }
 
 # OS-independent scons. chdir to $1, then passes $2 to scons.
@@ -899,30 +881,8 @@ EOF
   fi
 }
 
-run_vale_scons () {
-  if is_windows ; then
-    # Use the same Z3 for Dafny as for F*
-    # i.e. the one in the PATH
-    Z3PATH_UNIX=$(which z3.exe)
-    Z3PATH=$(cygpath -w "$Z3PATH_UNIX")
-    # Here the path to z3 might have whitespaces,
-    # so it must be enclosed into double quotes
-    # to be treated correctly by scons and Dafny.
-    # Moreover, it must fit in the single argument to
-    # run_vale_scons, which is why we cannot quote the command
-    # as a member of the verify_commands array
-    run_scons vale "--DARGS=/z3exe:\"$Z3PATH\" $1"
-  else
-    run_scons vale "$1"
-  fi
-}
-
 run_hacl_vale_scons () {
   run_scons hacl-star/vale "--FSTAR-MY-VERSION $1 --FSTAR-EXTRACT"
-}
-
-build_vale () {
-  run_vale_scons
 }
 
 clean_hacl () {
@@ -934,10 +894,6 @@ clean_hacl () {
     fi
   done
   run_hacl_vale_scons "--clean"
-}
-
-clean_vale () {
-  run_vale_scons "--clean"
 }
 
 setup_env () {
@@ -1031,11 +987,10 @@ do_make ()
   build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
-  build_commands[vale]="build_vale"
   build_commands[quackyducky]="make -C quackyducky $parallel_opt"
 
   # Order matters.
-  for p in FStar kremlin vale MLCrypto hacl-star quackyducky mitls-fstar; do
+  for p in FStar kremlin MLCrypto hacl-star quackyducky mitls-fstar; do
     # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
@@ -1073,10 +1028,6 @@ do_test () {
   separator
 }
 
-do_verify_vale () {
-  echo Everything already verified for Vale
-}
-
 do_verify () {
   setup_env
 
@@ -1084,7 +1035,6 @@ do_verify () {
   verify_commands[FStar]="make -C FStar/src ulong $parallel_opt $keep_going_opt"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
-  verify_commands[vale]="do_verify_vale"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
   verify_commands[quackyducky]="echo nothing to verify for quackyducky"
@@ -1123,7 +1073,6 @@ do_clean ()
     fi
   done
   clean_hacl
-  clean_vale
 }
 
 do_snapshot ()
@@ -1238,7 +1187,7 @@ OPTION:
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
-    FStar kremlin mitls-fstar hacl-star vale MLCrypto quackyducky
+    FStar kremlin mitls-fstar hacl-star MLCrypto quackyducky
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1340,7 +1289,7 @@ while true; do
       break
       ;;
 
-    vale|FStar|mitls-fstar|kremlin|hacl-star|MLCrypto|quackyducky)
+    FStar|mitls-fstar|kremlin|hacl-star|MLCrypto|quackyducky)
       ALL_PROJECTS=$1
       ;;
 
