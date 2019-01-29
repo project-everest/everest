@@ -21,5 +21,5 @@
 
     "NotificationEnabled" : true,
     "NotificationChannel" : "#everest-build",
-    "PublicBranches" : [ "master" ]
+    "PublicBranches" : [ "verify" ]
 }
