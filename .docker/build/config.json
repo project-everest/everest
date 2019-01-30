@@ -1,25 +1,39 @@
 {
-    "ProjectName" : "everest",
-
-    "BaseContainerIsEverestImage" : true,
-    "BaseContainerImageName" : "everest-ci",
-    "BaseContainerImageTagOrCommitId": "latest",
-    "BranchName" : "master",
-    "GithubCommitUrl" : "https://github.com/project-everest/everest-ci/commit",
-    "OnDemandBuildDefinition" : "Infrastructure\\Everest-Infrastructure-{agentOS}",
-
-    "DockerFile": ".docker/build/{agentOS}/Dockerfile",
-    "DependencyFiles" : [
-        ".docker/build/build_helper.sh",
-        ".docker/build/build.sh"
-    ],
-
-    "DockerCacheEnabled" : true,
-    "CIBuildTarget" : "everest-ci",
-    "NightlyBuildTarget" : "everest-move",
-    "HasLogsToExtract" : true,
-
-    "NotificationEnabled" : true,
-    "NotificationChannel" : "#everest-build",
-    "PublicBranches" : [ "verify" ]
+  "DockerFile": ".docker/build/{agentOS}/Dockerfile",
+  "GitHubCommitAuthor": "dzomo",
+  "DockerCacheEnabled": true,
+  "GithubCommitUrl": "https://github.com/project-everest/everest-ci/commit",
+  "GitHubCommitLink": "https://github.com/project-everest/everest/commit/98d77d256e93111bfac6f3634c0a74a03d972978",
+  "HasLogsToExtract": true,
+  "AzureRepositoryName": "everest-windows-nt",
+  "BuildRequestedAuthor": "dzomo",
+  "NotificationEnabled": true,
+  "CIBuildTarget": "everest-ci",
+  "ProjectName": "everest",
+  "BaseContainerIsEverestImage": true,
+  "FullCommitId": "ab4d4d10e6eda71cf698b638540e09a3f89678db",
+  "ContainerImageName": "everest-windows-nt:98d77d256e93",
+  "BaseContainerImageTagOrCommitId": "latest",
+  "NotificationChannel": "#everest-build",
+  "GitHubCommitId": "98d77d256e93",
+  "BuildStatus": "danger",
+  "BaseContainerImageName": "everest-ci",
+  "DependencyFiles": [
+    ".docker/build/build_helper.sh",
+    ".docker/build/build.sh"
+  ],
+  "NightlyBuildTarget": "everest-move",
+  "SummaryLogLink": "https://msr-project-everest.visualstudio.com/Everest/Everest%20Team/_build/index?buildid=12176&_a=summary",
+  "BuildTarget": "everest-move",
+  "OnDemandBuildDefinition": "Infrastructure\\Everest-Infrastructure-Windows",
+  "BuildContainerTime": "00:00:00",
+  "BuildMaxThreads": 24,
+  "AgentOS": "windows-nt",
+  "BuildResult": "Failure",
+  "PublicBranches": [
+    "verify"
+  ],
+  "GitHubCommitMessage": "[CI] automatic upgrade",
+  "BranchName": "master",
+  "PartialCommitId": "ab4d4d10e6ed"
 }
