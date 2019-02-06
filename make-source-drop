@@ -40,6 +40,7 @@ cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.h $1/include
 cp -R kremlin/include/* $1/include
 
 # libkremlib ##################################################################
+mkdir -p $1/kremlib
 cp -R kremlin/kremlib/dist/generic/*.{c,h} $1/kremlib/
 cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.c $1/kremlib
 

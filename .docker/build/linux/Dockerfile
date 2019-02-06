@@ -1,5 +1,6 @@
 # Everest build container
-FROM everest-base-linux:1
+ARG COMMITID
+FROM everest-ci-linux:${COMMITID}
 
 ARG BUILDLOGFILE
 ARG MAXTHREADS

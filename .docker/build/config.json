@@ -1,0 +1,39 @@
+{
+  "GitHubCommitLink": "https://github.com/project-everest/everest/commit/dc1f11d26f8f9a780446c3f3a2e97082f8fcc466",
+  "BuildRequestedAuthor": "dzomo",
+  "CIBuildTarget": "everest-ci",
+  "DockerCacheEnabled": true,
+  "BaseContainerIsEverestImage": true,
+  "NightlyBuildTarget": "everest-move",
+  "ProjectName": "everest",
+  "HasLogsToExtract": true,
+  "BuildResult": "Failure",
+  "FullCommitId": "21e634b4a65fa6580e6a8db0ca8ad9fe9a5c7f0a",
+  "SummaryLogLink": "https://msr-project-everest.visualstudio.com/Everest/Everest%20Team/_build/index?buildid=12652&_a=summary",
+  "DependencyFiles": [
+    ".docker/build/build_helper.sh",
+    ".docker/build/build.sh"
+  ],
+  "GitHubCommitMessage": "[CI] automatic upgrade",
+  "NotificationChannel": "#everest-build",
+  "PublicBranches": [
+    "verify"
+  ],
+  "DockerFile": ".docker/build/{agentOS}/Dockerfile",
+  "NotificationEnabled": true,
+  "BuildTarget": "everest-move",
+  "PartialCommitId": "21e634b4a65f",
+  "GitHubCommitAuthor": "dzomo",
+  "BuildMaxThreads": 24,
+  "BuildStatus": "danger",
+  "AgentOS": "windows-nt",
+  "BaseContainerImageName": "everest-ci",
+  "BaseContainerImageTagOrCommitId": "latest",
+  "OnDemandBuildDefinition": "Infrastructure\\Everest-Infrastructure-Windows",
+  "AzureRepositoryName": "everest-windows-nt",
+  "GithubCommitUrl": "https://github.com/project-everest/everest-ci/commit",
+  "ContainerImageName": "everest-windows-nt:dc1f11d26f8f",
+  "BranchName": "master",
+  "BuildContainerTime": "00:00:00",
+  "GitHubCommitId": "dc1f11d26f8f"
+}
