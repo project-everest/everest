@@ -981,7 +981,8 @@ build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
   make -C mitls-fstar/libs/ffi $parallel_opt && \
   make -C mitls-fstar/src/pki $parallel_opt && \
-  VERIFY_LOWPARSE=1 make -C mitls-fstar/src/tls $parallel_opt && \
+  make -C mitls-fstar/src/lowparse -f Makefile.LowParse $parallel_opt && \
+  make -C mitls-fstar/src/tls $parallel_opt && \
   make -C mitls-fstar/apps/cmitls $parallel_opt && \
   make -C mitls-fstar/apps/quicMinusNet $parallel_opt
 }
