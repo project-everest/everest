@@ -43,7 +43,18 @@ which
 xz
 zip
 dos2unix
+<<<<<<< HEAD
 rsync
 diffutils
 curl
 perl
+=======
+curl
+rsync
+diffutils
+perl
+vim
+less
+gdb
+jq
+>>>>>>> verify

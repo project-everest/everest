@@ -1,0 +1,25 @@
+{
+  "ProjectName" : "everest",
+
+  "BaseContainerIsEverestImage" : true,
+  "BaseContainerImageName" : "everest-ci",
+  "BaseContainerImageTagOrCommitId": "latest",
+  "BranchName" : "master",
+  "GithubCommitUrl" : "https://github.com/project-everest/everest-ci/commit",
+  "OnDemandBuildDefinition" : "Infrastructure\\Everest-Infrastructure-{agentOS}",
+
+  "DockerFile": ".docker/build/{agentOS}/Dockerfile",
+  "DependencyFiles" : [
+      ".docker/build/build_helper.sh",
+      ".docker/build/build.sh"
+  ],
+
+  "DockerCacheEnabled" : true,
+  "CIBuildTarget" : "everest-ci",
+  "NightlyBuildTarget" : "everest-move",
+  "HasLogsToExtract" : true,
+
+  "NotificationEnabled" : true,
+  "NotificationChannel" : "#everest-build",
+  "PublicBranches" : [ "master" ]
+}
