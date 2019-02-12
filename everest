@@ -540,14 +540,8 @@ MSG
   else
     # OCaml; if this exits, set -e means this is a hard error
     ocaml -noinit -noprompt -stdin <<OCAML
-<<<<<<< HEAD
-      if Sys.ocaml_version < "4.02.2" || String.sub Sys.ocaml_version 0 4 = "4.03" then 
-      begin
-        print_endline "ERROR: Everest needs OCaml >= 4.02.3 and <> 4.03.X";
-=======
       if Sys.ocaml_version < "4.04.0" then begin
         print_endline "ERROR: Everest needs OCaml >= 4.04.0";
->>>>>>> verify
         print_endline ("You have OCaml " ^ Sys.ocaml_version);
         exit 1
       end
