@@ -16,8 +16,4 @@ ulex ulex
 visitors visitors
 ctypes.foreign.unthreaded ctypes-foreign
 ocaml-migrate-parsetree ocaml-migrate-parsetree
-<<<<<<< HEAD
-ppx_tools_versioned ppx_tools_versioned.5.2
-=======
 hex hex
->>>>>>> verify
