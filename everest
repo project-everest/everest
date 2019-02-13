@@ -1028,11 +1028,16 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
+  # kremlin
   make -C kremlin/test $parallel_opt everything
+  # secure_api
   IMPL_CHOICE=runtime_switch make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
   hacl-star/secure_api/out/runtime_switch/krml-test.exe
+  # evercrypt
+  make -C hacl-star test $parallel_opt
+  # qd
   make -C quackyducky $parallel_opt test
-  # These tests make assumption on their current working directory
+  # mitls; note: these tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
   (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
   (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
