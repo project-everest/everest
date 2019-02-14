@@ -973,8 +973,7 @@ build_kremlin () {
 }
 
 build_hacl () {
-  make -C hacl-star $parallel_opt && \
-  make -C hacl-star test $parallel_opt
+  make -C hacl-star $parallel_opt
 }
 
 build_mitls () {
