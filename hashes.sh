@@ -10,5 +10,5 @@ hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[hacl-star]=4872642d9c62782f9ef0de557eb351530de3b581
 branches[hacl-star]=fstar-master
-hashes[kremlin]=a83c274e8ee0c447231a714319ea13512d28c16d
+hashes[kremlin]=d5820d1f09f2176c5576b672de41e66e4e04dca4
 branches[kremlin]=master
