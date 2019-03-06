@@ -1,6 +1,7 @@
 # Everest build container
+ARG DOCKERHUBPROJECT
 ARG COMMITID
-FROM everest-ci-windows-nt:${COMMITID}
+FROM ${DOCKERHUBPROJECT}everest-ci-windows-nt:${COMMITID}
 
 ARG BUILDLOGFILE
 ARG MAXTHREADS
