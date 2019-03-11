@@ -1296,6 +1296,10 @@ while true; do
       do_pull
       ;;
 
+    pull_vale)
+      get_vale
+      ;;
+
     merge)
       do_merge
       ;;
