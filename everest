@@ -1040,7 +1040,7 @@ do_test () {
   # mitls; note: these tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
   (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
-  (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
+#  (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
   set +x
   separator
 }
