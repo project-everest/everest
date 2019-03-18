@@ -280,8 +280,8 @@ install_opam_package () {
   if is_windows; then
     opam install depext-cygwinports
   fi
-  opam depext $package
-  opam install $package
+  opam depext $package || true
+  opam install $package || true
 }
 
 try_git_clone () {
