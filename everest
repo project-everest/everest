@@ -274,6 +274,16 @@ install_all_opam_packages () {
   opam install $packages
 }
 
+install_opam_package () {
+  package=$1
+  opam update
+  if is_windows; then
+    opam install depext-cygwinports
+  fi
+  opam depext $package
+  opam install $package
+}
+
 try_git_clone () {
   if ! git clone --recursive $1 $3; then
     magenta "Proceed with https? [Yn]"
@@ -588,8 +598,9 @@ OCAML
     opam_package=$(echo $line | cut -d " " -f 2)
     if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
-      missing=true
-      break
+      install_opam_package opam_package
+      #missing=true
+      #break
     fi
   done < opam-packages
   if $missing; then
