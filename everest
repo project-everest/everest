@@ -598,7 +598,7 @@ OCAML
     opam_package=$(echo $line | cut -d " " -f 2)
     if ! ocamlfind query $ocamlfind_package >/dev/null 2>&1; then
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
-      install_opam_package opam_package
+      install_opam_package $opam_package
       #missing=true
       #break
     fi
