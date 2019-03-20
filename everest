@@ -234,13 +234,25 @@ cygsetup_args="--no-desktop --no-shortcuts --no-startmenu --wait --quiet-mode"
 # Failure: aborts.
 find_cygsetup () {
   found=false
-  for s in "$USERPROFILE/Desktop/setup-x86_64.exe" "$USERPROFILE/Downloads/setup-x86_64.exe" "./setup-x86_64.exe"; do
+  for s in "$USERPROFILE/Desktop/setup-x86_64.exe" "$USERPROFILE/Downloads/setup-x86_64.exe" "./setup-x86_64.exe" "c:/cygwin64/setup-x86_64.exe"; do
     if [ -x "$s" ]; then
       echo "Found $cygsetup"
       found=true
       cygsetup="$s"
     fi
   done
+  
+  # Try to find chocolatey version
+  if ! $found; then
+    for s in "$USERPROFILE/Desktop/cygwinsetup.exe" "$USERPROFILE/Downloads/cygwinsetup.exe" "./cygwinsetup.exe" "c:/cygwin64/cygwinsetup.exe"; do
+     if [ -x "$s" ]; then
+       echo "Found $cygsetup"
+       found=true
+       cygsetup="$s"
+      fi
+    done
+  fi
+  
   if ! $found; then
     magenta "Cygwin setup not found, downloading it"
     if ! command -v wget >/dev/null 2>&1; then
@@ -1294,6 +1306,10 @@ while true; do
 
     pull_projects)
       do_pull
+      ;;
+
+    pull_vale)
+      get_vale
       ;;
 
     merge)
