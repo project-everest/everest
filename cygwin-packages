@@ -8,7 +8,6 @@ mingw64-i686-gmp
 mingw64-i686-headers
 mingw64-i686-libffi
 mingw64-i686-openssl
-mingw64-i686-pkg-config
 mingw64-i686-runtime
 mingw64-i686-sqlite3
 mingw64-i686-windows-default-manifest
@@ -24,7 +23,6 @@ mingw64-x86_64-libffi
 mingw64-x86_64-openssl
 mingw64-x86_64-pcre
 mingw64-x86_64-pcre2
-mingw64-x86_64-pkg-config
 mingw64-x86_64-runtime
 mingw64-x86_64-sqlite3
 mingw64-x86_64-windows-default-manifest
