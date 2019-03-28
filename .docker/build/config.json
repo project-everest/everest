@@ -21,5 +21,8 @@
 
   "NotificationEnabled" : true,
   "NotificationChannel" : "#everest-build",
-  "PublicBranches" : [ "master", "mitls_dev" ]
+    "PublicBranches" : [ "master", "mitls_dev" ],
+
+  "CompressBuildFolder": true,
+  "FolderToCompress" : "everest"
 }
