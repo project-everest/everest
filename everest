@@ -911,13 +911,12 @@ run_hacl_vale_scons () {
 
 clean_hacl () {
   for f in \
-    hacl-star/{code,secure_api,providers} \
+    hacl-star/ \
   ; do
     if test -d "$f" ; then
       make -C "$f" clean
     fi
   done
-  run_hacl_vale_scons "--clean"
 }
 
 setup_env () {
@@ -1041,9 +1040,6 @@ do_test () {
   set -x
   # kremlin
   make -C kremlin/test $parallel_opt everything
-  # secure_api
-  IMPL_CHOICE=runtime_switch make -C hacl-star/secure_api -f Makefile.extract test $keep_going_opt
-  hacl-star/secure_api/out/runtime_switch/krml-test.exe
   # evercrypt
   make -C hacl-star test $parallel_opt
   # qd
@@ -1078,7 +1074,7 @@ do_verify () {
 do_clean_c ()
 {
   setup_env
-  for d in kremlin/kremlib hacl-star/{providers,secure_api,code} \
+  for d in kremlin/kremlib hacl-star/ \
     mitls-fstar/src/tls
   do
     if test -d "$d" ; then
