@@ -25,7 +25,6 @@ cd "${BASH_SOURCE%/*}" || exit
 
 MITLS_EXTRACT=mitls-fstar/src/tls/extract
 KREMLIB=kremlin/kremlib
-HACL=hacl-star/secure_api
 HACL_HOME=hacl-star
 HACL_CODE=hacl-star/code
 
