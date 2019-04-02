@@ -1,7 +1,7 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=6747963956f1561d2e65584c6f280836e31438fd
-branches[mitls-fstar]=dev
+hashes[mitls-fstar]=2163ad880ccef6efea51f42b0e788f6b4e190762
+branches[mitls-fstar]=taramana_dev_merge_20190401
 hashes[FStar]=d9d032c8b22745f108224275bc30e384968cb433
 branches[FStar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
