@@ -327,7 +327,7 @@ do_update_z3 () {
   local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
   echo "... version of z3 found in z3-tested is: $new_z3"
 
-  new_z3_file=$(ls $new_z3_file)e
+  new_z3_file=$(ls $new_z3_file)
   if [[ $new_z3 != $current_z3 ]]; then
     magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
     prompt_yes true "exit 1"
