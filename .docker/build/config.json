@@ -24,5 +24,6 @@
     "PublicBranches" : [ "master", "mitls_dev" ],
 
   "CompressBuildFolder": true,
-  "FolderToCompress" : "everest"
+  "FolderToCompress" : "everest",
+  "FoldersToExclude" : [ "everest/fstarlang_binaries" ]
 }
