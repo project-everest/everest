@@ -85,9 +85,9 @@ function everest_move() {
     local msg=""
     local everest_args
     if [[ "$OS" == "Windows_NT" ]]; then
-        everest_args="-windows make test verify drop qbuild"
+        everest_args="-windows pull_vale make test verify drop qbuild"
     else
-        everest_args="make test verify"
+        everest_args="pull_vale make test verify"
     fi
     if ! $fresh; then
         # Bail out early if there's nothing to do
