@@ -22,6 +22,8 @@
   "NotificationEnabled" : true,
   "NotificationChannel" : "#everest-build",
   "PublicBranches" : [ "master" ],
+  
+  "TrackPerformance" : true,
 
   "CompressBuildFolder": true,
   "FolderToCompress" : "everest",
