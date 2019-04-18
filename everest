@@ -317,7 +317,7 @@ do_update_z3 () {
   elif is_osx; then
     local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.4*-x64-osx-*.zip
   elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.4*-x64-ubuntu-*.zip
+    local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.4*-x64-ubuntu-14.04.zip
   elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
     local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.4*-x64-debian-*.zip
   else
