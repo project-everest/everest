@@ -332,7 +332,7 @@ do_update_z3 () {
     magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
     prompt_yes true "exit 1"
     echo "... unzipping $new_z3_file"
-    unzip $new_z3_file
+    unzip "$new_z3_file"
     local new_z3_folder=${new_z3_file%%.zip}
     new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
     find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
