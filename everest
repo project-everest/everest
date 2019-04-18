@@ -1227,6 +1227,8 @@ COMMAND:
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
+  get_vale install the right version of vale binary (implied by pull)
+
   merge     pull all projects, merging and rebasing local changes; does NOT
             reset to known to be good version, but preserves your changes
 
@@ -1335,6 +1337,10 @@ while true; do
 
     z3)
       do_update_z3
+      ;;
+
+    get_vale)
+      get_vale
       ;;
 
     clean)
