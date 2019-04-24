@@ -23,7 +23,7 @@
   "NotificationChannel" : "#everest-build",
   "PublicBranches" : [ "master" ],
   
-  "TrackPerformance" : true,
+  "TrackPerformance" : false,
 
   "CompressBuildFolder": true,
   "FolderToCompress" : "everest",
