@@ -1240,11 +1240,9 @@ COMMAND:
   snapshot  make the current state a new known set of working revisions; this
             writes into hashes.sh
 
-  make      rebuild all projects
+  make      rebuild and verify all projects
 
   test      launch the test artifacts
-
-  verify    run verification for all projects
 
   drop      drop extraced C and assembly files from miTLS and Hacl*
 
