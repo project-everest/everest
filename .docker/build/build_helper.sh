@@ -29,3 +29,6 @@ everest/FStar/.scripts/query-stats.py -f $out_file -F html -o log_no_replay.html
 
 # Worst offenders (longest times)
 everest/FStar/.scripts/query-stats.py -f $out_file -F html -o log_worst.html -c -g -n 10
+
+# Generate the container timestamp for debug purposes
+echo $(date -u "+%Y-%m-%d %H:%M:%S") >> "timestamp.txt"
