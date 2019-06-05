@@ -13,7 +13,7 @@ set -o pipefail
 # set -u
 
 # Known URLs, directories and versions
-OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.1/opam64.tar.xz
+OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz
 OPAM_VERSION=4.05.0+mingw64c
 # Provide for a Python, necessary for scons
 # (all other occurrences of python can use whatever python 2 is in the PATH, be it Windows or Cygwin)
@@ -536,7 +536,7 @@ MSG
       rm -f 'opam64.tar.xz'
       bash opam64/install.sh
       echo "Interactive is: $INTERACTIVE ; auto-setup is: $OPAM_AUTO_SETUP ; dot-profile is: $EVEREST_ENV_DEST_FILE ;"
-      opam init mingw 'https://github.com/fdopen/opam-repository-mingw.git' --comp $OPAM_VERSION --switch $OPAM_VERSION --dot-profile "$EVEREST_ENV_DEST_FILE" $OPAM_AUTO_SETUP
+      opam init default "https://github.com/fdopen/opam-repository-mingw.git#opam2" -c "ocaml-variants.$OPAM_VERSION" --disable-sandboxing
       if { ! $INTERACTIVE ; } && ! grep 'opam-init' "$EVEREST_ENV_DEST_FILE"  >/dev/null ; then
         # --auto-setup might not have worked, so manually do it here.
         # Do not expand variables in the textual output.
@@ -1231,6 +1231,8 @@ COMMAND:
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
+  get_vale install the right version of vale binary (implied by pull)
+
   merge     pull all projects, merging and rebasing local changes; does NOT
             reset to known to be good version, but preserves your changes
 
@@ -1242,11 +1244,9 @@ COMMAND:
   snapshot  make the current state a new known set of working revisions; this
             writes into hashes.sh
 
-  make      rebuild all projects
+  make      rebuild and verify all projects
 
   test      launch the test artifacts
-
-  verify    run verification for all projects
 
   drop      drop extraced C and assembly files from miTLS and Hacl*
 
@@ -1339,6 +1339,10 @@ while true; do
 
     z3)
       do_update_z3
+      ;;
+
+    get_vale)
+      get_vale
       ;;
 
     clean)
