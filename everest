@@ -306,7 +306,7 @@ do_update_z3 () {
     echo "... cloning FStarLang/binaries"
     try_git_clone "git@github.com:FStarLang/binaries.git" "https://github.com/FStarLang/binaries.git" fstarlang_binaries
   fi
-  (cd fstarlang_binaries && git checkout z3-4.8.5 && git fetch && git reset --hard origin/z3-4.8.5)
+  (cd fstarlang_binaries && git fetch && git checkout z3-4.8.5 && git reset --hard origin/z3-4.8.5)
 
   local current_z3=$(parse_z3_version)
   echo "... version of z3 found in PATH: $current_z3"
@@ -342,6 +342,7 @@ do_update_z3 () {
     find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
     magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
     prompt_yes "write_z3_env_dest_file $new_z3_folder" true
+    rm -f z3
     ln -sf $new_z3_folder z3
   fi
 }
