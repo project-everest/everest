@@ -311,7 +311,6 @@ do_update_z3 () {
   local current_z3=$(parse_z3_version)
   echo "... version of z3 found in PATH: $current_z3"
 
-  local hash_of_filename='s/.*\.\([a-z0-9]\+\)-x64.*/\1/'
   if is_windows; then
     local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-win.zip
   elif is_osx; then
@@ -324,10 +323,10 @@ do_update_z3 () {
     red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
     local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-debian-*.zip
   fi
-  local new_z3=$(ls $new_z3_file | $SED "$hash_of_filename")
-  echo "... version of z3 found in z3-tested is: $new_z3"
-
+  local new_z3=4.8.5
   new_z3_file=$(ls $new_z3_file)
+  echo "... version of z3 found in z3-tested is: $new_z3_file"
+
   if [[ $new_z3 != $current_z3 ]]; then
     magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
     prompt_yes true "exit 1"
