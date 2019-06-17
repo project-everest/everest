@@ -36,6 +36,7 @@ function everest_rebuild() {
     git clean -ffdx
     $gnutime ./everest --yes -j $threads $1 check reset make &&
         echo "done with check reset make, timing above" &&
+	source $HOME/.bashrc && # necessary if `everest check` just upgraded z3
         $gnutime ./everest --yes -j $threads $1 test &&
         echo "done with test, timing above" &&
         $gnutime ./everest --yes -j $threads $1 verify &&
