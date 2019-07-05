@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[mitls-fstar]=d37a99dd98b1ccd5dc5f1595a6d7c58a08786abc
 branches[mitls-fstar]=dev
-hashes[FStar]=731d7fa936527551b649233b2bfabf9cc3e5fdd2
+hashes[FStar]=74fcb68a656023996062470f9e659156b8c29034
 branches[FStar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
