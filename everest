@@ -1007,7 +1007,7 @@ do_make ()
   setup_env
   failed=""
   mkdir -p log
-
+  export OTHERFLAGS="--z3rlimit_factor 2 --warn_error '+16+19'"
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="build_kremlin"
