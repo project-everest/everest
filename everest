@@ -931,12 +931,14 @@ setup_env () {
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
     export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
     export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
+    export QD_HOME=$(cygpath -m $(pwd)/quackyducky)
   else
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
     export HACL_HOME=$(pwd)/hacl-star
     export MLCRYPTO_HOME=$(pwd)/MLCrypto
+    export QD_HOME=$(pwd)/quackyducky
   fi
   export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
