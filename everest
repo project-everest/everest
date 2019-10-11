@@ -272,7 +272,7 @@ install_all_opam_packages () {
     opam install depext-cygwinports
   fi
   opam depext $packages
-  opam install -j 8 $packages
+  opam install -j 4 $packages
 }
 
 try_git_clone () {
