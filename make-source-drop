@@ -77,7 +77,7 @@ rm -f $1/bin/*.dll
 cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin
 cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin
 cp hacl-star/providers/quic_provider/libquiccrypto.dll $1/bin
-cp hacl-star/providers/dist/compact/libevercrypt.dll $1/bin
+cp hacl-star/dist/compact/libevercrypt.dll $1/bin
 
 # hashes
 cp hashes.sh $1/
