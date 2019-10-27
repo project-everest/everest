@@ -1,10 +1,10 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=5e3ee78f6aa8b4816a2a2584f5f85757143a5335
+hashes[mitls-fstar]=a1fd4e95a434400de7454c1e3aa0bcde0e7e0da9
 branches[mitls-fstar]=master
 hashes[quackyducky]=152bbf79e55dc2d556096105301c6abb72458587
 branches[quackyducky]=master
-hashes[FStar]=43ba784c32b6908391dba77b443ec0358a2bb03b
+hashes[FStar]=c6bfb3a77adccb989efb4b7ddd704a879d6ee003
 branches[FStar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
