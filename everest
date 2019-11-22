@@ -99,6 +99,20 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
+if is_osx; then
+  GETOPT=/usr/local/opt/gnu-getopt/bin/getopt
+else
+  GETOPT=getopt
+fi
+
+# -allow a command to fail with !’s side effect on errexit
+# -use return value from ${PIPESTATUS[0]}, because ! hosed $?
+! $GETOPT --test > /dev/null
+if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
+  echo "you have an antiquated getopt; on Mac OS X, run \"brew install gnu-getopt\""
+  exit 1
+fi
+
 # Windows only: Visual Studio's command line to set up environment (VS_ENV_CMD)
 if is_windows ; then
   # Starting from Visual Studio 2017, version 15.2 or later,
@@ -242,7 +256,7 @@ find_cygsetup () {
       cygsetup="$s"
     fi
   done
-  
+
   # Try to find chocolatey version
   if ! $found; then
     for s in "$USERPROFILE/Desktop/cygwinsetup.exe" "$USERPROFILE/Downloads/cygwinsetup.exe" "./cygwinsetup.exe" "c:/cygwin64/cygwinsetup.exe"; do
@@ -253,7 +267,7 @@ find_cygsetup () {
       fi
     done
   fi
-  
+
   if ! $found; then
     magenta "Cygwin setup not found, downloading it"
     if ! command -v wget >/dev/null 2>&1; then
@@ -869,13 +883,13 @@ run_scons () {
   short_dir="$1"
   shift
   cmd="$1"
-  
+
   if is_windows ; then
     DIR=$(cygpath -w "$(pwd)"/"$short_dir")
   else
     DIR="$short_dir"
   fi
-  
+
   if is_windows; then
     # Instead of invoking cmd.exe /c, which would force us to
     # rely on its flaky semantics for double quotes,
@@ -1202,7 +1216,6 @@ OPTION:
 
   -j n      Set max number of parallel jobs to n (default 1)
             This option is in two parts
-            (-jn without space is NOT valid)
 
   -windows  Build for Windows (Tune for MSVC compiler: optimize tail recursion, etc.)
 
@@ -1232,7 +1245,7 @@ COMMAND:
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
-  get_vale install the right version of vale binary (implied by pull)
+  get_vale  install the right version of vale binary (implied by pull)
 
   merge     pull all projects, merging and rebasing local changes; does NOT
             reset to known to be good version, but preserves your changes
@@ -1261,40 +1274,73 @@ COMMAND:
 HELP
 }
 
-if [[ $1 == "" ]]; then
-  print_usage
-  exit 0
+OPTIONS=j:k
+LONGOPTS=yes,windows,openssl,opt
+
+# Temporarily stores output to check for errors
+# --alternative allows long options to start with a single '-'
+! PARSED=$($GETOPT --alternative --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
+if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+    exit 2
+fi
+
+eval set -- "$PARSED"
+
+# Read options until --
+while true; do
+    case "$1" in
+        -j)
+            parallel_opt="-j $2"
+            shift 2
+            ;;
+
+        -k)
+            keep_going_opt="-k"
+            shift
+            ;;
+
+        -yes|--yes)
+            make_non_interactive
+            shift
+            ;;
+
+        -windows|--windows)
+            set_windows
+            shift
+            ;;
+
+        -openssl|--openssl)
+            set_openssl
+            shift
+            ;;
+
+        -opt|--opt)
+            set_opt
+            shift
+            ;;
+
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Unexpected error parsing options"
+            exit 3
+            ;;
+    esac
+done
+
+# Handle commands
+if [[ $# -eq 0 ]]; then
+    print_usage
+    exit 0
 fi
 
 while true; do
+  if [[ $# -eq 0 ]]; then
+    exit 0
+  fi
   case "$1" in
-    --yes)
-      make_non_interactive
-      ;;
-
-    -j)
-      # The -j option is in two parts: -j n, where n is the parallel factor
-      # (max number of parallel jobs)
-      shift
-      parallel_opt="-j $1"
-      ;;
-
-    -k)
-      keep_going_opt="-k"
-      ;;
-
-    -windows)
-      set_windows
-      ;;
-
-    -openssl)
-      set_openssl
-      ;;
-
-    -opt)
-      set_opt
-      ;;
-
     check)
       do_check
       ;;
@@ -1355,8 +1401,7 @@ while true; do
       ;;
 
     verify)
-#      Disable verification for now
-#      do_verify
+      #do_verify
       red "The 'verify' command is obsoleted by 'make'. Just run './everest make' instead."
       ;;
 
@@ -1374,10 +1419,6 @@ while true; do
 
     qbuild)
       do_qbuild
-      ;;
-
-    "")
-      break
       ;;
 
     *)
