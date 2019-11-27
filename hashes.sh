@@ -1,14 +1,14 @@
 declare -A hashes
 declare -A branches
-hashes[mitls-fstar]=d011f980fa3ec302fd01342fbe1ad32bb87dcf8a
-branches[mitls-fstar]=dev
-hashes[FStar]=ea980b088eccb522980952886e85920c4832487a
-branches[FStar]=master
-hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
-branches[MLCrypto]=master
+hashes[mitls-fstar]=2c4e44ba0bff2848c18ce1cbaec4a6afee2aa332
+branches[mitls-fstar]=protz_dev_static
 hashes[quackyducky]=e7f62911450b9bfc8fe7bea8a10079a6d3004d4d
 branches[quackyducky]=master
-hashes[hacl-star]=c1acdbe88e15ce6b34958b136f21f45dabac5c7f
-branches[hacl-star]=fstar-master
-hashes[kremlin]=82ea081e54f51c5bd6dcd2b3926d5b28108c3ac5
-branches[kremlin]=master
+hashes[FStar]=5d4d580432939d195649b28d6969ff71b1c53b27
+branches[FStar]=protz_static
+hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
+branches[MLCrypto]=master
+hashes[hacl-star]=b8bf24bd5ee13fd7656d601f3dae0e497b7a435a
+branches[hacl-star]=protz_static
+hashes[kremlin]=9c7a07cb87d99d14e8494cccf3524f6caf1cec9c
+branches[kremlin]=protz_static

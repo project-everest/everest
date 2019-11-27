@@ -37,6 +37,7 @@ cp hacl-star/dist/evercrypt-external-headers/EverCrypt.h $1/include
 cp kremlin/include/kremlib.h $1/include
 cp mitls-fstar/src/tls/cstubs/RegionAllocator.h $1/include
 cp -R kremlin/include/* $1/include
+cp -R kremlin/kremlib/dist/generic/{FStar_UInt128.h,fstar_uint128_msvc.h,LowStar_Endianness.h,FStar_UInt_8_16_32_64.h} $1/include
 
 # libkremlib ##################################################################
 mkdir -p $1/kremlib
