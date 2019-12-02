@@ -49,9 +49,9 @@ mkdir -p $1/evercrypt
 mkdir -p $1/evercrypt/amd64
 mkdir -p $1/evercrypt/i386
 
-cp hacl-star/dist/compact-msvc/*x86_64*.asm $1/evercrypt/amd64
-cp hacl-star/dist/compact-msvc/*i686*.asm $1/evercrypt/i386
-cp hacl-star/dist/compact-msvc/*.{c,h} $1/evercrypt
+cp hacl-star/dist/msvc-compatible/*x86_64*.asm $1/evercrypt/amd64
+cp hacl-star/dist/msvc-compatible/*i686*.asm $1/evercrypt/i386
+cp hacl-star/dist/msvc-compatible/*.{c,h} $1/evercrypt
 
 # libmitls ####################################################################
 mkdir -p $1/mitls
@@ -76,7 +76,7 @@ rm -f $1/bin/*.dll
 cp mitls-fstar/src/tls/dist/compact-msvc/libmitls.dll $1/bin
 cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin
 cp hacl-star/providers/quic_provider/libquiccrypto.dll $1/bin
-cp hacl-star/dist/compact/libevercrypt.dll $1/bin
+cp hacl-star/dist/gcc-compatible/libevercrypt.dll $1/bin
 
 # hashes
 cp hashes.sh $1/
