@@ -14,6 +14,7 @@ set -o pipefail
 
 # Known URLs, directories and versions
 OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz
+MINIMAL_OCAML_VERSION=4.05.0
 OPAM_VERSION=4.05.0+mingw64c
 # Provide for a Python, necessary for scons
 # (all other occurrences of python can use whatever python 2 is in the PATH, be it Windows or Cygwin)
@@ -572,8 +573,8 @@ MSG
   else
     # OCaml; if this exits, set -e means this is a hard error
     ocaml -noinit -noprompt -stdin <<OCAML
-      if Sys.ocaml_version < "4.04.0" then begin
-        print_endline "ERROR: Everest needs OCaml >= 4.04.0";
+      if Sys.ocaml_version < "$MINIMAL_OCAML_VERSION" then begin
+        print_endline "ERROR: Everest needs OCaml >= $MINIMAL_OCAML_VERSION";
         print_endline ("You have OCaml " ^ Sys.ocaml_version);
         exit 1
       end
