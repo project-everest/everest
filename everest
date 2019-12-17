@@ -1005,6 +1005,7 @@ build_kremlin () {
 }
 
 build_hacl () {
+  rm -rf hacl-star/dist/*/*
   make -C hacl-star $parallel_opt
 }
 
