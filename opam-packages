@@ -19,3 +19,4 @@ ocaml-migrate-parsetree ocaml-migrate-parsetree
 hex hex
 ppx_tools_versioned ppx_tools_versioned.5.2
 cryptokit cryptokit
+ocamlbuild ocamlbuild
