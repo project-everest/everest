@@ -45,6 +45,10 @@ function everest_rebuild() {
 
 function everest_move() {
 
+    # Work around `git pull` getting stuck
+    # From https://askubuntu.com/questions/336907/really-verbose-way-to-test-git-connection-over-ssh
+    export GIT_SSH_COMMAND='ssh -vvv'
+
     slack_file="../slackmsg.txt"
 
     # Figure out the branch
