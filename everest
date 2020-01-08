@@ -709,15 +709,15 @@ OCAML
       exit 1
     else
       echo "... scons found in PATH"
-      if ! which python$SCONS_PYTHON_MAJOR_MINOR > /dev/null 2>&1 ; then
-        red "ERROR: python$SCONS_PYTHON_MAJOR_MINOR not found in PATH"
-        red "Please install Python $SCONS_PYTHON_MAJOR_MINOR or higher"
+      if ! which python$SCONS_PYTHON_MAJOR > /dev/null 2>&1 ; then
+        red "ERROR: python$SCONS_PYTHON_MAJOR not found in PATH"
+        red "Please install Python $SCONS_PYTHON_MAJOR or higher"
         exit 1
       fi
-      echo "... python$SCONS_PYTHON_MAJOR_MINOR found in PATH"
+      echo "... python$SCONS_PYTHON_MAJOR found in PATH"
       # Check whether it corresponds to a Python 3.6 or above
-      python$SCONS_PYTHON_MAJOR_MINOR $(which scons) --file=scons-python-version-test.py
-      echo "... python$SCONS_PYTHON_MAJOR_MINOR is recent enough"
+      python$SCONS_PYTHON_MAJOR $(which scons) --file=scons-python-version-test.py
+      echo "... python$SCONS_PYTHON_MAJOR is recent enough"
     fi
   fi
 
