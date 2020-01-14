@@ -9,6 +9,6 @@ branches[MLCrypto]=master
 hashes[quackyducky]=7522e46e17a9885fad754847ae7261629a80211e
 branches[quackyducky]=master
 hashes[hacl-star]=91d8bf1ff4d232cb51fcc7b6de9a8d83ec81a5de
-branches[hacl-star]=fstar-master
+branches[hacl-star]=master
 hashes[kremlin]=ffa9901aa48e34c718d5a90383d22056949b4cb1
 branches[kremlin]=master
