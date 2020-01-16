@@ -1060,7 +1060,7 @@ do_test () {
   blue "Running tests (commands shown below)"
   set -x
   # kremlin
-  make -C kremlin/test $parallel_opt everything
+  LD_LIBRARY_PATH= make -C kremlin/test $parallel_opt everything
   # evercrypt
   make -C hacl-star test $parallel_opt
   # qd
