@@ -1217,7 +1217,6 @@ OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
 
   -j n      Set max number of parallel jobs to n (default 1)
-            This option is in two parts
 
   -windows  Build for Windows (Tune for MSVC compiler: optimize tail recursion, etc.)
 
