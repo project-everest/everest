@@ -635,6 +635,41 @@ OCAML
       and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your "$EVEREST_ENV_DEST_FILE"
   fi
 
+  if is_windows ; then
+      # the latest ocaml-stdint segfaults on Windows with
+      # 128-bit integers (confirmed on gcc-9 at least)
+      # so we need to test whether it works, and if not,
+      # then we pull a homemade patch that recompiles it with
+      # C compiler optimizations disabled
+      if ! [[ -d ocaml-stdint ]] ; then
+          echo "... cloning tahina-pro/ocaml-stdint"
+          try_git_clone "git@github.com:tahina-pro/ocaml-stdint.git" "https://github.com/tahina-pro/ocaml-stdint.git" ocaml-stdint
+      fi
+      echo "... building ocaml-stdint test"
+      (cd ocaml-stdint && git clean -ffdx)
+      ocamlfind ocamlopt -package str,qcheck,stdint ocaml-stdint/tests/stdint_test.ml -linkpkg -o ocaml-stdint/tests/stdint_test.exe
+      echo "... running ocaml-stdint test"
+      if
+          { ocaml-stdint/tests/stdint_test.exe > /dev/null ; } ||
+          [[ $? -le 1 ]] # tests fail, but should not segfault
+      then
+          echo "... ocaml-stdint works well"
+      else
+          magenta "ERROR: Your ocaml stdint package does not work with your C compiler."
+          magenta "Do you want to have it recompiled with -O0 and reinstalled? [Yn]"
+          prompt_yes true "exit 1"
+          echo "... recompiling and reinstalling ocaml-stdint from tahina-pro/ocaml-stdint"
+          (
+              cd ocaml-stdint &&
+              git clean -ffdx &&
+              make &&
+              make tests/stdint_test &&
+              { { tests/stdint_test.exe > /dev/null ; } || [[ $? -le 1 ]] ; } &&
+              dune install
+          )
+      fi
+  fi
+
   # Check for Node.js
   if ! which node >/dev/null 2>&1 ; then
     red "ERROR: Node.js doesn\'t seem to be installed"
