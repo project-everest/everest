@@ -60,6 +60,13 @@ unset parallel_opt
 # disabled by default
 unset keep_going_opt
 
+# A string made of both options above, for convenience
+unset make_opts
+
+set_make_opts () {
+  make_opts="$parallel_opt $keep_going_opt"
+}
+
 # The file where to store customized environment variables
 # (default is $HOME/.bash_profile)
 if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
@@ -1028,29 +1035,29 @@ set_openssl () {
 }
 
 build_fstar () {
-  make -C FStar/src/ocaml-output $parallel_opt && \
-  make -C FStar/ulib $parallel_opt && \
-  make -C FStar/ulib/ml $parallel_opt
+  make -C FStar/src/ocaml-output $make_opts && \
+  make -C FStar/ulib $make_opts && \
+  make -C FStar/ulib/ml $make_opts
 }
 
 build_kremlin () {
   # TODO: run the kremlin testsuite too
-  make -C kremlin $parallel_opt &&
-  make -C kremlin/kremlib $parallel_opt
+  make -C kremlin $make_opts &&
+  make -C kremlin/kremlib $make_opts
 }
 
 build_hacl () {
   rm -rf hacl-star/dist/*/*
-  make -C hacl-star $parallel_opt
+  make -C hacl-star $make_opts
 }
 
 build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
-  make -C mitls-fstar/libs/ffi $parallel_opt && \
-  make -C mitls-fstar/src/pki $parallel_opt && \
-  make -C mitls-fstar/src/tls $parallel_opt && \
-  make -C mitls-fstar/apps/cmitls $parallel_opt && \
-  make -C mitls-fstar/apps/quicMinusNet $parallel_opt
+  make -C mitls-fstar/libs/ffi $make_opts && \
+  make -C mitls-fstar/src/pki $make_opts && \
+  make -C mitls-fstar/src/tls $make_opts && \
+  make -C mitls-fstar/apps/cmitls $make_opts && \
+  make -C mitls-fstar/apps/quicMinusNet $make_opts
 }
 
 do_make ()
@@ -1062,10 +1069,10 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="build_kremlin"
-  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
+  build_commands[MLCrypto]="make -C MLCrypto $make_opts"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
-  build_commands[quackyducky]="make -C quackyducky $parallel_opt"
+  build_commands[quackyducky]="make -C quackyducky $make_opts"
 
   # Order matters.
   for p in FStar kremlin MLCrypto hacl-star quackyducky mitls-fstar; do
@@ -1095,13 +1102,13 @@ do_test () {
   blue "Running tests (commands shown below)"
   set -x
   # kremlin
-  LD_LIBRARY_PATH= make -C kremlin/test $parallel_opt everything
+  LD_LIBRARY_PATH= make -C kremlin/test $make_opts everything
   # evercrypt
-  make -C hacl-star test $parallel_opt
+  make -C hacl-star test $make_opts
   # qd
-  make -C quackyducky $parallel_opt test
+  make -C quackyducky $make_opts test
   # mitls; note: these tests make assumption on their current working directory
-  (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
+  (cd mitls-fstar/src/tls && make $make_opts test)
   (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
   (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
   set +x
@@ -1112,7 +1119,7 @@ do_verify () {
   setup_env
 
   declare -A verify_commands
-  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt $keep_going_opt"
+  verify_commands[FStar]="make -C FStar/src ulong $make_opts"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
@@ -1327,11 +1334,13 @@ while true; do
     case "$1" in
         -j)
             parallel_opt="-j $2"
+            set_make_opts
             shift 2
             ;;
 
         -k)
             keep_going_opt="-k"
+            set_make_opts
             shift
             ;;
 
