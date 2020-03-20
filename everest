@@ -625,14 +625,15 @@ OCAML
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
   # Check for caveats using my OCaml installer
-  if ! (cd test && ocamlbuild test.native -use-ocamlfind >/dev/null 2>&1); then
-    red "Cannot compile the test OCaml program"
+  if ! (cd test && ocamlbuild test.native -use-ocamlfind >compiler_output 2>&1); then
+    red "Cannot compile the test OCaml program (see errors in test/compiler_output)"
     red "Maybe you've been using the OCaml installer for windows"
     echo Suggestion: check \
       https://github.com/protz/ocaml-installer/wiki#package-specific-hints and \
       follow instructions for ppx deriving and friends
     exit 1
   fi
+  rm -f test/compiler_output
   echo "... sample ocamlbuild project compiles successfully"
 
   if is_windows && [ -d "/cygdrive/c/OCaml/lib/camlp4" ] && [[ $CAMLP4LIB == "" ]]; then
