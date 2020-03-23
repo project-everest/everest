@@ -1257,6 +1257,8 @@ USAGE: $0 [OPTIONS] [PROJECT] COMMANDS
 OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
 
+  --admit   Admit F* SMT queries (warning: unsafe!)
+
   -j n      Set max number of parallel jobs to n (default 1)
 
   -windows  Build for Windows (Tune for MSVC compiler: optimize tail recursion, etc.)
@@ -1317,7 +1319,7 @@ HELP
 }
 
 OPTIONS=j:k
-LONGOPTS=yes,windows,openssl,opt
+LONGOPTS=yes,windows,openssl,opt,admit
 
 # Temporarily stores output to check for errors
 # --alternative allows long options to start with a single '-'
@@ -1345,6 +1347,11 @@ while true; do
 
         -yes|--yes)
             make_non_interactive
+            shift
+            ;;
+
+        --admit)
+            export OTHERFLAGS="$OTHERFLAGS --admit_smt_queries true"
             shift
             ;;
 
