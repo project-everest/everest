@@ -698,8 +698,7 @@ OCAML
       # which node > /dev/null 2>&1
       red "CRITICAL: Windows PATH has changed, please restart a new Cygwin window"
     else
-      echo 'Please go to https://nodejs.org/ to know how to'
-      echo 'install it on your platform'
+      echo "Please install node.js through your package manager"
       exit 1
     fi
   fi
