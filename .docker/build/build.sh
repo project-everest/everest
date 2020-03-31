@@ -172,5 +172,6 @@ function exec_build() {
 export OCAMLRUNPARAM=b
 export OTHERFLAGS="--use_hints --query_stats"
 export MAKEFLAGS="$MAKEFLAGS -Otarget"
+export V=1 # Verbose F* build
 
 exec_build
