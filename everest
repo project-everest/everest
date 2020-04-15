@@ -1047,7 +1047,7 @@ build_kremlin () {
 }
 
 build_hacl () {
-  rm -rf hacl-star/dist/*/*
+  find hacl-star/dist -name Makefile.basic -delete
   make -C hacl-star $make_opts
 }
 
