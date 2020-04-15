@@ -10,6 +10,7 @@ fstarlang_binaries
 
 test/_build
 test/test.native
+test/compiler_output
 
 flexdll/
 nuget/
