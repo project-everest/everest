@@ -1047,7 +1047,12 @@ build_kremlin () {
 }
 
 build_hacl () {
-  rm -rf hacl-star/dist/*/*
+  # Force regeneration of each target as part of Everest build, for maximum
+  # testing. This is not necessarily the optimal scenario for someone who just
+  # wants to build HACL*. Note: based on version control mtimes, if we weren't
+  # deleting these, make would think that Makefile.basic is more recent than the
+  # source files.
+  rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
   make -C hacl-star $make_opts
 }
 
