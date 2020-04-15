@@ -1048,7 +1048,8 @@ build_kremlin () {
 
 build_hacl () {
   rm -rf hacl-star/dist/*/*
-  make -C hacl-star $make_opts
+  make -C hacl-star $make_opts &&
+  make -C hacl-star/providers/quic_provider $make_opts
 }
 
 build_mitls () {
