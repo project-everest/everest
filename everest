@@ -914,9 +914,7 @@ do_forall ()
   for r in ${!repositories[@]}; do
     echo
     blue "Executing in $r"
-    cd $r
-    "$@"
-    cd ..
+    (cd $r && "$@" || red "return code was $?, carrying on anyway")
   done
 }
 
