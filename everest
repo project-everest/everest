@@ -60,6 +60,13 @@ unset parallel_opt
 # disabled by default
 unset keep_going_opt
 
+# A string made of both options above, for convenience
+unset make_opts
+
+set_make_opts () {
+  make_opts="$parallel_opt $keep_going_opt"
+}
+
 # The file where to store customized environment variables
 # (default is $HOME/.bash_profile)
 if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
@@ -618,14 +625,15 @@ OCAML
   echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
 
   # Check for caveats using my OCaml installer
-  if ! (cd test && ocamlbuild test.native -use-ocamlfind >/dev/null 2>&1); then
-    red "Cannot compile the test OCaml program"
+  if ! (cd test && ocamlbuild test.native -use-ocamlfind >compiler_output 2>&1); then
+    red "Cannot compile the test OCaml program (see errors in test/compiler_output)"
     red "Maybe you've been using the OCaml installer for windows"
     echo Suggestion: check \
       https://github.com/protz/ocaml-installer/wiki#package-specific-hints and \
       follow instructions for ppx deriving and friends
     exit 1
   fi
+  rm -f test/compiler_output
   echo "... sample ocamlbuild project compiles successfully"
 
   if is_windows && [ -d "/cygdrive/c/OCaml/lib/camlp4" ] && [[ $CAMLP4LIB == "" ]]; then
@@ -633,6 +641,41 @@ OCAML
     echo There is a bug in the installer -- please see \
       https://github.com/protz/ocaml-installer/wiki#configure-your-initial-opam-setup \
       and add \"export CAMLP4LIB=C:/OCaml/lib/camlp4\" in your "$EVEREST_ENV_DEST_FILE"
+  fi
+
+  if is_windows ; then
+      # the latest ocaml-stdint segfaults on Windows with
+      # 128-bit integers (confirmed on gcc-9 at least)
+      # so we need to test whether it works, and if not,
+      # then we pull a homemade patch that recompiles it with
+      # C compiler optimizations disabled
+      if ! [[ -d ocaml-stdint ]] ; then
+          echo "... cloning tahina-pro/ocaml-stdint"
+          try_git_clone "git@github.com:tahina-pro/ocaml-stdint.git" "https://github.com/tahina-pro/ocaml-stdint.git" ocaml-stdint
+      fi
+      echo "... building ocaml-stdint test"
+      (cd ocaml-stdint && git clean -ffdx)
+      ocamlfind ocamlopt -package str,qcheck,stdint ocaml-stdint/tests/stdint_test.ml -linkpkg -o ocaml-stdint/tests/stdint_test.exe
+      echo "... running ocaml-stdint test"
+      if
+          { ocaml-stdint/tests/stdint_test.exe > /dev/null ; } ||
+          [[ $? -le 1 ]] # tests fail, but should not segfault
+      then
+          echo "... ocaml-stdint works well"
+      else
+          magenta "ERROR: Your ocaml stdint package does not work with your C compiler."
+          magenta "Do you want to have it recompiled with -O0 and reinstalled? [Yn]"
+          prompt_yes true "exit 1"
+          echo "... recompiling and reinstalling ocaml-stdint from tahina-pro/ocaml-stdint"
+          (
+              cd ocaml-stdint &&
+              git clean -ffdx &&
+              make &&
+              make tests/stdint_test &&
+              { { tests/stdint_test.exe > /dev/null ; } || [[ $? -le 1 ]] ; } &&
+              dune install
+          )
+      fi
   fi
 
   # Check for Node.js
@@ -656,8 +699,7 @@ OCAML
       # which node > /dev/null 2>&1
       red "CRITICAL: Windows PATH has changed, please restart a new Cygwin window"
     else
-      echo 'Please go to https://nodejs.org/ to know how to'
-      echo 'install it on your platform'
+      echo "Please install node.js through your package manager"
       exit 1
     fi
   fi
@@ -872,9 +914,7 @@ do_forall ()
   for r in ${!repositories[@]}; do
     echo
     blue "Executing in $r"
-    cd $r
-    "$@"
-    cd ..
+    (cd $r && "$@" || red "return code was $?, carrying on anyway")
   done
 }
 
@@ -993,29 +1033,34 @@ set_openssl () {
 }
 
 build_fstar () {
-  make -C FStar/src/ocaml-output $parallel_opt && \
-  make -C FStar/ulib $parallel_opt && \
-  make -C FStar/ulib/ml $parallel_opt
+  make -C FStar/src/ocaml-output $make_opts && \
+  make -C FStar/ulib $make_opts && \
+  make -C FStar/ulib/ml $make_opts
 }
 
 build_kremlin () {
   # TODO: run the kremlin testsuite too
-  make -C kremlin $parallel_opt &&
-  make -C kremlin/kremlib $parallel_opt
+  make -C kremlin $make_opts &&
+  make -C kremlin/kremlib $make_opts
 }
 
 build_hacl () {
-  rm -rf hacl-star/dist/*/*
-  make -C hacl-star $parallel_opt
+  # Force regeneration of each target as part of Everest build, for maximum
+  # testing. This is not necessarily the optimal scenario for someone who just
+  # wants to build HACL*. Note: based on version control mtimes, if we weren't
+  # deleting these, make would think that Makefile.basic is more recent than the
+  # source files.
+  rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
+  make -C hacl-star $make_opts
 }
 
 build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
-  make -C mitls-fstar/libs/ffi $parallel_opt && \
-  make -C mitls-fstar/src/pki $parallel_opt && \
-  make -C mitls-fstar/src/tls $parallel_opt && \
-  make -C mitls-fstar/apps/cmitls $parallel_opt && \
-  make -C mitls-fstar/apps/quicMinusNet $parallel_opt
+  make -C mitls-fstar/libs/ffi $make_opts && \
+  make -C mitls-fstar/src/pki $make_opts && \
+  make -C mitls-fstar/src/tls $make_opts && \
+  make -C mitls-fstar/apps/cmitls $make_opts && \
+  make -C mitls-fstar/apps/quicMinusNet $make_opts
 }
 
 do_make ()
@@ -1027,10 +1072,10 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="build_kremlin"
-  build_commands[MLCrypto]="make -C MLCrypto $parallel_opt"
+  build_commands[MLCrypto]="make -C MLCrypto $make_opts"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
-  build_commands[quackyducky]="make -C quackyducky $parallel_opt"
+  build_commands[quackyducky]="make -C quackyducky $make_opts"
 
   # Order matters.
   for p in FStar kremlin MLCrypto hacl-star quackyducky mitls-fstar; do
@@ -1060,13 +1105,13 @@ do_test () {
   blue "Running tests (commands shown below)"
   set -x
   # kremlin
-  make -C kremlin/test $parallel_opt everything
+  LD_LIBRARY_PATH= make -C kremlin/test $make_opts everything
   # evercrypt
-  make -C hacl-star test $parallel_opt
+  make -C hacl-star test $make_opts
   # qd
-  make -C quackyducky $parallel_opt test
+  make -C quackyducky $make_opts test
   # mitls; note: these tests make assumption on their current working directory
-  (cd mitls-fstar/src/tls && make $parallel_opt $keep_going_opt test)
+  (cd mitls-fstar/src/tls && make $make_opts test)
   (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
   (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
   set +x
@@ -1077,7 +1122,7 @@ do_verify () {
   setup_env
 
   declare -A verify_commands
-  verify_commands[FStar]="make -C FStar/src ulong $parallel_opt $keep_going_opt"
+  verify_commands[FStar]="make -C FStar/src ulong $make_opts"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
   verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
@@ -1125,7 +1170,7 @@ do_snapshot ()
   blue "Recording a new snapshot"
   echo "declare -A hashes" > new-hashes.sh
   echo "declare -A branches" >> new-hashes.sh
-  for r in ${!repositories[@]}; do
+  for r in $(echo ${!repositories[@]} | tr ' ' '\n' | sort) ; do
     cd $r
     head=$(git rev-parse HEAD)
     branch=$(git symbolic-ref HEAD)
@@ -1216,8 +1261,9 @@ USAGE: $0 [OPTIONS] [PROJECT] COMMANDS
 OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
 
+  --admit   Admit F* SMT queries (warning: unsafe!)
+
   -j n      Set max number of parallel jobs to n (default 1)
-            This option is in two parts
 
   -windows  Build for Windows (Tune for MSVC compiler: optimize tail recursion, etc.)
 
@@ -1277,7 +1323,7 @@ HELP
 }
 
 OPTIONS=j:k
-LONGOPTS=yes,windows,openssl,opt
+LONGOPTS=yes,windows,openssl,opt,admit
 
 # Temporarily stores output to check for errors
 # --alternative allows long options to start with a single '-'
@@ -1293,16 +1339,23 @@ while true; do
     case "$1" in
         -j)
             parallel_opt="-j $2"
+            set_make_opts
             shift 2
             ;;
 
         -k)
             keep_going_opt="-k"
+            set_make_opts
             shift
             ;;
 
         -yes|--yes)
             make_non_interactive
+            shift
+            ;;
+
+        --admit)
+            export OTHERFLAGS="$OTHERFLAGS --admit_smt_queries true"
             shift
             ;;
 
