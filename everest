@@ -15,7 +15,7 @@ set -o pipefail
 # Known URLs, directories and versions
 OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz
 MINIMAL_OCAML_VERSION=4.05.0
-OPAM_VERSION=4.05.0+mingw64c
+OPAM_VERSION=4.09.1+mingw64c
 # Provide for a Python, necessary for scons
 # (all other occurrences of python can use whatever python 2 is in the PATH, be it Windows or Cygwin)
 # NOTE: if you change SCONS_PYTHON_MAJOR and/or SCONS_PYTHON_MINOR, then please also update scons-python-version-test.py
