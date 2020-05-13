@@ -1107,7 +1107,8 @@ do_test () {
   # kremlin
   LD_LIBRARY_PATH= make -C kremlin/test $make_opts everything
   # evercrypt
-  make -C hacl-star test $make_opts
+  # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
+  LD_LIBRARY_PATH= make -C hacl-star test $make_opts
   # qd
   make -C quackyducky $make_opts test
   # mitls; note: these tests make assumption on their current working directory
