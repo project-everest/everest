@@ -15,7 +15,7 @@ set -o pipefail
 # Known URLs, directories and versions
 OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz
 MINIMAL_OCAML_VERSION=4.05.0
-OPAM_VERSION=4.05.0+mingw64c
+OPAM_VERSION=4.09.1+mingw64c
 # Provide for a Python, necessary for scons
 # (all other occurrences of python can use whatever python 2 is in the PATH, be it Windows or Cygwin)
 # NOTE: if you change SCONS_PYTHON_MAJOR and/or SCONS_PYTHON_MINOR, then please also update scons-python-version-test.py
@@ -914,9 +914,7 @@ do_forall ()
   for r in ${!repositories[@]}; do
     echo
     blue "Executing in $r"
-    cd $r
-    "$@"
-    cd ..
+    (cd $r && "$@" || red "return code was $?, carrying on anyway")
   done
 }
 
@@ -1047,7 +1045,12 @@ build_kremlin () {
 }
 
 build_hacl () {
-  rm -rf hacl-star/dist/*/*
+  # Force regeneration of each target as part of Everest build, for maximum
+  # testing. This is not necessarily the optimal scenario for someone who just
+  # wants to build HACL*. Note: based on version control mtimes, if we weren't
+  # deleting these, make would think that Makefile.basic is more recent than the
+  # source files.
+  rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
   make -C hacl-star $make_opts &&
   make -C hacl-star/providers/quic_provider $make_opts
 }
@@ -1105,7 +1108,8 @@ do_test () {
   # kremlin
   LD_LIBRARY_PATH= make -C kremlin/test $make_opts everything
   # evercrypt
-  make -C hacl-star test $make_opts
+  # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
+  LD_LIBRARY_PATH= make -C hacl-star test $make_opts
   # qd
   make -C quackyducky $make_opts test
   # mitls; note: these tests make assumption on their current working directory
@@ -1168,7 +1172,7 @@ do_snapshot ()
   blue "Recording a new snapshot"
   echo "declare -A hashes" > new-hashes.sh
   echo "declare -A branches" >> new-hashes.sh
-  for r in ${!repositories[@]}; do
+  for r in $(echo ${!repositories[@]} | tr ' ' '\n' | sort) ; do
     cd $r
     head=$(git rev-parse HEAD)
     branch=$(git symbolic-ref HEAD)
