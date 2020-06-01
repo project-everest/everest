@@ -21,3 +21,4 @@ ppx_tools_versioned ppx_tools_versioned
 cryptokit cryptokit
 ocamlbuild ocamlbuild
 qcheck qcheck
+cppo cppo
