@@ -91,12 +91,18 @@ function everest_move() {
     echo "Versions content: $versions"
 
     local msg=""
+    local everest_args
+    if [[ "$OS" == "Windows_NT" ]]; then
+        everest_args="-windows pull_vale make test verify drop qbuild"
+    else
+        everest_args="pull_vale make test verify"
+    fi
     if ! $fresh; then
         # Bail out early if there's nothing to do
         MsgToSlack=":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
         echo "MsgToSlack content: $MsgToSlack"
         echo $MsgToSlack >$slack_file
-    elif ! ./everest --yes -j $threads -windows make test verify drop qbuild; then
+    elif ! ./everest --yes -j $threads $everest_args; then
         # Provide a meaningful summary of what we tried
         msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
         MsgToSlack="$msg"
@@ -147,11 +153,7 @@ function exec_build() {
                 everest_rebuild && echo true >$status_file
             fi
         elif [[ $target == "everest-move" ]]; then
-            if [[ "$OS" == "Windows_NT" ]]; then
-                everest_move && echo true >$status_file
-            else
-                echo "Invalid target"
-            fi
+            everest_move && echo true >$status_file
         else
             echo "Invalid target"
         fi
