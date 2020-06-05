@@ -1077,9 +1077,10 @@ do_make ()
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[quackyducky]="make -C quackyducky $make_opts"
+  build_commands[everquic-crypto]="make -C everquic-crypto dist/libeverquic.a $make_opts"
 
   # Order matters.
-  for p in FStar kremlin MLCrypto hacl-star quackyducky mitls-fstar; do
+  for p in FStar kremlin MLCrypto hacl-star quackyducky everquic-crypto mitls-fstar; do
     # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
@@ -1112,6 +1113,8 @@ do_test () {
   LD_LIBRARY_PATH= make -C hacl-star test $make_opts
   # qd
   make -C quackyducky $make_opts test
+  # everquic-crypto
+  make -C everquic-crypto $make_opts test
   # mitls; note: these tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && make $make_opts test)
   (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
@@ -1130,6 +1133,7 @@ do_verify () {
   verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
   verify_commands[quackyducky]="echo nothing to verify for quackyducky"
+  verify_commands[everquic-crypto]="echo nothing to verify for everquic-crypto"
 
   for p in $ALL_PROJECTS; do
     separator
@@ -1157,6 +1161,7 @@ do_clean ()
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     MLCrypto/{,openssl} \
     quackyducky/out quackyducky \
+    everquic-crypto \
     mitls-fstar/src/tls \
     kremlin \
     ; do
@@ -1279,7 +1284,7 @@ OPTION:
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
-    FStar kremlin mitls-fstar hacl-star MLCrypto quackyducky
+    FStar kremlin mitls-fstar hacl-star MLCrypto quackyducky everquic-crypto
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1425,7 +1430,7 @@ while true; do
       break
       ;;
 
-    FStar|mitls-fstar|kremlin|hacl-star|MLCrypto|quackyducky)
+    FStar|mitls-fstar|kremlin|hacl-star|MLCrypto|quackyducky|everquic-crypto)
       ALL_PROJECTS=$1
       ;;
 

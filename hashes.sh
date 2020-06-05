@@ -1,5 +1,7 @@
 declare -A hashes
 declare -A branches
+hashes[everquic-crypto]=be1897c4d14731aceef0c7aa00e94607e57a0ff9
+branches[everquic-crypto]=master
 hashes[FStar]=60f56dd02a4f4e90381a67ba584871e2a550bb85
 branches[FStar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79

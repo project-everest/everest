@@ -18,3 +18,6 @@ https[MLCrypto]=https://github.com/project-everest/MLCrypto.git
 
 repositories[quackyducky]=git@github.com:project-everest/quackyducky.git
 https[quackyducky]=https://github.com/project-everest/quackyducky.git
+
+repositories[everquic-crypto]=git@github.com:project-everest/everquic-crypto.git
+https[everquic-crypto]=https://github.com/project-everest/everquic-crypto.git
