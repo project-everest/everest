@@ -5,6 +5,7 @@ karamel
 mitls-fstar
 MLCrypto
 everparse
+everquic-crypto
 log
 fstarlang_binaries
 
