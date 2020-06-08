@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=89fa64a8f4debdfc513723ff78df876232b17d80
+hashes[FStar]=31cb8ceaf8f46b33c148d83cd1d09e78bf6150c3
 branches[FStar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
