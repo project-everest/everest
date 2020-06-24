@@ -21,8 +21,8 @@ test project everest.
 
 ## Pre-setup (Windows)
 
-The script requires Visual Studio (specifically the F# component) to be present
-on your system. If you do not have it, you can install the
+The script requires Visual Studio (specifically the F# and C++ components) to
+be present on your system. If you do not have it, you can install the
 [community edition](https://visualstudio.microsoft.com/vs/community/).
 
 If you don't have Opam for Windows installed already, please download and run
