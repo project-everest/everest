@@ -21,9 +21,13 @@ test project everest.
 
 ## Pre-setup (Windows)
 
-If you don't have a 64-bit Cygwin installed already, please download and run the
-Cygwin 64-bit installer (along with Cygwin git), then launch this script from a
-Cygwin prompt.
+The script requires Visual Studio (specifically the F# component) to be present
+on your system. If you do not have it, you can install the
+[community edition](https://visualstudio.microsoft.com/vs/community/).
+
+If you don't have Opam for Windows installed already, please download and run
+the [64-bit installer](https://fdopen.github.io/opam-repository-mingw/installation/).
+It will also install Cygwin, then you can launch this script from a Cygwin prompt.
 
 Install the [production scons for
 Windows](http://scons.org/pages/download.html). After installation, ensure that
