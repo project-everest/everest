@@ -836,25 +836,31 @@ do_pull () {
   do_reset
 }
 
+symlink_clone_warned=false
+
+check_subp_exists () {
+  local r=$1
+  if [ ! -d $r ]; then
+    if [ -e $r ]; then
+      red "$r exists but is not a directory, aborting"
+      exit 1
+    fi
+    if ! $symlink_clone_warned; then
+      echo Note: you\'re welcome to create symbolic links if you already have \
+        cloned the repository elsewhere
+      symlink_clone_warned=true
+    fi
+    try_git_clone ${repositories[$r]} ${https[$r]} $r
+  fi
+}
+
 do_reset ()
 {
-  warned=false
   for r in $ALL_PROJECTS; do
     echo
     blue "Pulling $r"
     # Some sanity checks, and clone the repositories that aren't there already
-    if [ ! -d $r ]; then
-      if [ -e $r ]; then
-        red "$r exists but is not a directory, aborting"
-        exit 1
-      fi
-      if ! $warned; then
-        echo Note: you\'re welcome to create symbolic links if you already have \
-          cloned the repository elsewhere
-        warned=true
-      fi
-      try_git_clone ${repositories[$r]} ${https[$r]} $r
-    fi
+    check_subp_exists "$r"
 
     # Note: the snapshot command guarantees that the commit was pushed to a
     # branch of the form origin/foo. So, we checkout foo, because there's a good
@@ -892,6 +898,24 @@ do_reset ()
     cd ..
   done
   get_vale
+}
+
+do_advance ()
+{
+  for r in $ALL_PROJECTS; do
+    echo
+    blue "Advancing $r"
+    check_subp_exists "$r"
+
+    pushd $r
+    branch=${branches[$r]}
+
+    git checkout -f $branch
+    git fetch
+    git reset --hard origin/$branch
+    git submodule update --init
+    popd
+  done
 }
 
 do_merge ()
@@ -1294,6 +1318,8 @@ COMMAND:
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
+  advance   advance every subproject by pulling from their tracked branches
+
   get_vale  install the right version of vale binary (implied by pull)
 
   merge     pull all projects, merging and rebasing local changes; does NOT
@@ -1408,6 +1434,10 @@ while true; do
 
     pull_projects)
       do_pull
+      ;;
+
+    advance)
+      do_advance
       ;;
 
     pull_vale)
