@@ -1203,7 +1203,7 @@ do_snapshot ()
   blue "Recording a new snapshot"
   echo "declare -A hashes" > new-hashes.sh
   echo "declare -A branches" >> new-hashes.sh
-  for r in $(echo ${!repositories[@]} | tr ' ' '\n' | sort) ; do
+  for r in $(echo ${!repositories[@]} | tr ' ' '\n' | sort -f) ; do
     cd $r
     head=$(git rev-parse HEAD)
     branch=$(git symbolic-ref HEAD)
