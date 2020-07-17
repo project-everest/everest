@@ -38,6 +38,8 @@ SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
 # non-interactive mode
 OPAM_AUTO_SETUP=
 
+ADVANCE_YES=false
+
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
 make_non_interactive () {
@@ -46,6 +48,7 @@ make_non_interactive () {
   export GIT_TERMINAL_PROMPT=0
   export OPAMYES=1
   export NOSHORTLOG=1
+  export ADVANCE_YES=true
   OPAM_AUTO_SETUP=--auto-setup
 }
 
@@ -910,6 +913,11 @@ do_advance ()
     pushd $r
     branch=${branches[$r]}
 
+    if ( ! $ADVANCE_YES ) && ( git status -s -uall | grep -q . ); then
+        red "project $r has local changes, aborting advance (pass --yes to ignore)"
+        exit 1
+    fi
+
     git checkout -f $branch
     git fetch
     git reset --hard origin/$branch
@@ -1318,7 +1326,7 @@ COMMAND:
   pull      self-update the everest repository (i.e. the script and
             hashes.sh) then run reset
 
-  advance   advance every subproject by pulling from their tracked branches
+  advance   advance every project by pulling from their tracked branches
 
   get_vale  install the right version of vale binary (implied by pull)
 
