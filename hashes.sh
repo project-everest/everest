@@ -1,7 +1,7 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=ee5fe89d079f61526361548bdfc5d80b8532434c
-branches[FStar]=master
+hashes[FStar]=1afd76bc9e
+branches[FStar]=protz_endianness
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[hacl-star]=4dfb0b245e17888ecbcf5036038cfa9e0ba1b3a1
