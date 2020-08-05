@@ -986,12 +986,14 @@ setup_env () {
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
     export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
     export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
+    export MITLS_HOME=$(cygpath -m $(pwd)/mitls-fstar)
   else
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
     export KREMLIN_HOME=$(pwd)/kremlin
     export HACL_HOME=$(pwd)/hacl-star
     export MLCRYPTO_HOME=$(pwd)/MLCrypto
+    export MITLS_HOME=$(pwd)/mitls-fstar
   fi
   export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
