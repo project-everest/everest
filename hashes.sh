@@ -10,5 +10,5 @@ hashes[kremlin]=622b0d9510e8261564f2b700c844043484dc07d3
 branches[kremlin]=master
 hashes[mitls-fstar]=3f59a0f599213d3d587c88141408420c893d2c55
 branches[mitls-fstar]=master
-hashes[quackyducky]=4b9d9a8131d17f36cf9d6f5e47d5b4cdefe54c5d
-branches[quackyducky]=master
+hashes[quackyducky]=214b2931f158f53f140a5417594fdcb408b321e7
+branches[quackyducky]=_taramana_ci
