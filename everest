@@ -986,6 +986,7 @@ setup_env () {
     export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
     export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
     export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
+    export QD_HOME=$(cygpath -m $(pwd)/quackyducky)
     export MITLS_HOME=$(cygpath -m $(pwd)/mitls-fstar)
   else
     export FSTAR_HOME=$(pwd)/FStar
@@ -993,6 +994,7 @@ setup_env () {
     export KREMLIN_HOME=$(pwd)/kremlin
     export HACL_HOME=$(pwd)/hacl-star
     export MLCRYPTO_HOME=$(pwd)/MLCrypto
+    export QD_HOME=$(pwd)/quackyducky
     export MITLS_HOME=$(pwd)/mitls-fstar
   fi
   export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
@@ -1109,6 +1111,9 @@ do_test () {
   # kremlin
   LD_LIBRARY_PATH= make -C kremlin/test $make_opts everything
   # evercrypt
+  #   we first need to remove the hacl-star-raw OCaml package
+  #   if it was already there before, installed by a previous test
+  if ocamlfind query hacl-star-raw ; then ocamlfind remove hacl-star-raw ; fi
   # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
   LD_LIBRARY_PATH= make -C hacl-star test $make_opts
   # qd
