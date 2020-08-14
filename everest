@@ -237,6 +237,13 @@ write_cygwin_env_dest_file () {
   write_to_env_dest_file "$str"
 }
 
+write_cxx_env_dest_file () {
+  str="
+    # This line automatically added by $0
+    export CXX=x86_64-w64-mingw32-g++.exe"
+  write_to_env_dest_file "$str"
+}
+
 write_everest_env_dest_file () {
   if is_windows; then
     str="
@@ -522,6 +529,12 @@ do_check ()
       prompt_yes write_cygwin_env_dest_file true
     else
       echo "... proper mingw directory seems to be in PATH"
+    fi
+
+    if [[ -z "$CXX" ]] ; then
+      red "Warning: CXX not defined"
+      magenta "Automatically set CXX to x86_64-w64-mingw32-g++.exe?"
+      prompt_yes write_cxx_env_dest_file true
     fi
   fi # if is_windows
 
