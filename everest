@@ -1068,7 +1068,9 @@ build_hacl () {
   # deleting these, make would think that Makefile.basic is more recent than the
   # source files.
   rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
-  make -C hacl-star $make_opts
+  make -C hacl-star $make_opts &&
+  make -C hacl-star/dist/gcc-compatible install-hacl-star-raw &&
+  (cd hacl-star/bindings/ocaml && dune build @install && dune build && dune install)
 }
 
 build_mitls () {
@@ -1124,9 +1126,6 @@ do_test () {
   # kremlin
   LD_LIBRARY_PATH= make -C kremlin/test $make_opts everything
   # evercrypt
-  #   we first need to remove the hacl-star-raw OCaml package
-  #   if it was already there before, installed by a previous test
-  if ocamlfind query hacl-star-raw ; then ocamlfind remove hacl-star-raw ; fi
   # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
   LD_LIBRARY_PATH= make -C hacl-star test $make_opts
   # qd
