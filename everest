@@ -1069,7 +1069,7 @@ build_hacl () {
   # source files.
   rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
   make -C hacl-star $make_opts &&
-  make -C hacl-star/providers/quic_provider $make_opts
+  make -C hacl-star/providers/quic_provider $make_opts &&
   make -C hacl-star/dist/gcc-compatible install-hacl-star-raw &&
   (cd hacl-star/bindings/ocaml && dune build @install && dune build && dune install)
 }
