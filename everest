@@ -1267,6 +1267,27 @@ EOF
   return $NMAKE_RETCODE
 }
 
+# Non-Dockerized continuous integration (CI with persistent state)
+
+do_ci () {
+    if ocamlfind query hacl-star ; then ocamlfind remove hacl-star ; fi
+    if ocamlfind query hacl-star-raw ; then ocamlfind remove hacl-star-raw ; fi
+    do_make
+    if is_windows && ! which libevercrypt.dll ; then
+        # Locate libevercrypt.dll and add it to the PATH
+        local libevercrypt_path
+        for f in $(sed 's![\t\v\f \r\n]*$!!' < $(ocamlfind printconf ldconf)) $(ocamlfind query hacl-star-raw) ; do
+            if [[ -f "$f"/libevercrypt.dll ]] ; then
+                libevercrypt_path=$f
+                break
+            fi
+        done
+        test -n $libevercrypt_path
+        export PATH=$(cygpath -u $libevercrypt_path):$PATH
+    fi
+    do_test
+}
+
 # ------------------------------------------------------------------------------
 # Usage and parsing arguments
 # ------------------------------------------------------------------------------
@@ -1416,6 +1437,10 @@ while true; do
     exit 0
   fi
   case "$1" in
+    ci)
+      do_ci
+      ;;
+
     check)
       do_check
       ;;
