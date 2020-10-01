@@ -1270,6 +1270,14 @@ EOF
 # Non-Dockerized continuous integration (CI with persistent state)
 
 do_ci () {
+    mkdir -p ocaml-packages
+    if is_windows ; then
+        export OCAMLFIND_DESTDIR=$(cygpath -m $PWD/ocaml-packages)
+        export OCAMLPATH=$OCAMLFIND_DESTDIR;$OCAMLPATH
+    else
+        export OCAMLFIND_DESTDIR=$PWD/ocaml-packages
+        export OCAMLPATH=$OCAMLFIND_DESTDIR:$OCAMLPATH
+    fi
     if ocamlfind query hacl-star ; then ocamlfind remove hacl-star ; fi
     if ocamlfind query hacl-star-raw ; then ocamlfind remove hacl-star-raw ; fi
     do_reset
