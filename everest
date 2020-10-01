@@ -1273,7 +1273,7 @@ do_ci () {
     mkdir -p ocaml-packages
     if is_windows ; then
         export OCAMLFIND_DESTDIR=$(cygpath -m $PWD/ocaml-packages)
-        export OCAMLPATH=$OCAMLFIND_DESTDIR;$OCAMLPATH
+        export OCAMLPATH="$OCAMLFIND_DESTDIR;$OCAMLPATH"
     else
         export OCAMLFIND_DESTDIR=$PWD/ocaml-packages
         export OCAMLPATH=$OCAMLFIND_DESTDIR:$OCAMLPATH
