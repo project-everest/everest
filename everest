@@ -1272,6 +1272,7 @@ EOF
 do_ci () {
     if ocamlfind query hacl-star ; then ocamlfind remove hacl-star ; fi
     if ocamlfind query hacl-star-raw ; then ocamlfind remove hacl-star-raw ; fi
+    do_reset
     do_make
     if is_windows && ! which libevercrypt.dll ; then
         # Locate libevercrypt.dll and add it to the PATH
