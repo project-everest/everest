@@ -1,7 +1,7 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=cce485aa5e9bc60c4810285a296246b9a7fc85d2
-branches[FStar]=master
+hashes[FStar]=4a8034a170a940bb028544e06d81c51027066005
+branches[FStar]=nik_fsharp_extraction
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[hacl-star]=62be4f705c46cdff5fb65cd846696bd3cee86c1e
