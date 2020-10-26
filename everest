@@ -939,6 +939,53 @@ do_advance ()
   done
 }
 
+do_archive ()
+{
+  TEMPDIR=$(mktemp -d -p .)
+  OUTDIR0=${TEMPDIR}/everest/
+  OUTDIR=$(realpath ${OUTDIR0})
+
+  # Make sure every subproject is there.
+  for r in ${!repositories[@]}; do
+    check_subp_exists "$r"
+  done
+
+  # Now we're sure hacl-star is there, so we have
+  # hacl-star/vale/.vale_version. Fetch that version of vale.
+  get_vale
+
+  # Go through each sub-repository (including the openssl submodule for MLCrypto)
+  # and put them in the staging directory ${OUTDIR}
+  mkdir -p ${OUTDIR}
+  for r in ${!repositories[@]} MLCrypto/openssl/; do
+    echo
+    blue "Archiving $r"
+
+    pushd $r
+      if ( git status -s -uall | grep -q . ); then
+          red "WARNING: project $r has local changes which will not be reflected in the archive"
+      fi
+      git archive HEAD --prefix "$r/" | tar -C ${OUTDIR} -x
+    popd
+  done
+
+  cp -r vale/ ${OUTDIR}/vale
+  rm ${OUTDIR}/vale/vale-release.zip # Not needed, save some space
+
+  cp everest \
+     hashes.sh \
+     repositories.sh \
+     lib.sh \
+     LICENSE \
+     README.md \
+       ${OUTDIR}
+
+  rm -f everest_archive.tar{,.xz} # Clean old files if any
+  tar -C ${TEMPDIR} --strip-components=1 -c -f everest_archive.tar everest/
+  rm -r ${TEMPDIR}
+  xz -9 everest_archive.tar
+}
+
 do_merge ()
 {
   self_update
@@ -1398,6 +1445,10 @@ COMMAND:
 
   qbuild    build Windows libraries using Visual Studio
 
+  archive   create an xzipped tarball with all the Everest sources; the
+            archive can be built without an internet connection and is
+            meant to be small in size (so it does not include Git history)
+
   clean-c   only clean generated C files, useful when switching to -windows
 
   clean     clean all projects
@@ -1566,6 +1617,10 @@ while true; do
 
     qbuild)
       do_qbuild
+      ;;
+
+    archive)
+      do_archive
       ;;
 
     *)
