@@ -969,8 +969,14 @@ do_archive ()
     popd
   done
 
+  # Copy vale
   cp -r vale/ ${OUTDIR}/vale
   rm ${OUTDIR}/vale/vale-release.zip # Not needed, save some space
+
+  # Remove unneded (and large) files from the staging directory.
+  rm ${OUTDIR}/FStar/src/VS/.nuget/NuGet.exe
+  rm -r ${OUTDIR}/MLCrypto/openssl/fuzz/corpora/
+  rm -r ${OUTDIR}/mitls-fstar/tests/
 
   cp everest \
      hashes.sh \
@@ -981,9 +987,10 @@ do_archive ()
        ${OUTDIR}
 
   rm -f everest_archive.tar{,.xz} # Clean old files if any
-  tar -C ${TEMPDIR} --strip-components=1 -c -f everest_archive.tar everest/
+  tar -C ${TEMPDIR} -c -f everest_archive.tar everest/
   rm -r ${TEMPDIR}
-  xz -9 everest_archive.tar
+  blue "Compressing archive..."
+  xz --extreme -9 everest_archive.tar
 }
 
 do_merge ()
