@@ -40,6 +40,8 @@ OPAM_AUTO_SETUP=
 
 ADVANCE_YES=false
 
+IS_ARCHIVE=false
+
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
 make_non_interactive () {
@@ -104,6 +106,16 @@ cd_to_everest () {
 # the new version of $0
 initial_pwd="$(pwd)"
 cd_to_everest
+
+check_no_archive () {
+  if $IS_ARCHIVE; then
+    red "This is an archived Everest repo, and the command you attempted to run \
+         is not supported."
+    red "To proceed anyway *at your own risk*, set the IS_ARCHIVE variable to \
+         false within this script and re-run."
+    exit 1
+  fi
+}
 
 # "Modularity": include other files (requires us to be in the right directory)
 source lib.sh
@@ -833,6 +845,7 @@ get_vale ()
 }
 
 self_update () {
+  check_no_archive
   old_revision=$(git rev-parse HEAD)
   git pull --rebase
   if [[ $(git rev-parse HEAD) != $old_revision ]]; then
@@ -855,6 +868,7 @@ do_pull () {
 symlink_clone_warned=false
 
 check_subp_exists () {
+  check_no_archive
   local r=$1
   if [ ! -d $r ]; then
     if [ -e $r ]; then
@@ -985,6 +999,8 @@ do_archive ()
      LICENSE \
      README.md \
        ${OUTDIR}
+
+  $SED -i 's/^IS_ARCHIVE=.*/IS_ARCHIVE=true/' ${OUTDIR}/everest
 
   rm -f everest_archive.tar{,.xz} # Clean old files if any
   tar -C ${TEMPDIR} -c -f everest_archive.tar everest/
@@ -1204,6 +1220,7 @@ do_make ()
 }
 
 do_test () {
+  check_no_archive
   setup_env
 
   separator
@@ -1308,6 +1325,7 @@ MSG
 
 do_drop ()
 {
+  check_no_archive
   setup_env
 
   blue "Dropping sources for Windows libraries"
@@ -1316,6 +1334,7 @@ do_drop ()
 
 do_qbuild ()
 {
+  check_no_archive
   setup_env
 
   blue "Building Windows libraries"
