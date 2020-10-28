@@ -41,6 +41,7 @@ OPAM_AUTO_SETUP=
 ADVANCE_YES=false
 
 IS_ARCHIVE=false
+VALE_ARCHIVE=true
 
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
@@ -984,8 +985,10 @@ do_archive ()
   done
 
   # Copy vale
-  cp -r vale/ ${OUTDIR}/vale
-  rm ${OUTDIR}/vale/vale-release.zip # Not needed, save some space
+  if $VALE_ARCHIVE; then
+    cp -r vale/ ${OUTDIR}/vale
+    rm ${OUTDIR}/vale/vale-release.zip # Not needed, save some space
+  fi
 
   # Remove unneded (and large) files from the staging directory.
   rm ${OUTDIR}/FStar/src/VS/.nuget/NuGet.exe
@@ -1473,7 +1476,9 @@ COMMAND:
 
   archive   create an xzipped tarball with all the Everest sources; the
             archive can be built without an internet connection and is
-            meant to be small in size (so it does not include Git history)
+            meant to be small in size (so it does not include Git history);
+            you can use the --no-vale-archive to exclude vale binaries and
+            obtain a smaller archive
 
   clean-c   only clean generated C files, useful when switching to -windows
 
@@ -1484,7 +1489,7 @@ HELP
 }
 
 OPTIONS=j:k
-LONGOPTS=yes,windows,openssl,opt,admit
+LONGOPTS=yes,windows,openssl,opt,admit,no-vale-archive
 
 # Temporarily stores output to check for errors
 # --alternative allows long options to start with a single '-'
@@ -1515,11 +1520,6 @@ while true; do
             shift
             ;;
 
-        --admit)
-            export OTHERFLAGS="$OTHERFLAGS --admit_smt_queries true"
-            shift
-            ;;
-
         -windows|--windows)
             set_windows
             shift
@@ -1532,6 +1532,16 @@ while true; do
 
         -opt|--opt)
             set_opt
+            shift
+            ;;
+
+        -admit|--admit)
+            export OTHERFLAGS="$OTHERFLAGS --admit_smt_queries true"
+            shift
+            ;;
+
+        -no-vale-archive|--no-vale-archive)
+            VALE_ARCHIVE=false
             shift
             ;;
 
