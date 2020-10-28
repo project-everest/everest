@@ -996,6 +996,7 @@ do_archive ()
   rm -r ${OUTDIR}/mitls-fstar/tests/
 
   cp everest \
+     opam-packages \
      hashes.sh \
      repositories.sh \
      lib.sh \
