@@ -40,6 +40,9 @@ OPAM_AUTO_SETUP=
 
 ADVANCE_YES=false
 
+IS_ARCHIVE=false
+VALE_ARCHIVE=true
+
 # No-interaction when this script is used for CI purposes
 INTERACTIVE=true
 make_non_interactive () {
@@ -104,6 +107,16 @@ cd_to_everest () {
 # the new version of $0
 initial_pwd="$(pwd)"
 cd_to_everest
+
+check_no_archive () {
+  if $IS_ARCHIVE; then
+    red "This is an archived Everest repo, and the command you attempted to run \
+         is not supported."
+    red "To proceed anyway *at your own risk*, set the IS_ARCHIVE variable to \
+         false within this script and re-run."
+    exit 1
+  fi
+}
 
 # "Modularity": include other files (requires us to be in the right directory)
 source lib.sh
@@ -833,6 +846,7 @@ get_vale ()
 }
 
 self_update () {
+  check_no_archive
   old_revision=$(git rev-parse HEAD)
   git pull --rebase
   if [[ $(git rev-parse HEAD) != $old_revision ]]; then
@@ -855,6 +869,7 @@ do_pull () {
 symlink_clone_warned=false
 
 check_subp_exists () {
+  check_no_archive
   local r=$1
   if [ ! -d $r ]; then
     if [ -e $r ]; then
@@ -937,6 +952,65 @@ do_advance ()
     git submodule update --init
     popd
   done
+}
+
+do_archive ()
+{
+  TEMPDIR=$(mktemp -d -p .)
+  OUTDIR0=${TEMPDIR}/everest/
+  OUTDIR=$(realpath ${OUTDIR0})
+
+  # Make sure every subproject is there.
+  for r in ${!repositories[@]}; do
+    check_subp_exists "$r"
+  done
+
+  # Now we're sure hacl-star is there, so we have
+  # hacl-star/vale/.vale_version. Fetch that version of vale.
+  get_vale
+
+  # Go through each sub-repository (including the openssl submodule for MLCrypto)
+  # and put them in the staging directory ${OUTDIR}
+  mkdir -p ${OUTDIR}
+  for r in ${!repositories[@]} MLCrypto/openssl/; do
+    echo
+    blue "Archiving $r"
+
+    pushd $r
+      if ( git status -s -uall | grep -q . ); then
+          red "WARNING: project $r has local changes which will not be reflected in the archive"
+      fi
+      git archive HEAD --prefix "$r/" | tar -C ${OUTDIR} -x
+    popd
+  done
+
+  # Copy vale
+  if $VALE_ARCHIVE; then
+    cp -r vale/ ${OUTDIR}/vale
+    rm ${OUTDIR}/vale/vale-release.zip # Not needed, save some space
+  fi
+
+  # Remove unneded (and large) files from the staging directory.
+  rm ${OUTDIR}/FStar/src/VS/.nuget/NuGet.exe
+  rm -r ${OUTDIR}/MLCrypto/openssl/fuzz/corpora/
+  rm -r ${OUTDIR}/mitls-fstar/tests/
+
+  cp everest \
+     opam-packages \
+     hashes.sh \
+     repositories.sh \
+     lib.sh \
+     LICENSE \
+     README.md \
+       ${OUTDIR}
+
+  $SED -i 's/^IS_ARCHIVE=.*/IS_ARCHIVE=true/' ${OUTDIR}/everest
+
+  rm -f everest_archive.tar{,.xz} # Clean old files if any
+  tar -C ${TEMPDIR} -c -f everest_archive.tar everest/
+  rm -r ${TEMPDIR}
+  blue "Compressing archive..."
+  xz --extreme -9 everest_archive.tar
 }
 
 do_merge ()
@@ -1150,6 +1224,7 @@ do_make ()
 }
 
 do_test () {
+  check_no_archive
   setup_env
 
   separator
@@ -1254,6 +1329,7 @@ MSG
 
 do_drop ()
 {
+  check_no_archive
   setup_env
 
   blue "Dropping sources for Windows libraries"
@@ -1262,6 +1338,7 @@ do_drop ()
 
 do_qbuild ()
 {
+  check_no_archive
   setup_env
 
   blue "Building Windows libraries"
@@ -1398,6 +1475,12 @@ COMMAND:
 
   qbuild    build Windows libraries using Visual Studio
 
+  archive   create an xzipped tarball with all the Everest sources; the
+            archive can be built without an internet connection and is
+            meant to be small in size (so it does not include Git history);
+            you can use the --no-vale-archive to exclude vale binaries and
+            obtain a smaller archive
+
   clean-c   only clean generated C files, useful when switching to -windows
 
   clean     clean all projects
@@ -1407,7 +1490,7 @@ HELP
 }
 
 OPTIONS=j:k
-LONGOPTS=yes,windows,openssl,opt,admit
+LONGOPTS=yes,windows,openssl,opt,admit,no-vale-archive
 
 # Temporarily stores output to check for errors
 # --alternative allows long options to start with a single '-'
@@ -1438,11 +1521,6 @@ while true; do
             shift
             ;;
 
-        --admit)
-            export OTHERFLAGS="$OTHERFLAGS --admit_smt_queries true"
-            shift
-            ;;
-
         -windows|--windows)
             set_windows
             shift
@@ -1455,6 +1533,16 @@ while true; do
 
         -opt|--opt)
             set_opt
+            shift
+            ;;
+
+        -admit|--admit)
+            export OTHERFLAGS="$OTHERFLAGS --admit_smt_queries true"
+            shift
+            ;;
+
+        -no-vale-archive|--no-vale-archive)
+            VALE_ARCHIVE=false
             shift
             ;;
 
@@ -1566,6 +1654,10 @@ while true; do
 
     qbuild)
       do_qbuild
+      ;;
+
+    archive)
+      do_archive
       ;;
 
     *)
