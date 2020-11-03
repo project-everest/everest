@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[FStar]=682040f61c834eb9619fea65ce2b7f81e28c5ee6
 branches[FStar]=nik_fsharp_extraction
-hashes[hacl-star]=e98c546e607ce3e3d490cd26e4d254c0bca0870b
+hashes[hacl-star]=5bb0778e93dbd7cdabbef0ffeaae74647fa39cca
 branches[hacl-star]=nik_remove_noextract_in_specs
 hashes[kremlin]=2cec61205ad7ecb57514d7f2b0f8283d0a22c6c7
 branches[kremlin]=master
