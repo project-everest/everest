@@ -1201,8 +1201,8 @@ do_make ()
   build_commands[kremlin]="build_kremlin"
   build_commands[MLCrypto]="make -C MLCrypto $make_opts"
   build_commands[hacl-star]="build_hacl"
-  build_commands[mitls-fstar]="build_mitls"
   build_commands[quackyducky]="make -C quackyducky $make_opts"
+  build_commands[mitls-fstar]="build_mitls"
 
   # Order matters.
   for p in FStar kremlin MLCrypto hacl-star quackyducky mitls-fstar; do
@@ -1437,8 +1437,9 @@ OPTION:
   -openssl  Use OpenSSL for AEAD in miTLS
 
 PROJECT:
-  restrict the subsequent commands to operate on one of the following:
-    FStar kremlin mitls-fstar hacl-star MLCrypto quackyducky
+  restrict the subsequent commands to operate on one of the following
+  (names listed in the order in which projects should be built):
+    FStar kremlin MLCrypto hacl-star quackyducky mitls-fstar
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
