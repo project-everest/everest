@@ -30,6 +30,7 @@ SCONS_INSTALL_DIR=scons-$SCONS_VER
 SCONS_INSTALL_FILE=$SCONS_INSTALL_DIR.tar.gz
 SCONS_INSTALL_POINT=https://downloads.sourceforge.net/project/scons/scons/$SCONS_VER/$SCONS_INSTALL_FILE
 SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
+MAKE=$(which gmake >/dev/null 2>&1 && echo gmake || echo make)
 
 # OPAM_AUTO_SETUP defines the opam command-line option to
 # automatically setup environment variables into
@@ -483,6 +484,7 @@ do_check ()
     success_or "greadlink" "please run \"brew install coreutils\""
     success_or "gsed" "please run \"brew install gnu-sed\""
     success_or "gfind" "please run \"brew install findutils\""
+    success_or "gmake" "please run \"brew install make\""
   fi
 
   # Slightly suboptimal, since we may end up running Cygwin's setup twice.
@@ -1174,7 +1176,7 @@ build_hacl () {
   # deleting these, make would think that Makefile.basic is more recent than the
   # source files.
   rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
-  make -C hacl-star $make_opts &&
+  $MAKE -C hacl-star $make_opts &&
   make -C hacl-star/dist/gcc-compatible install-hacl-star-raw &&
   (cd hacl-star/bindings/ocaml && dune build @install && dune build && dune install)
 }
