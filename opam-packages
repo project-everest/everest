@@ -21,3 +21,4 @@ cryptokit cryptokit
 ocamlbuild ocamlbuild
 qcheck qcheck
 cppo cppo
+ppxlib ppxlib.0.22.0
