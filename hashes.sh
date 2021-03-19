@@ -2,8 +2,8 @@ declare -A hashes
 declare -A branches
 hashes[FStar]=e76bf357a9a568b636d640f64d1482ca32f95f2d
 branches[FStar]=_taramana_ppxlib
-hashes[hacl-star]=dcd97d236ffdc1c2aa3e8f12a8302101434c268d
-branches[hacl-star]=master
+hashes[hacl-star]=fb43adc412f5e4467630ebde6b50ac86e66e1397
+branches[hacl-star]=taramana_ci
 hashes[kremlin]=4ccb2de6b9fbef97dc653abc1233f7cbbd351529
 branches[kremlin]=master
 hashes[mitls-fstar]=f2f31574a58f1ca9ddd138184b988eca20f9e8a9
