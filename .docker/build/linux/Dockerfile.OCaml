@@ -1,0 +1,58 @@
+# This Dockerfile is meant to test several OCaml versions.
+# It must be loaded from the everest repository root
+# (NOT from the directory that contains the Dockerfile)
+
+FROM ubuntu:20.04
+
+# Install the dependencies of Project Everest
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get --yes install --no-install-recommends opam emacs gcc binutils make m4 git time gnupg ca-certificates mono-devel sudo python-is-python2 python3 nodejs cmake
+
+# Create a new user and give them sudo rights
+RUN useradd -d /home/test test
+RUN echo 'test ALL=NOPASSWD: ALL' >> /etc/sudoers
+RUN mkdir /home/test
+RUN chown test:test /home/test
+USER test
+ENV HOME /home/test
+WORKDIR $HOME
+SHELL ["/bin/bash", "--login", "-c"]
+
+# Add Everest files and projects
+
+# Alternative 1: use the current clone
+ADD --chown=test . .
+ENV EVEREST_DIR $HOME
+
+# Alternative 2: use a fresh clone
+# ENV EVEREST_BRANCH=_taramana_ppxlib
+# RUN git clone --branch $EVEREST_BRANCH https://github.com/project-everest/everest everest
+# ENV EVEREST_DIR $HOME/everest
+
+# Clone Everest subprojects
+WORKDIR $EVEREST_DIR
+RUN ./everest --yes reset
+
+# Install z3
+RUN ./everest --yes z3
+
+# Install OCaml
+ENV OPAMYES 1
+ARG OCAML_VERSION=4.09.1
+RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing 
+RUN opam env --set-switch | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
+
+# Install opam packages
+ARG EVEREST_THREADS=1
+RUN ./everest --yes -j $EVEREST_THREADS z3 opam
+
+# Perform F* CI
+RUN make -j $EVEREST_THREADS -C FStar
+RUN env KREMLIN_HOME=$EVEREST_DIR/kremlin make -j $EVEREST_THREADS -C FStar/src uregressions
+
+# Make Everest
+RUN ./everest --yes -j $EVEREST_THREADS make
+
+# Test Everest
+RUN ./everest --yes -j $EVEREST_THREADS test
