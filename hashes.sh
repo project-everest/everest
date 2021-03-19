@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[FStar]=8fde9d91804a43b0cc4e1c6105646fd9aa4443ae
 branches[FStar]=master
-hashes[hacl-star]=dcd97d236ffdc1c2aa3e8f12a8302101434c268d
+hashes[hacl-star]=88b5826d352cc73c15540592b12da9f79471de77
 branches[hacl-star]=master
 hashes[kremlin]=4ccb2de6b9fbef97dc653abc1233f7cbbd351529
 branches[kremlin]=master
