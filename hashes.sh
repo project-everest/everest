@@ -1,11 +1,11 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=e76bf357a9a568b636d640f64d1482ca32f95f2d
+hashes[FStar]=71f544a41ecd1769efcae48bc3e46d1348d4ddd9
 branches[FStar]=_taramana_ppxlib
-hashes[hacl-star]=fb43adc412f5e4467630ebde6b50ac86e66e1397
-branches[hacl-star]=taramana_ci
-hashes[kremlin]=4ccb2de6b9fbef97dc653abc1233f7cbbd351529
-branches[kremlin]=master
+hashes[hacl-star]=58ae94a1299de375cd5340659a81a43bd9192902
+branches[hacl-star]=master
+hashes[kremlin]=9285c556a313db47ec0d10a9832106972af15763
+branches[kremlin]=wasm-1.1
 hashes[mitls-fstar]=f2f31574a58f1ca9ddd138184b988eca20f9e8a9
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
