@@ -17,6 +17,7 @@ flexdll/
 nuget/
 setup.log
 setup.log.full
+z3
 z3-*/
 *.zip
 .repo

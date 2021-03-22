@@ -51,6 +51,23 @@ function everest_move() {
 
     slack_file="../slackmsg.txt"
 
+    # Build feedback, e.g. do we need to push the docker container
+    has_jq=false
+    if which jq ; then
+        has_jq=true
+    fi
+    if $has_jq ; then
+        build_feedback="../build_feedback.json"
+        jq -n > $build_feedback
+    fi
+
+    function feedback() {
+        if $has_jq ; then
+            jq 'setpath(["'"$1"'"];'"$2"')' < $build_feedback > $build_feedback.tmp
+            mv $build_feedback.tmp $build_feedback
+        fi
+    }
+
     # Figure out the branch
     CI_BRANCH=${branchname##refs/heads/}
     echo "Current branch_name=$CI_BRANCH"
@@ -102,6 +119,7 @@ function everest_move() {
         MsgToSlack=":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
         echo "MsgToSlack content: $MsgToSlack"
         echo $MsgToSlack >$slack_file
+        feedback SkipDockerImagePush true
     elif ! ./everest --yes -j $threads $everest_args; then
         # Provide a meaningful summary of what we tried
         msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
