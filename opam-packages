@@ -2,7 +2,7 @@ ppx_deriving ppx_deriving
 ppx_deriving_yojson ppx_deriving_yojson
 zarith zarith
 pprint pprint
-wasm wasm.1.0.1
+wasm wasm
 process process
 fileutils fileutils
 stdint stdint
@@ -16,8 +16,8 @@ visitors visitors
 ctypes.foreign.unthreaded ctypes-foreign
 ocaml-migrate-parsetree ocaml-migrate-parsetree
 hex hex
-ppx_tools_versioned ppx_tools_versioned
 cryptokit cryptokit
 ocamlbuild ocamlbuild
 qcheck qcheck
 cppo cppo
+ppxlib ppxlib
