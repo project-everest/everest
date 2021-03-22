@@ -26,7 +26,7 @@ ADD --chown=test . .
 ENV EVEREST_DIR $HOME
 
 # Alternative 2: use a fresh clone
-# ENV EVEREST_BRANCH=_taramana_ppxlib
+# ENV EVEREST_BRANCH=master
 # RUN git clone --branch $EVEREST_BRANCH https://github.com/project-everest/everest everest
 # ENV EVEREST_DIR $HOME/everest
 
