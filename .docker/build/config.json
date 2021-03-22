@@ -4,7 +4,7 @@
   "BaseContainerIsEverestImage" : true,
   "BaseContainerImageName" : "everest-ci",
   "BaseContainerImageTagOrCommitId": "latest",
-  "BranchName" : "_taramana_ppxlib",
+  "BranchName" : "master",
   "GithubCommitUrl" : "https://github.com/project-everest/everest-ci/commit",
   "OnDemandBuildDefinition" : "Infrastructure\\Everest-Infrastructure-{agentOS}",
 
