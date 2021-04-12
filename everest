@@ -1158,9 +1158,7 @@ set_openssl () {
 }
 
 build_fstar () {
-  make -C FStar/src/ocaml-output $make_opts && \
-  make -C FStar/ulib $make_opts && \
-  make -C FStar/ulib/ml $make_opts
+  make -C FStar $make_opts
 }
 
 build_kremlin () {
