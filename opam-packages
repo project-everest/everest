@@ -13,7 +13,7 @@ fix fix
 sedlex sedlex
 ctypes ctypes
 visitors visitors
-ctypes.foreign.unthreaded ctypes-foreign
+ctypes.foreign ctypes-foreign
 ocaml-migrate-parsetree ocaml-migrate-parsetree
 hex hex
 cryptokit cryptokit
