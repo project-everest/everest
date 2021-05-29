@@ -21,3 +21,4 @@ ocamlbuild ocamlbuild
 qcheck qcheck
 cppo cppo
 ppxlib ppxlib
+re re
