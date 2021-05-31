@@ -701,8 +701,8 @@ OCAML
           (
               cd ocaml-stdint &&
               git clean -ffdx &&
-              make &&
-              make tests/stdint_test &&
+              $MAKE &&
+              $MAKE tests/stdint_test &&
               { { tests/stdint_test.exe > /dev/null ; } || [[ $? -le 1 ]] ; } &&
               dune install
           )
@@ -1095,7 +1095,7 @@ clean_hacl () {
     hacl-star/ \
   ; do
     if test -d "$f" ; then
-      make -C "$f" clean
+      $MAKE -C "$f" clean
     fi
   done
 }
@@ -1158,13 +1158,13 @@ set_openssl () {
 }
 
 build_fstar () {
-  make -C FStar $make_opts
+  $MAKE -C FStar $make_opts
 }
 
 build_kremlin () {
   # TODO: run the kremlin testsuite too
-  make -C kremlin $make_opts &&
-  make -C kremlin/kremlib $make_opts
+  $MAKE -C kremlin $make_opts &&
+  $MAKE -C kremlin/kremlib $make_opts
 }
 
 build_hacl () {
@@ -1175,17 +1175,17 @@ build_hacl () {
   # source files.
   rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
   $MAKE -C hacl-star $make_opts &&
-  make -C hacl-star/dist/gcc-compatible install-hacl-star-raw &&
+  $MAKE -C hacl-star/dist/gcc-compatible install-hacl-star-raw &&
   (cd hacl-star/bindings/ocaml && dune build @install && dune build && dune install)
 }
 
 build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
-  make -C mitls-fstar/libs/ffi $make_opts && \
-  make -C mitls-fstar/src/pki $make_opts && \
-  make -C mitls-fstar/src/tls $make_opts && \
-  make -C mitls-fstar/apps/cmitls $make_opts && \
-  make -C mitls-fstar/apps/quicMinusNet $make_opts
+  $MAKE -C mitls-fstar/libs/ffi $make_opts && \
+  $MAKE -C mitls-fstar/src/pki $make_opts && \
+  $MAKE -C mitls-fstar/src/tls $make_opts && \
+  $MAKE -C mitls-fstar/apps/cmitls $make_opts && \
+  $MAKE -C mitls-fstar/apps/quicMinusNet $make_opts
 }
 
 do_make ()
@@ -1197,10 +1197,10 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[kremlin]="build_kremlin"
-  build_commands[MLCrypto]="make -C MLCrypto $make_opts"
+  build_commands[MLCrypto]="$MAKE -C MLCrypto $make_opts"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
-  build_commands[quackyducky]="make -C quackyducky $make_opts"
+  build_commands[quackyducky]="$MAKE -C quackyducky $make_opts"
 
   # Order matters.
   for p in FStar kremlin MLCrypto hacl-star quackyducky mitls-fstar; do
@@ -1231,16 +1231,16 @@ do_test () {
   blue "Running tests (commands shown below)"
   set -x
   # kremlin
-  LD_LIBRARY_PATH= make -C kremlin/test $make_opts everything
+  LD_LIBRARY_PATH= $MAKE -C kremlin/test $make_opts everything
   # evercrypt
   # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
-  LD_LIBRARY_PATH= make -C hacl-star test $make_opts
+  LD_LIBRARY_PATH= $MAKE -C hacl-star test $make_opts
   # qd
-  make -C quackyducky $make_opts test
+  $MAKE -C quackyducky $make_opts test
   # mitls; note: these tests make assumption on their current working directory
-  (cd mitls-fstar/src/tls && make $make_opts test)
-  (cd mitls-fstar/apps/cmitls && make $keep_going_opt test)
-  (cd mitls-fstar/apps/quicMinusNet && make $keep_going_opt test)
+  (cd mitls-fstar/src/tls && $MAKE $make_opts test)
+  (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
+  (cd mitls-fstar/apps/quicMinusNet && $MAKE $keep_going_opt test)
   set +x
   separator
 }
@@ -1249,10 +1249,10 @@ do_verify () {
   setup_env
 
   declare -A verify_commands
-  verify_commands[FStar]="make -C FStar/src ulong $make_opts"
+  verify_commands[FStar]="$MAKE -C FStar/src ulong $make_opts"
   verify_commands[kremlin]="echo nothing to verify for kremlin"
-  verify_commands[hacl-star]="make -C hacl-star $parallel_opt -k verify"
-  verify_commands[mitls-fstar]="make -C mitls-fstar/src/tls verify $parallel_opt -k"
+  verify_commands[hacl-star]="$MAKE -C hacl-star $parallel_opt -k verify"
+  verify_commands[mitls-fstar]="$MAKE -C mitls-fstar/src/tls verify $parallel_opt -k"
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
   verify_commands[quackyducky]="echo nothing to verify for quackyducky"
 
@@ -1271,7 +1271,7 @@ do_clean_c ()
     mitls-fstar/src/tls
   do
     if test -d "$d" ; then
-      make -C "$d" clean-c
+      $MAKE -C "$d" clean-c
     fi
   done
 }
@@ -1286,7 +1286,7 @@ do_clean ()
     kremlin \
     ; do
     if test -d "$d" ; then
-      make -C "$d" clean
+      $MAKE -C "$d" clean
     fi
   done
   clean_hacl
