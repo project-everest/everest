@@ -75,9 +75,16 @@ set_make_opts () {
 }
 
 # The file where to store customized environment variables
-# (default is $HOME/.bash_profile)
 if [[ $EVEREST_ENV_DEST_FILE == "" ]] ; then
-  EVEREST_ENV_DEST_FILE="$HOME/.bash_profile"
+  # For people who have installed and initialized opam prior to
+  # running ./everest check, opam will modify .profile instead of
+  # .bash_profile, if the latter does not exist. So we need to
+  # account for that case.
+  if [[ -f "$HOME/.bash_profile" ]] ; then
+      EVEREST_ENV_DEST_FILE="$HOME/.bash_profile"
+  else
+      EVEREST_ENV_DEST_FILE="$HOME/.profile"
+  fi
 fi
 
 # The whole script makes the assumption that we're in the everest directory;
