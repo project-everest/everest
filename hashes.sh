@@ -1,8 +1,8 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=2ed70b579221d5f78d7c81f32a675543e67cb94e
-branches[FStar]=nik_remove_eta_boot
-hashes[hacl-star]=409711e2f8c621b1faa9386703d695300c3ca6e2
+hashes[FStar]=f7cb0aa3eb3ebd39abe290973a67e6e155740759
+branches[FStar]=nik_2325
+hashes[hacl-star]=b37cea085a986ded7e2ae5ef14f532a65279d862
 branches[hacl-star]=master
 hashes[kremlin]=7db5eb6e61fa8177019bfc89c738b68476bc7fff
 branches[kremlin]=master
