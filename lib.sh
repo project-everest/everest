@@ -1,9 +1,9 @@
 # For pretty output
 color () {
   if [ -t 1 ]; then
-    tput setaf $2
+    tput setaf $2 || true
     echo $1
-    tput sgr0
+    tput sgr0 || true
   else
     echo $1
   fi
