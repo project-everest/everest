@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[everquic-crypto]=329730dc0e2989090b44f9aed76846a96d4a8a17
 branches[everquic-crypto]=master
-hashes[FStar]=48a9e4a90d6c7a7b1975947d00925c2ad6e33f43
+hashes[FStar]=e84e25249f7bf3e72a8d2480d0215a59bad96428
 branches[FStar]=master
 hashes[hacl-star]=1091d1cdd5d78ae86e6cff1ac716ecdd734c0643
 branches[hacl-star]=master
