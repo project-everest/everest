@@ -10,7 +10,7 @@ batteries batteries
 sqlite3 sqlite3
 menhirLib menhir
 fix fix
-sedlex sedlex
+sedlex sedlex.2.3
 ctypes ctypes
 visitors visitors
 ctypes.foreign ctypes-foreign
