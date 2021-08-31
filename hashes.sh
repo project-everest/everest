@@ -1,8 +1,8 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=954cd06a09d99a73147054a1f086a7c1fc4010df
-branches[FStar]=nik_classical_sugar
-hashes[hacl-star]=12ed0cc8b19ad9cba72c4d63f6852fbf1e2e01ab
+hashes[FStar]=26ffc766f91eb667fcdd46348f3b8c076b758139
+branches[FStar]=nik_record_resolution
+hashes[hacl-star]=f4064e2fb998c1433c0b07db1fecd67da5e40130
 branches[hacl-star]=master
 hashes[kremlin]=3e502374c9afd018dcd062556eb02203dfad1923
 branches[kremlin]=master
@@ -11,4 +11,4 @@ branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[quackyducky]=33d5538d8a92096d39879547a0744983b0fb75a1
-branches[quackyducky]=nik_keyword_clash
+branches[quackyducky]=master
