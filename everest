@@ -771,11 +771,16 @@ OCAML
   # Check for Python 2
   if ! which python2 >/dev/null 2>&1 ; then
     red "ERROR: python2 not found in PATH"
-    magenta "Do you want to install a Cygwin python2?"
-    find_cygsetup
-    cygcmd="$cygsetup $cygsetup_args --packages=python2"
-    echo "$cygcmd"
-    prompt_yes "$cygcmd"
+    if is_windows ; then
+        magenta "Do you want to install a Cygwin python2?"
+        find_cygsetup
+        cygcmd="$cygsetup $cygsetup_args --packages=python2"
+        echo "$cygcmd"
+        prompt_yes "$cygcmd"
+    else
+        echo Please install python2 using your package manager
+        exit 1
+    fi
   else
     echo "... python2 found in PATH"
   fi
