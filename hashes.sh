@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=a130743e0336bb7d96ba7b57f24ea73b76807ac3
+hashes[FStar]=4b29c597b18886ad86b4156c89d121d7ef5a1a58
 branches[FStar]=_aseem_match_lopt
 hashes[hacl-star]=284d55f2edadf162109499ae2798c0a8b59c74c6
 branches[hacl-star]=master
