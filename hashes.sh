@@ -10,5 +10,5 @@ hashes[mitls-fstar]=07aa7d3ea66d9d85c58cd97ed54cbf8c45959897
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[quackyducky]=3ff517a01767defabf4cf3cbaa4a55952c3cface
+hashes[quackyducky]=3eaef75c0010c3a24527a3e69130816f7c094340
 branches[quackyducky]=master
