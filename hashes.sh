@@ -2,9 +2,9 @@ declare -A hashes
 declare -A branches
 hashes[everquic-crypto]=329730dc0e2989090b44f9aed76846a96d4a8a17
 branches[everquic-crypto]=master
-hashes[FStar]=9394de4821b331f485f54abe2580942f33ebda17
+hashes[FStar]=7194fecc76519a2a3d24f8eab745658dfabf1bf1
 branches[FStar]=master
-hashes[hacl-star]=50047e3e3cf50a6ea27a19c2f30ea917289e3b92
+hashes[hacl-star]=cec39d04182ff2a354aede0c209ce73277faba82
 branches[hacl-star]=master
 hashes[kremlin]=75d83003d4a055940a6358bbb49a3f65c8dcd9ed
 branches[kremlin]=master
