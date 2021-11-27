@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=68c7146e28a5a12f00e9e1ab7b5f70d69a11fc82
+hashes[FStar]=1f74d0074dc0f28e4678fa63b3fb8905b8b63d59
 branches[FStar]=master
 hashes[hacl-star]=59152ac558d2a289b14add047d39550c88b95a2c
 branches[hacl-star]=master
