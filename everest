@@ -131,17 +131,17 @@ source lib.sh
 source repositories.sh
 source hashes.sh
 
+GETOPT=getopt
 if is_osx; then
-  GETOPT=/usr/local/opt/gnu-getopt/bin/getopt
-else
-  GETOPT=getopt
+  export PATH=$(brew --prefix gnu-getopt)/bin:$PATH
+  echo $PATH
 fi
 
 # -allow a command to fail with !’s side effect on errexit
 # -use return value from ${PIPESTATUS[0]}, because ! hosed $?
 ! $GETOPT --test > /dev/null
 if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
-  echo "you have an antiquated getopt; on Mac OS X, run \"brew install gnu-getopt\""
+  echo "you have an antiquated getopt; on Mac OS X, run \"brew install gnu-getopt\" and make sure it comes first in the PATH"
   exit 1
 fi
 
@@ -488,10 +488,12 @@ do_check ()
   # Basic utilities
   success_or "which" "please execute this script in a Unix environment"
   if is_osx; then
-    success_or "greadlink" "please run \"brew install coreutils\""
-    success_or "gsed" "please run \"brew install gnu-sed\""
-    success_or "gfind" "please run \"brew install findutils\""
-    success_or "gmake" "please run \"brew install make\""
+    local msg="please run \"brew install gnu-getopt coreutils gnu-sed findutils make\""
+    brew --prefix gnu-getopt || echo $msg
+    success_or "greadlink" "$msg"
+    success_or "gsed" "$msg"
+    success_or "gfind" "$msg"
+    success_or "gmake" "$msg"
   fi
 
   # Slightly suboptimal, since we may end up running Cygwin's setup twice.
@@ -748,7 +750,7 @@ OCAML
     # note: nothing left, we will use vcvarsall.bat/vsdevcmd.bat instead
     true
   else
-    success_or "fsharpc" "brew install mono or use your favorite package manager"
+    success_or "fsharpc" "brew install mono (Intel) or install mono from website (M1) and reopen terminal"
   fi
   echo "... fsc found in PATH"
 
