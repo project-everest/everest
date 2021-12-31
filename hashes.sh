@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[FStar]=4cd5e89442aad653f9cc5b00a32c03b4347f5a93
 branches[FStar]=master
-hashes[hacl-star]=6bbf270bf571a1c6e60ee9b707e6f1b3ffd38d49
+hashes[hacl-star]=93660b88fc0645abf06900a77b003e4c879b400e
 branches[hacl-star]=protz_internal_headers
 hashes[kremlin]=a0ee3a30b186a385b6ee42cf4edac05fd32850f1
 branches[kremlin]=protz_internal_headers
