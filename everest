@@ -356,43 +356,63 @@ parse_z3_version () {
 do_update_z3 () {
   # Update our clone of FStarLang/binaries and check that we have the blessed z3
   # version
-  if ! [[ -d fstarlang_binaries ]]; then
-    echo "... cloning FStarLang/binaries"
-    try_git_clone "git@github.com:FStarLang/binaries.git" "https://github.com/FStarLang/binaries.git" fstarlang_binaries
-  fi
-  (cd fstarlang_binaries && git fetch && git checkout z3-4.8.5 && git reset --hard origin/z3-4.8.5)
 
   local current_z3=$(parse_z3_version)
   echo "... version of z3 found in PATH: $current_z3"
 
-  if is_windows; then
-    local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-win.zip
-  elif is_osx; then
-    local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-osx-*.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-ubuntu-14.04.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
-    local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-debian-*.zip
-  else
-    red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
-    local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-debian-*.zip
-  fi
   local new_z3=4.8.5
-  new_z3_file=$(ls $new_z3_file)
-  echo "... version of z3 found in z3-tested is: $new_z3_file"
 
   if [[ $new_z3 != $current_z3 ]]; then
-    magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
-    prompt_yes true "exit 1"
-    echo "... ls fstarlang_binaries/z3-tested"
-    ls -altrh fstarlang_binaries/z3-tested
-    echo "... ls $new_z3_file"
-    ls -altrh $new_z3_file
-    echo "... unzipping $new_z3_file"
-    unzip $new_z3_file
-    local new_z3_folder=${new_z3_file%%.zip}
-    new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
-    find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
+    if [[ $(uname -m) == "aarch64" ]]; then
+      magenta "Get the freshest z3 from source? [Yn]"
+      prompt_yes true "exit 1"
+
+      git clone https://github.com/Z3Prover/z3 z3-source
+      pushd z3-source
+      git checkout Z3-$new_z3
+      mkdir build
+      cd build
+      cmake -G "Unix Makefiles" ../
+      make -j4
+      popd
+      local new_z3_folder=z3-source/build
+
+    else
+      magenta "Get the freshest z3 from FStarLang/binaries? [Yn]"
+      prompt_yes true "exit 1"
+
+      if ! [[ -d fstarlang_binaries ]]; then
+        echo "... cloning FStarLang/binaries"
+        try_git_clone "git@github.com:FStarLang/binaries.git" "https://github.com/FStarLang/binaries.git" fstarlang_binaries
+      fi
+      (cd fstarlang_binaries && git fetch && git checkout z3-4.8.5 && git reset --hard origin/z3-4.8.5)
+
+      if is_windows; then
+        local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-win.zip
+      elif is_osx; then
+        local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-osx-*.zip
+      elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
+        local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-ubuntu-14.04.zip
+      elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
+        local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-debian-*.zip
+      else
+        red "WARNING: could not figure out your system via lsb_release; defaulting to Debian"
+        local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-debian-*.zip
+      fi
+      new_z3_file=$(ls $new_z3_file)
+      echo "... version of z3 found in z3-tested is: $new_z3_file"
+
+      echo "... ls fstarlang_binaries/z3-tested"
+      ls -altrh fstarlang_binaries/z3-tested
+      echo "... ls $new_z3_file"
+      ls -altrh $new_z3_file
+      echo "... unzipping $new_z3_file"
+      unzip $new_z3_file
+      local new_z3_folder=${new_z3_file%%.zip}
+      new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
+      find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
+    fi
+
     magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
     prompt_yes "write_z3_env_dest_file $new_z3_folder" true
     rm -f z3
