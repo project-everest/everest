@@ -411,7 +411,7 @@ do_update_z3 () {
       local new_z3_folder=${new_z3_file%%.zip}
       new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
       find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
-    end
+    fi
 
     magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
     prompt_yes "write_z3_env_dest_file $new_z3_folder" true
