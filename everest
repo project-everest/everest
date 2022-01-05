@@ -367,10 +367,12 @@ do_update_z3 () {
       magenta "Get the freshest z3 from source? [Yn]"
       prompt_yes true "exit 1"
 
-      git clone https://github.com/Z3Prover/z3 z3-source
+      if [[ ! -d z3-source ]]; then
+        git clone https://github.com/Z3Prover/z3 z3-source
+      fi
       pushd z3-source
       git checkout Z3-$new_z3
-      mkdir build
+      mkdir -p build
       cd build
       cmake -G "Unix Makefiles" ../
       make -j4
