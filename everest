@@ -249,7 +249,7 @@ windows_check_or_modify_env_dest_file () {
 write_z3_env_dest_file () {
   str="
     # This line automatically added by $0
-    export PATH=$(pwd)/$1/bin:\$PATH"
+    export PATH=$(pwd)/$1:\$PATH"
   write_to_env_dest_file "$str"
 }
 
@@ -411,8 +411,8 @@ do_update_z3 () {
       echo "... unzipping $new_z3_file"
       unzip $new_z3_file
       local new_z3_folder=${new_z3_file%%.zip}
-      new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}
-      find $new_z3_folder -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
+      new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested}/bin
+      find $new_z3_folder/.. -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
     fi
 
     magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path? [Yn]"
