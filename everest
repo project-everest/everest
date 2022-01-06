@@ -376,7 +376,7 @@ do_update_z3 () {
       cd build
       cmake -G "Unix Makefiles" ../
       make -j4
-      if z3 ../../queries-*.smt2; [[ $? != 1 ]] then
+      if z3 ../../queries-*.smt2; [[ $? != 1 ]]; then
         echo "!!! Z3 crashed, cannot build $new_z3, switching to 4.8.14 instead"
         git checkout z3-4.8.14
         cmake -G "Unix Makefiles" ../
