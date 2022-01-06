@@ -417,7 +417,7 @@ do_update_z3 () {
       echo "... unzipping $new_z3_file"
       unzip $new_z3_file
       local new_z3_folder=${new_z3_file%%.zip}
-      new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested}/bin
+      new_z3_folder=${new_z3_folder##fstarlang_binaries/z3-tested/}/bin
       find $new_z3_folder/.. -iname '*.dll' -or -iname '*.exe' | xargs chmod a+x
     fi
 
