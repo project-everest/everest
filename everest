@@ -377,8 +377,13 @@ do_update_z3 () {
       cmake -G "Unix Makefiles" ../
       make -j4
       if ./z3 ../../queries-*.smt2; [[ $? != 1 ]]; then
-        echo "!!! Z3 crashed, cannot build $new_z3, switching to 4.8.14 instead"
-        git checkout z3-4.8.14
+        echo "!!! Z3 crashed, cannot build $new_z3, switching to 8ebeaf03b4a84e150b593d1f5cbcbacca61f1117 instead"
+        # I ran a git bisect to figure out which commit was the first one that
+        # fixes the bug. Trying to stay as close to 4.8.5 as possible, since the
+        # output changed at some point and then we get errors along the lines of
+        #   Unexpected error; please file a bug report, ideally with a minimized version of the source program that triggered the error.
+        #   (Failure "Parse error: </result> not found"
+        git checkout 8ebeaf03b4a84e150b593d1f5cbcbacca61f1117
         cmake -G "Unix Makefiles" ../
         make -j4
       fi
