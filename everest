@@ -1189,7 +1189,7 @@ build_hacl () {
   # source files.
   rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
   $MAKE -C hacl-star $make_opts &&
-  make -C hacl-star/providers/quic_provider $make_opts &&
+  $MAKE -C hacl-star/providers/quic_provider $make_opts &&
   $MAKE -C hacl-star/dist/gcc-compatible install-hacl-star-raw &&
   (cd hacl-star/bindings/ocaml && dune build @install && dune build && dune install)
 }
@@ -1216,7 +1216,7 @@ do_make ()
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[quackyducky]="$MAKE -C quackyducky $make_opts"
-  build_commands[everquic-crypto]="make -C everquic-crypto dist/libeverquic.a $make_opts"
+  build_commands[everquic-crypto]="$MAKE -C everquic-crypto dist/libeverquic.a $make_opts"
 
   # Order matters.
   for p in FStar kremlin MLCrypto hacl-star quackyducky everquic-crypto mitls-fstar; do
@@ -1254,7 +1254,7 @@ do_test () {
   # qd
   $MAKE -C quackyducky $make_opts test
   # everquic-crypto
-  make -C everquic-crypto $make_opts test
+  $MAKE -C everquic-crypto $make_opts test
   # mitls; note: these tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && $MAKE $make_opts test)
   (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
