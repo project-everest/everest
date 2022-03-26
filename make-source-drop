@@ -24,7 +24,7 @@ fi
 cd "${BASH_SOURCE%/*}" || exit
 
 MITLS_EXTRACT=mitls-fstar/src/tls/extract
-KREMLIB=kremlin/kremlib
+KRMLLIB=karamel/krmllib
 HACL_HOME=hacl-star
 HACL_CODE=hacl-star/code
 
@@ -34,15 +34,15 @@ mkdir -p $1/include
 cp mitls-fstar/libs/ffi/mitlsffi.h $1/include
 cp hacl-star/providers/quic_provider/quic_provider.h $1/include
 cp hacl-star/dist/evercrypt-external-headers/EverCrypt.h $1/include
-cp kremlin/include/kremlib.h $1/include
+cp karamel/include/krmllib.h $1/include
 cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.h $1/include
-cp -R kremlin/include/* $1/include
-cp -R kremlin/kremlib/dist/generic/{FStar_UInt128.h,fstar_uint128_msvc.h,LowStar_Endianness.h,FStar_UInt_8_16_32_64.h} $1/include
+cp -R karamel/include/* $1/include
+cp -R karamel/krmllib/dist/generic/{FStar_UInt128.h,fstar_uint128_msvc.h,LowStar_Endianness.h,FStar_UInt_8_16_32_64.h} $1/include
 
-# libkremlib ##################################################################
-mkdir -p $1/kremlib
-cp -R kremlin/kremlib/dist/generic/*.{c,h} $1/kremlib/
-cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.c $1/kremlib
+# libkrmllib ##################################################################
+mkdir -p $1/krmllib
+cp -R karamel/krmllib/dist/generic/*.{c,h} $1/krmllib/
+cp mitls-fstar/src/tls/extract/cstubs/RegionAllocator.c $1/krmllib
 
 # libevercrypt ################################################################
 mkdir -p $1/evercrypt
@@ -59,9 +59,9 @@ mkdir -p $1/mitls
 #rm -f $1/mitls/*.c
 find $1/mitls -maxdepth 1 -type f -and -name '*.c' -and -not -name dllmain.c | xargs rm -f
 rm -f $1/mitls/*.h
-cp $MITLS_EXTRACT/Kremlin-Msvc-Library/*.{c,h} $1/mitls
-cp $MITLS_EXTRACT/Kremlin-Msvc-Library/include/*.h $1/mitls
-cp $MITLS_EXTRACT/Kremlin-Msvc-Library/stub/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Karamel-Msvc-Library/*.{c,h} $1/mitls
+cp $MITLS_EXTRACT/Karamel-Msvc-Library/include/*.h $1/mitls
+cp $MITLS_EXTRACT/Karamel-Msvc-Library/stub/*.{c,h} $1/mitls
 rm $1/mitls/RegionAllocator.*
 
 # libquiccrypto ###############################################################
@@ -75,7 +75,7 @@ cp hacl-star/providers/quic_provider/test.c $1/quiccrypto
 # binaries
 mkdir -p $1/bin
 rm -f $1/bin/*.dll
-cp mitls-fstar/src/tls/extract/Kremlin-Library/libmitls.dll $1/bin
+cp mitls-fstar/src/tls/extract/Karamel-Library/libmitls.dll $1/bin
 cp MLCrypto/openssl/libcrypto-1_1-x64.dll $1/bin
 cp hacl-star/providers/quic_provider/libquiccrypto.dll $1/bin
 cp hacl-star/dist/mitls/libevercrypt.dll $1/bin
