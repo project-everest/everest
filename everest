@@ -830,11 +830,11 @@ OCAML
       xpwd="$(pwd)"
   fi
 
-  magenta "Note: you *may* want to add ${xpwd}/FStar/bin and ${xpwd}/kremlin to your PATH"
+  magenta "Note: you *may* want to add ${xpwd}/FStar/bin and ${xpwd}/karamel to your PATH"
   [ -n "${FSTAR_HOME}" ] || \
     magenta "Note: you *may* want to export FSTAR_HOME=${xpwd}/FStar"
-  [ -n "${KREMLIN_HOME}" ] || \
-    magenta "Note: you *may* want to export KREMLIN_HOME=${xpwd}/kremlin"
+  [ -n "${KRML_HOME}" ] || \
+    magenta "Note: you *may* want to export KRML_HOME=${xpwd}/karamel"
   [ -n "${HACL_HOME}" ] || \
     magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
@@ -1118,7 +1118,7 @@ setup_env () {
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
-    export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
+    export KRML_HOME=$(cygpath -m $(pwd)/karamel)
     export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
     export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
     export QD_HOME=$(cygpath -m $(pwd)/quackyducky)
@@ -1126,7 +1126,7 @@ setup_env () {
   else
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
-    export KREMLIN_HOME=$(pwd)/kremlin
+    export KRML_HOME=$(pwd)/karamel
     export HACL_HOME=$(pwd)/hacl-star
     export MLCRYPTO_HOME=$(pwd)/MLCrypto
     export QD_HOME=$(pwd)/quackyducky
@@ -1135,11 +1135,11 @@ setup_env () {
   export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
-  magenta "exported KREMLIN_HOME=$KREMLIN_HOME"
+  magenta "exported KRML_HOME=$KRML_HOME"
   magenta "exported VALE_HOME=$VALE_HOME"
   magenta "exported HACL_HOME=$HACL_HOME"
   magenta "exported MLCRYPTO_HOME=$MLCRYPTO_HOME"
-  export PATH=$(pwd)/FStar/bin:$(pwd)/kremlin:$PATH
+  export PATH=$(pwd)/FStar/bin:$(pwd)/karamel:$PATH
 
   if is_windows; then
     export PATH=$(cygpath -u $OPENSSL_HOME):$PATH
@@ -1167,7 +1167,7 @@ set_opt () {
 }
 
 set_openssl () {
-  # Picked up by mitls-fstar/src/tls/Makefile.Kremlin
+  # Picked up by mitls-fstar/src/tls/Makefile.Karamel
   export MITLS_USE_OPENSSL=1
 }
 
@@ -1175,10 +1175,10 @@ build_fstar () {
   $MAKE -C FStar $make_opts
 }
 
-build_kremlin () {
-  # TODO: run the kremlin testsuite too
-  $MAKE -C kremlin $make_opts &&
-  $MAKE -C kremlin/kremlib $make_opts
+build_karamel () {
+  # TODO: run the karamel testsuite too
+  $MAKE -C karamel $make_opts &&
+  $MAKE -C karamel/krmllib $make_opts
 }
 
 build_hacl () {
@@ -1210,14 +1210,14 @@ do_make ()
 
   declare -A build_commands
   build_commands[FStar]="build_fstar"
-  build_commands[kremlin]="build_kremlin"
+  build_commands[karamel]="build_karamel"
   build_commands[MLCrypto]="$MAKE -C MLCrypto $make_opts"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[quackyducky]="$MAKE -C quackyducky $make_opts"
 
   # Order matters.
-  for p in FStar kremlin MLCrypto hacl-star quackyducky mitls-fstar; do
+  for p in FStar karamel MLCrypto hacl-star quackyducky mitls-fstar; do
     # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
@@ -1244,8 +1244,8 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
-  # kremlin
-  LD_LIBRARY_PATH= $MAKE -C kremlin/test $make_opts everything
+  # karamel
+  LD_LIBRARY_PATH= $MAKE -C karamel/test $make_opts everything
   # evercrypt
   # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
   LD_LIBRARY_PATH= $MAKE -C hacl-star test $make_opts
@@ -1264,7 +1264,7 @@ do_verify () {
 
   declare -A verify_commands
   verify_commands[FStar]="$MAKE -C FStar/src ulong $make_opts"
-  verify_commands[kremlin]="echo nothing to verify for kremlin"
+  verify_commands[karamel]="echo nothing to verify for karamel"
   verify_commands[hacl-star]="$MAKE -C hacl-star $parallel_opt -k verify"
   verify_commands[mitls-fstar]="$MAKE -C mitls-fstar/src/tls verify $parallel_opt -k"
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
@@ -1281,7 +1281,7 @@ do_verify () {
 do_clean_c ()
 {
   setup_env
-  for d in kremlin/kremlib hacl-star/ \
+  for d in karamel/krmllib hacl-star/ \
     mitls-fstar/src/tls
   do
     if test -d "$d" ; then
@@ -1297,7 +1297,7 @@ do_clean ()
     MLCrypto/{,openssl} \
     quackyducky/out quackyducky \
     mitls-fstar/src/tls \
-    kremlin \
+    karamel \
     ; do
     if test -d "$d" ; then
       $MAKE -C "$d" clean
@@ -1373,8 +1373,8 @@ do_qbuild ()
   cat > "$NMAKE_INVOKE_FILE" <<EOF
 call $VS_ENV_CMD
 set MAKEFLAGS=
-set KRML_HOME=..\..\..\kremlin
-cd "$DIR\kremlib" &&^
+set KRML_HOME=..\..\..\karamel
+cd "$DIR\krmllib" &&^
 call nmake -f makefile.vs &&^
 cd "$DIR\evercrypt" &&^
 call nmake -f makefile.vs &&^
@@ -1450,7 +1450,7 @@ OPTION:
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
-    FStar kremlin mitls-fstar hacl-star MLCrypto quackyducky
+    FStar karamel mitls-fstar hacl-star MLCrypto quackyducky
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1617,7 +1617,7 @@ while true; do
       break
       ;;
 
-    FStar|mitls-fstar|kremlin|hacl-star|MLCrypto|quackyducky)
+    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|quackyducky)
       ALL_PROJECTS=$1
       ;;
 
