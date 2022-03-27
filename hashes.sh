@@ -1,14 +1,14 @@
 declare -A hashes
 declare -A branches
-hashes[FStar]=46de8dcefa3bb9b1feff46e8dabf17b0231b9620
-branches[FStar]=pnmadelaine_rename_kremlin
-hashes[hacl-star]=4f4304ba7962f312778d004ea66d611e4edafcb8
-branches[hacl-star]=pnmadelaine_rename_kremlin
-hashes[karamel]=b33940fa58fd8c9f6f744ea566e46ae4f9c6544a
-branches[karamel]=pnmadelaine_renaming
-hashes[mitls-fstar]=14add47bdcd01a781b4be970daccbfe785d57ce0
-branches[mitls-fstar]=taramana_krml_rename
+hashes[FStar]=75df2b47a7f3f23bc5266f750904f775f27a0be2
+branches[FStar]=master
+hashes[hacl-star]=79f1c0c8dded78e1dd92795a0bb1f8a4a5c92bee
+branches[hacl-star]=master
+hashes[karamel]=d9da0195a79b1ee0cdd668c1bc644dd55e08723a
+branches[karamel]=master
+hashes[mitls-fstar]=49b06892771fd8af9ac5997569e9982bcda11910
+branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[quackyducky]=94039d0f67247e45234ab137439cbc4aa96491a7
-branches[quackyducky]=taramana_krml_rename
+hashes[quackyducky]=bdee14cc09271a630e3ab538ffa953390f6a5482
+branches[quackyducky]=master
