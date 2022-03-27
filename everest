@@ -1121,7 +1121,7 @@ setup_env () {
     export KRML_HOME=$(cygpath -m $(pwd)/karamel)
     export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
     export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
-    export QD_HOME=$(cygpath -m $(pwd)/quackyducky)
+    export EVERPARSE_HOME=$(cygpath -m $(pwd)/everparse)
     export MITLS_HOME=$(cygpath -m $(pwd)/mitls-fstar)
   else
     export FSTAR_HOME=$(pwd)/FStar
@@ -1129,7 +1129,7 @@ setup_env () {
     export KRML_HOME=$(pwd)/karamel
     export HACL_HOME=$(pwd)/hacl-star
     export MLCRYPTO_HOME=$(pwd)/MLCrypto
-    export QD_HOME=$(pwd)/quackyducky
+    export EVERPARSE_HOME=$(pwd)/everparse
     export MITLS_HOME=$(pwd)/mitls-fstar
   fi
   export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
@@ -1214,10 +1214,10 @@ do_make ()
   build_commands[MLCrypto]="$MAKE -C MLCrypto $make_opts"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
-  build_commands[quackyducky]="$MAKE -C quackyducky $make_opts"
+  build_commands[everparse]="$MAKE -C everparse $make_opts"
 
   # Order matters.
-  for p in FStar karamel MLCrypto hacl-star quackyducky mitls-fstar; do
+  for p in FStar karamel MLCrypto hacl-star everparse mitls-fstar; do
     # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
@@ -1249,8 +1249,8 @@ do_test () {
   # evercrypt
   # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
   LD_LIBRARY_PATH= $MAKE -C hacl-star test $make_opts
-  # qd
-  $MAKE -C quackyducky $make_opts test
+  # everparse
+  $MAKE -C everparse $make_opts test
   # mitls; note: these tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && $MAKE $make_opts test)
   (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
@@ -1268,7 +1268,7 @@ do_verify () {
   verify_commands[hacl-star]="$MAKE -C hacl-star $parallel_opt -k verify"
   verify_commands[mitls-fstar]="$MAKE -C mitls-fstar/src/tls verify $parallel_opt -k"
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
-  verify_commands[quackyducky]="echo nothing to verify for quackyducky"
+  verify_commands[everparse]="echo nothing to verify for everparse"
 
   for p in $ALL_PROJECTS; do
     separator
@@ -1295,7 +1295,7 @@ do_clean ()
   setup_env
   for d in FStar/ulib/ml FStar/src{,/ocaml-output} \
     MLCrypto/{,openssl} \
-    quackyducky/out quackyducky \
+    everparse \
     mitls-fstar/src/tls \
     karamel \
     ; do
@@ -1450,7 +1450,7 @@ OPTION:
 
 PROJECT:
   restrict the subsequent commands to operate on one of the following:
-    FStar karamel mitls-fstar hacl-star MLCrypto quackyducky
+    FStar karamel mitls-fstar hacl-star MLCrypto everparse
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1617,7 +1617,7 @@ while true; do
       break
       ;;
 
-    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|quackyducky)
+    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|everparse)
       ALL_PROJECTS=$1
       ;;
 
