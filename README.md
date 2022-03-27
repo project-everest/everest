@@ -8,7 +8,7 @@ See [the website](https://project-everest.github.io)!
 
 The role of this script is to:
 - check that your development environment is sane;
-- fetch known good revisions of miTLS, F\*, KreMLin, Vale and HACL
+- fetch known good revisions of miTLS, F\*, KaRaMeL, Vale and HACL
 - run the voodoo series of commands that will lead to a successful build
 - run whatever is known to be working tests.
 
@@ -102,14 +102,14 @@ F*](https://arxiv.org/abs/1703.00053):
 
 ## Source code for our tools
 
-- **4, the KreMLin tool:**
-  the source of KreMLin are included in `kremlin`; of notable
+- **4, the KaRaMeL tool:**
+  the source of KaRaMeL are included in `karamel`; of notable
   interest are the files
-  `kremlin/src/Simplify.ml` (many rewriting passes),
-  `kremlin/src/Inlining.ml` (inlining of the `StackInline` effect),
-  `kremlin/src/DataTypes.ml` (compilation of data types and pattern
+  `karamel/src/Simplify.ml` (many rewriting passes),
+  `karamel/src/Inlining.ml` (inlining of the `StackInline` effect),
+  `karamel/src/DataTypes.ml` (compilation of data types and pattern
   matches),
-  `kremlin/src/AstToCStar.ml` (the transformation from λow\* to C\*)
+  `karamel/src/AstToCStar.ml` (the transformation from λow\* to C\*)
 - **F\*:**
   the sources of F\* are in `FStar/src`
 
@@ -145,7 +145,7 @@ cat hacl-star/test/benchmark-gcc.txt
 ```
 
 In the above sequence, `gcc` can be replaced with `gcc-unrolled` to have
-KreMLin unroll some loops when extracting the C code.
+KaRaMeL unroll some loops when extracting the C code.
 
 ### With CompCert
 

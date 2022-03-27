@@ -24,7 +24,7 @@ fi
 cd "${BASH_SOURCE%/*}" || exit
 
 MITLS_EXTRACT=mitls-fstar/src/tls/dist
-KREMLIB=kremlin/kremlib
+KRMLLIB=karamel/krmllib
 HACL_HOME=hacl-star
 HACL_CODE=hacl-star/code
 
@@ -34,15 +34,15 @@ mkdir -p $1/include
 cp mitls-fstar/libs/ffi/mitlsffi.h $1/include
 cp hacl-star/providers/quic_provider/quic_provider.h $1/include
 cp hacl-star/dist/evercrypt-external-headers/EverCrypt.h $1/include
-cp kremlin/include/kremlib.h $1/include
+cp karamel/include/krmllib.h $1/include
 cp mitls-fstar/src/tls/cstubs/RegionAllocator.h $1/include
-cp -R kremlin/include/* $1/include
-cp -R kremlin/kremlib/dist/generic/{FStar_UInt128.h,fstar_uint128_msvc.h,LowStar_Endianness.h,FStar_UInt_8_16_32_64.h} $1/include
+cp -R karamel/include/* $1/include
+cp -R karamel/krmllib/dist/generic/{FStar_UInt128.h,fstar_uint128_msvc.h,LowStar_Endianness.h,FStar_UInt_8_16_32_64.h} $1/include
 
-# libkremlib ##################################################################
-mkdir -p $1/kremlib
-cp -R kremlin/kremlib/dist/generic/*.{c,h} $1/kremlib/
-cp mitls-fstar/src/tls/cstubs/RegionAllocator.c $1/kremlib
+# libkrmllib ##################################################################
+mkdir -p $1/krmllib
+cp -R karamel/krmllib/dist/generic/*.{c,h} $1/krmllib/
+cp mitls-fstar/src/tls/cstubs/RegionAllocator.c $1/krmllib
 
 # libevercrypt ################################################################
 mkdir -p $1/evercrypt
