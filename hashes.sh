@@ -1,14 +1,14 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=fbf8fe3d94ee7870cf9de871ae732f2221b9de64
-branches[everparse]=taramana_krml_rename
-hashes[FStar]=76cfa68389bef66eeaf635f73322af8eeb9ae254
-branches[FStar]=pnmadelaine_rename_kremlin
-hashes[hacl-star]=7d976534f00262bb60de59464dd3156175881710
-branches[hacl-star]=pnmadelaine_rename_kremlin
-hashes[karamel]=b33940fa58fd8c9f6f744ea566e46ae4f9c6544a
-branches[karamel]=pnmadelaine_renaming
-hashes[mitls-fstar]=0bc3877e26e0b727a996d53ec477f7e1d16794aa
-branches[mitls-fstar]=taramana_krml_rename
+hashes[everparse]=bdee14cc09271a630e3ab538ffa953390f6a5482
+branches[everparse]=master
+hashes[FStar]=75df2b47a7f3f23bc5266f750904f775f27a0be2
+branches[FStar]=master
+hashes[hacl-star]=79f1c0c8dded78e1dd92795a0bb1f8a4a5c92bee
+branches[hacl-star]=master
+hashes[karamel]=d9da0195a79b1ee0cdd668c1bc644dd55e08723a
+branches[karamel]=master
+hashes[mitls-fstar]=49b06892771fd8af9ac5997569e9982bcda11910
+branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
