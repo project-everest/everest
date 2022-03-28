@@ -49,7 +49,7 @@ RUN ./everest --yes -j $EVEREST_THREADS z3 opam
 
 # Perform F* CI
 RUN make -j $EVEREST_THREADS -C FStar
-RUN env KREMLIN_HOME=$EVEREST_DIR/kremlin make -j $EVEREST_THREADS -C FStar/src uregressions
+RUN env KRML_HOME=$EVEREST_DIR/karamel make -j $EVEREST_THREADS -C FStar/src uregressions
 
 # Make Everest
 RUN ./everest --yes -j $EVEREST_THREADS make
