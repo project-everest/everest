@@ -1,12 +1,12 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=2b53ee3fd4e0db6cd208c4cc65c13c5bd49c2863
+hashes[everparse]=428eefe5fafd80a3fdddcf2f4ed98b82b18e6bfe
 branches[everparse]=master
-hashes[FStar]=d2a705405103caa26ba68797ff6173466dfb1f75
-branches[FStar]=nik_misc
-hashes[hacl-star]=1ac2888a2737fa4ce78d4a4845f182b801062966
+hashes[FStar]=ba0bd60f3277e3fedaace8442ea3b74618412251
+branches[FStar]=nik_typeclasses
+hashes[hacl-star]=73d33120c8e2ccd1001acc27ce23843e96aa3aae
 branches[hacl-star]=master
-hashes[karamel]=70084646b6f5cf01d58a2ed1c0e69d34829ba480
+hashes[karamel]=5bd2036ad8e28dcb88d243f94d7b666fc65bce84
 branches[karamel]=master
 hashes[mitls-fstar]=d0c3a4419627c088ee209c732f86efd948380dc6
 branches[mitls-fstar]=master
