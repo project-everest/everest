@@ -1,0 +1,36 @@
+# This Dockerfile is meant to test several OCaml versions.
+# It must be loaded from the everest repository root
+# (NOT from the directory that contains the Dockerfile)
+
+ARG OCAML_VERSION=4.12
+FROM ocaml/opam:ubuntu-ocaml-$OCAML_VERSION
+
+# Install the dependencies of Project Everest
+ENV DEBIAN_FRONTEND=noninteractive
+RUN sudo apt-get update
+RUN sudo apt-get --yes install --no-install-recommends m4 time gnupg ca-certificates mono-devel python-is-python2 python3 nodejs cmake wget fsharp scons
+
+# Add Everest files and projects
+
+# Alternative 1: use the current clone
+ENV EVEREST_DIR $HOME
+ADD --chown=opam:opam . $EVEREST_DIR
+
+# Alternative 2: use a fresh clone
+# ENV EVEREST_BRANCH=master
+# RUN git clone --branch $EVEREST_BRANCH https://github.com/project-everest/everest everest
+# ENV EVEREST_DIR $HOME/everest
+
+WORKDIR $EVEREST_DIR
+
+# Install opam packages
+ARG CI_THREADS=24
+ARG CI_BRANCH=master
+RUN eval $(opam env) && ./everest --yes -j $CI_THREADS opam
+
+# Install z3 via opam, to automatically add it to the PATH
+RUN eval $(opam env) && opam install z3.4.8.5
+
+# Perform the upgrade
+RUN eval $(opam env) && command -v ocaml >/dev/null 2>&1
+RUN --mount=type=secret,id=DZOMO_GITHUB_TOKEN eval $(opam env) && DZOMO_GITHUB_TOKEN=$(sudo cat /run/secrets/DZOMO_GITHUB_TOKEN) .docker/build/everest-move.sh $CI_THREADS $CI_BRANCH

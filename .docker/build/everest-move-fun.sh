@@ -1,4 +1,7 @@
 function everest_move() {
+    [[ -n "$DZOMO_GITHUB_TOKEN" ]] || return 1
+    git config --global user.name "Dzomo, the Everest Yak"
+    git config --global user.email "everbld@microsoft.com"
 
     # Work around `git pull` getting stuck
     # From https://askubuntu.com/questions/336907/really-verbose-way-to-test-git-connection-over-ssh
@@ -27,9 +30,6 @@ function everest_move() {
     # This function is called from a test... so it needs to fast-fail because "set
     # -e" does not apply within subshells.
 
-    # VSTS does not clean things properly... no point in fighting that, let's just
-    # do it ourselves
-    git clean -ffdx
     # Sanity check that will fail if something is off the rails
     ./everest --yes -j $threads check reset || return 1
     # Update every project to its know good version and branch, then for each
@@ -83,13 +83,13 @@ function everest_move() {
     else
         # Life is good, record new revisions and commit.
         msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
-        MsgToSlack="$msg"
+        MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
         git checkout $CI_BRANCH &&
             git pull &&
             ./everest --yes snapshot &&
             git commit -am "[CI] automatic upgrade" &&
-            git push git@github.com:project-everest/everest.git $CI_BRANCH ||
-            MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
+            git push https://"$DZOMO_GITHUB_TOKEN"@github.com/project-everest/everest.git $CI_BRANCH &&
+        MsgToSlack="$msg"
 
         echo "MsgToSlack content: $MsgToSlack"
         echo $MsgToSlack >$slack_file
