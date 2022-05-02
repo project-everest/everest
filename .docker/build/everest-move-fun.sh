@@ -84,11 +84,12 @@ function everest_move() {
         # Life is good, record new revisions and commit.
         msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
         MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
+        git_remote=https://"$DZOMO_GITHUB_TOKEN"@github.com/project-everest/everest.git
         git checkout $CI_BRANCH &&
-            git pull &&
+            git pull "$git_remote" &&
             ./everest --yes snapshot &&
             git commit -am "[CI] automatic upgrade" &&
-            git push https://"$DZOMO_GITHUB_TOKEN"@github.com/project-everest/everest.git $CI_BRANCH &&
+            git push "$git_remote" $CI_BRANCH &&
         MsgToSlack="$msg"
 
         echo "MsgToSlack content: $MsgToSlack"
