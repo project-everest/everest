@@ -1,0 +1,52 @@
+name: Upgrade Everest
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: [self-hosted, linux, X64]
+    steps:
+      - name: Record initial timestamp
+        run: |
+          echo "CI_INITIAL_TIMESTAMP=$(date '+%s')" >> $GITHUB_ENV
+      - name: Check out repo        
+        uses: actions/checkout@v2
+      - name: Identify the notification channel
+        run: |
+          echo "CI_SLACK_CHANNEL=$(jq -c -r '.NotificationChannel' .docker/build/config.json)" >> $GITHUB_ENV
+      - name: Upgrade Everest
+        run: |
+          ci_docker_image_tag=everest-upgrade:local-run-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
+          docker buildx build --pull --secret id=DZOMO_GITHUB_TOKEN -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.everest-move --build-arg CI_BRANCH=$GITHUB_REF_NAME .
+          ci_docker_status=$(docker run $ci_docker_image_tag /bin/bash -c 'cat status.txt' || echo false)
+          CI_FINAL_TIMESTAMP=$(date '+%s')
+          CI_TIME_DIFF=$(( $CI_FINAL_TIMESTAMP - $CI_INITIAL_TIMESTAMP ))
+          CI_TIME_DIFF_S=$(( $CI_TIME_DIFF % 60 ))
+          CI_TIME_DIFF_M=$(( ($CI_TIME_DIFF / 60) % 60 ))
+          CI_TIME_DIFF_H=$(( $CI_TIME_DIFF / 3600 ))
+          echo 'CI_SLACK_MESSAGE<<END_OF_CI_SLACK_MESSAGE' >> $GITHUB_ENV
+          echo "$(docker run $ci_docker_image_tag /bin/bash -c 'cat slackmsg.txt' || echo Failure)\nElapsed time: ${CI_TIME_DIFF_H}h ${CI_TIME_DIFF_M}min ${CI_TIME_DIFF_S}s" >> $GITHUB_ENV
+          echo END_OF_CI_SLACK_MESSAGE >> $GITHUB_ENV
+          $ci_docker_status
+        env:
+          DZOMO_GITHUB_TOKEN: ${{ secrets.DZOMO_GITHUB_TOKEN }}
+      - name: Post to the Slack channel
+        if: ${{ always() }}
+        id: slack
+        uses: slackapi/slack-github-action@v1.16.0
+        with:
+          channel-id: ${{ env.CI_SLACK_CHANNEL }}
+          payload: |
+            {
+              "blocks" : [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.CI_SLACK_MESSAGE }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
