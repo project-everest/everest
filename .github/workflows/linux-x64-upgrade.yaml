@@ -16,7 +16,7 @@ jobs:
       - name: Upgrade Everest
         run: |
           ci_docker_image_tag=everest-upgrade:local-run-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
-          ci_docker_builder=builder_everest_upgrade_$GITHUB_RUN_ID_$GITHUB_RUN_ATTEMPT
+          ci_docker_builder=builder_everest_upgrade_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}
           docker buildx create --name $ci_docker_builder --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=50000000
           docker buildx build --builder $ci_docker_builder --pull --load --secret id=DZOMO_GITHUB_TOKEN -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.everest-move --build-arg CI_BRANCH=$GITHUB_REF_NAME .
           ci_docker_status=$(docker run $ci_docker_image_tag /bin/bash -c 'cat status.txt' || echo false)
