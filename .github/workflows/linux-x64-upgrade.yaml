@@ -26,7 +26,7 @@ jobs:
           CI_TIME_DIFF_M=$(( ($CI_TIME_DIFF / 60) % 60 ))
           CI_TIME_DIFF_H=$(( $CI_TIME_DIFF / 3600 ))
           echo 'CI_SLACK_MESSAGE<<END_OF_CI_SLACK_MESSAGE' >> $GITHUB_ENV
-          echo "$(docker run $ci_docker_image_tag /bin/bash -c 'cat slackmsg.txt' || echo Failure)\nElapsed time: ${CI_TIME_DIFF_H}h ${CI_TIME_DIFF_M}min ${CI_TIME_DIFF_S}s" >> $GITHUB_ENV
+          echo "$(docker run $ci_docker_image_tag /bin/bash -c 'cat slackmsg.txt' || echo Failure)\n<https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|Build logs>\nElapsed time: ${CI_TIME_DIFF_H}h ${CI_TIME_DIFF_M}min ${CI_TIME_DIFF_S}s" >> $GITHUB_ENV
           echo END_OF_CI_SLACK_MESSAGE >> $GITHUB_ENV
           docker buildx rm $ci_docker_builder
           $ci_docker_status
