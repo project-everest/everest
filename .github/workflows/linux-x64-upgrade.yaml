@@ -16,8 +16,9 @@ jobs:
       - name: Upgrade Everest
         run: |
           ci_docker_image_tag=everest-upgrade:local-run-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
-          docker buildx create --use --name larger_log --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=50000000 || true
-          docker buildx build --pull --secret id=DZOMO_GITHUB_TOKEN -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.everest-move --build-arg CI_BRANCH=$GITHUB_REF_NAME .
+          ci_docker_builder=builder_everest_upgrade_$GITHUB_RUN_ID_$GITHUB_RUN_ATTEMPT
+          docker buildx create --name $ci_docker_builder --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=50000000
+          docker buildx build --builder $ci_docker_builder --pull --load --secret id=DZOMO_GITHUB_TOKEN -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.everest-move --build-arg CI_BRANCH=$GITHUB_REF_NAME .
           ci_docker_status=$(docker run $ci_docker_image_tag /bin/bash -c 'cat status.txt' || echo false)
           CI_FINAL_TIMESTAMP=$(date '+%s')
           CI_TIME_DIFF=$(( $CI_FINAL_TIMESTAMP - $CI_INITIAL_TIMESTAMP ))
@@ -27,6 +28,7 @@ jobs:
           echo 'CI_SLACK_MESSAGE<<END_OF_CI_SLACK_MESSAGE' >> $GITHUB_ENV
           echo "$(docker run $ci_docker_image_tag /bin/bash -c 'cat slackmsg.txt' || echo Failure)\nElapsed time: ${CI_TIME_DIFF_H}h ${CI_TIME_DIFF_M}min ${CI_TIME_DIFF_S}s" >> $GITHUB_ENV
           echo END_OF_CI_SLACK_MESSAGE >> $GITHUB_ENV
+          docker buildx rm $ci_docker_builder
           $ci_docker_status
         env:
           DZOMO_GITHUB_TOKEN: ${{ secrets.DZOMO_GITHUB_TOKEN }}
