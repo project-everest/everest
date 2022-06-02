@@ -44,7 +44,7 @@ RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing
 RUN opam env --set-switch | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
 
 # Install opam packages
-ARG EVEREST_THREADS=1
+ARG EVEREST_THREADS=24
 RUN ./everest --yes -j $EVEREST_THREADS z3 opam
 
 # Perform F* CI
