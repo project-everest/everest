@@ -8,7 +8,7 @@ FROM ocaml/opam:ubuntu-ocaml-$OCAML_VERSION
 # Install the dependencies of Project Everest
 ENV DEBIAN_FRONTEND=noninteractive
 RUN sudo apt-get update
-RUN sudo apt-get --yes install --no-install-recommends m4 time gnupg ca-certificates python-is-python3 python3 nodejs cmake wget fsharp scons
+RUN sudo apt-get --yes install --no-install-recommends m4 time gnupg ca-certificates python-is-python3 python3 nodejs cmake wget scons
 
 # Install .NET Core, following https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 RUN apt install -y gnupg ca-certificates wget && \
