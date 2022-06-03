@@ -30,8 +30,7 @@ function everest_move() {
     # This function is called from a test... so it needs to fast-fail because "set
     # -e" does not apply within subshells.
 
-    # Sanity check that will fail if something is off the rails
-    ./everest --yes -j $threads check reset || return 1
+    ./everest --yes -j $threads reset || return 1
     # Update every project to its know good version and branch, then for each
     # project run git pull
     source hashes.sh
