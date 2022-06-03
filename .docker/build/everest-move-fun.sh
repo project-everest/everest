@@ -85,7 +85,7 @@ function everest_move() {
         MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
         git_remote=https://"$DZOMO_GITHUB_TOKEN"@github.com/project-everest/everest.git
         git checkout $CI_BRANCH &&
-            git pull --rebase "$git_remote" &&
+            git pull --rebase "$git_remote" $CI_BRANCH &&
             ./everest --yes snapshot &&
             git commit -am "[CI] automatic upgrade" &&
             git push "$git_remote" $CI_BRANCH &&
