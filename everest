@@ -1449,7 +1449,9 @@ OPTION:
   -openssl  Use OpenSSL for AEAD in miTLS
 
 PROJECT:
-  restrict the subsequent commands to operate on one of the following:
+  The commands
+    pull reset advance merge make
+  can be restricted to operate on one of the following:
     FStar karamel mitls-fstar hacl-star MLCrypto everparse
 
 COMMAND:
