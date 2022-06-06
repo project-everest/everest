@@ -841,24 +841,7 @@ OCAML
 
 get_vale ()
 {
-  if [ ! -d vale ]; then
-    mkdir vale
-  fi
-  vale_version=$(<hacl-star/vale/.vale_version)
-  vale_version=${vale_version%$'\r'}  # remove Windows carriage return, if it exists
-  old_vale_version=none
-  if [ -e vale/bin/.vale_version ]; then
-    old_vale_version=$(<vale/bin/.vale_version)
-    old_vale_version=${old_vale_version%$'\r'}  # remove Windows carriage return, if it exists
-  fi
-  if [ $vale_version != $old_vale_version ]; then
-    wget "https://github.com/project-everest/vale/releases/download/v${vale_version}/vale-release-${vale_version}.zip" -O vale/vale-release.zip
-    rm -rf "vale/vale-release-${vale_version}"
-    unzip -o vale/vale-release.zip -d vale
-    rm -rf "vale/bin"
-    mv "vale/vale-release-${vale_version}/bin" vale/
-    chmod +x vale/bin/*.exe
-  fi
+  HACL_HOME=$PWD/hacl-star hacl-star/tools/get_vale.sh
 }
 
 self_update () {
@@ -1449,7 +1432,9 @@ OPTION:
   -openssl  Use OpenSSL for AEAD in miTLS
 
 PROJECT:
-  restrict the subsequent commands to operate on one of the following:
+  The commands
+    pull reset advance merge make
+  can be restricted to operate on one of the following:
     FStar karamel mitls-fstar hacl-star MLCrypto everparse
 
 COMMAND:

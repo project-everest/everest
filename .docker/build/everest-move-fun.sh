@@ -30,8 +30,7 @@ function everest_move() {
     # This function is called from a test... so it needs to fast-fail because "set
     # -e" does not apply within subshells.
 
-    # Sanity check that will fail if something is off the rails
-    ./everest --yes -j $threads check reset || return 1
+    ./everest --yes -j $threads reset || return 1
     # Update every project to its know good version and branch, then for each
     # project run git pull
     source hashes.sh
@@ -41,7 +40,7 @@ function everest_move() {
     local url=""
     for r in ${!hashes[@]}; do
         cd $r
-        git pull
+        git pull --rebase
         if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
             fresh=true
             url=${repositories[$r]#git@github.com:}
@@ -86,7 +85,7 @@ function everest_move() {
         MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
         git_remote=https://"$DZOMO_GITHUB_TOKEN"@github.com/project-everest/everest.git
         git checkout $CI_BRANCH &&
-            git pull "$git_remote" &&
+            git pull --rebase "$git_remote" $CI_BRANCH &&
             ./everest --yes snapshot &&
             git commit -am "[CI] automatic upgrade" &&
             git push "$git_remote" $CI_BRANCH &&
