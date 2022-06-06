@@ -8,7 +8,7 @@ FROM ocaml/opam:ubuntu-ocaml-$OCAML_VERSION
 # Install the dependencies of Project Everest
 ENV DEBIAN_FRONTEND=noninteractive
 RUN sudo apt-get update
-RUN sudo apt-get --yes install --no-install-recommends m4 time gnupg ca-certificates python-is-python3 python3 nodejs cmake wget scons python2.7
+RUN sudo apt-get --yes install --no-install-recommends m4 time gnupg ca-certificates python-is-python3 python3 cmake wget scons python2.7 curl
 
 # Install .NET Core, following https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 RUN sudo apt install -y gnupg ca-certificates wget && \
@@ -20,6 +20,10 @@ RUN sudo apt install -y gnupg ca-certificates wget && \
     sudo apt-get update && \
     sudo apt-get --yes install --no-install-recommends \
     dotnet-sdk-6.0
+
+# Install NodeJS 16
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -
+RUN sudo apt-get install -y --no-install-recommends nodejs
 
 # Add Everest files and projects
 

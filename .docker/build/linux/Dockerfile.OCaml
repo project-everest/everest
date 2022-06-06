@@ -7,7 +7,7 @@ FROM ubuntu:22.04
 # Install the dependencies of Project Everest
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
-RUN apt-get --yes install --no-install-recommends opam emacs gcc binutils make m4 git time gnupg ca-certificates sudo python-is-python3 python3 nodejs cmake
+RUN apt-get --yes install --no-install-recommends opam emacs gcc binutils make m4 git time gnupg ca-certificates sudo python-is-python3 python3 cmake curl
 
 # Install .NET Core, following https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 RUN apt install -y gnupg ca-certificates wget && \
@@ -19,6 +19,10 @@ RUN apt install -y gnupg ca-certificates wget && \
     apt-get update && \
     apt-get --yes install --no-install-recommends \
     dotnet-sdk-6.0
+
+# Install NodeJS 16
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y --no-install-recommends nodejs
 
 # Create a new user and give them sudo rights
 RUN useradd -d /home/test test
