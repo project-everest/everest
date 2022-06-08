@@ -66,6 +66,9 @@ RUN ./everest --yes -j $EVEREST_THREADS z3 opam
 RUN make -j $EVEREST_THREADS -C FStar
 RUN env KRML_HOME=$EVEREST_DIR/karamel make -j $EVEREST_THREADS -C FStar/src uregressions
 
+# Check that all Everest dependencies are correctly installed
+RUN ./everest --yes -j $EVEREST_THREADS check
+
 # Make Everest
 RUN ./everest --yes -j $EVEREST_THREADS make
 
