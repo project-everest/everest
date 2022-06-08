@@ -2,50 +2,68 @@
 # It must be loaded from the everest repository root
 # (NOT from the directory that contains the Dockerfile)
 
-ARG OCAML_VERSION=4.12
-FROM ocaml/opam:ubuntu-ocaml-$OCAML_VERSION
+# TODO: Ideally, this should be doable with Dockerfile.OCaml
+# To do so, we need to move the everest-move rule into the Everest script.
+
+FROM ubuntu:22.04
 
 # Install the dependencies of Project Everest
 ENV DEBIAN_FRONTEND=noninteractive
-RUN sudo apt-get update
-RUN sudo apt-get --yes install --no-install-recommends m4 time gnupg ca-certificates python-is-python3 python3 cmake wget scons python2.7 curl
+RUN apt-get update
+RUN apt-get --yes install --no-install-recommends opam emacs gcc binutils make m4 git time gnupg ca-certificates sudo python-is-python3 python3 cmake curl
 
 # Install .NET Core, following https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
-RUN sudo apt install -y gnupg ca-certificates wget && \
+RUN apt install -y gnupg ca-certificates wget && \
     wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
-    sudo dpkg -i packages-microsoft-prod.deb && \
+    dpkg -i packages-microsoft-prod.deb && \
     rm packages-microsoft-prod.deb && \
-    sudo apt-get update && \
-    sudo apt-get install -y apt-transport-https && \
-    sudo apt-get update && \
-    sudo apt-get --yes install --no-install-recommends \
+    apt-get update && \
+    apt-get install -y apt-transport-https && \
+    apt-get update && \
+    apt-get --yes install --no-install-recommends \
     dotnet-sdk-6.0
 
 # Install NodeJS 16
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -
-RUN sudo apt-get install -y --no-install-recommends nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y --no-install-recommends nodejs
+
+# Create a new user and give them sudo rights
+RUN useradd -d /home/test test
+RUN echo 'test ALL=NOPASSWD: ALL' >> /etc/sudoers
+RUN mkdir /home/test
+RUN chown test:test /home/test
+USER test
+ENV HOME /home/test
+WORKDIR $HOME
+SHELL ["/bin/bash", "--login", "-c"]
 
 # Add Everest files and projects
 
 # Alternative 1: use the current clone
+ADD --chown=test . .
 ENV EVEREST_DIR $HOME
-ADD --chown=opam:opam . $EVEREST_DIR
 
 # Alternative 2: use a fresh clone
 # ENV EVEREST_BRANCH=master
 # RUN git clone --branch $EVEREST_BRANCH https://github.com/project-everest/everest everest
 # ENV EVEREST_DIR $HOME/everest
 
+# Clone Everest subprojects
 WORKDIR $EVEREST_DIR
+RUN ./everest --yes reset
+
+# Install z3
+RUN ./everest --yes z3
+
+# Install OCaml
+ENV OPAMYES 1
+ARG OCAML_VERSION=4.12.0
+RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing 
+RUN opam env --set-switch | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
 
 # Install opam packages
-ARG CI_THREADS=24
-ARG CI_BRANCH=master
-RUN eval $(opam env) && ./everest --yes -j $CI_THREADS opam
-
-# Install z3 via opam, to automatically add it to the PATH
-RUN eval $(opam env) && opam install z3.4.8.5
+ARG EVEREST_THREADS=24
+RUN ./everest --yes -j $EVEREST_THREADS z3 opam
 
 # Perform the upgrade
-RUN eval $(opam env) && command -v ocaml >/dev/null 2>&1
 RUN --mount=type=secret,id=DZOMO_GITHUB_TOKEN eval $(opam env) && DZOMO_GITHUB_TOKEN=$(sudo cat /run/secrets/DZOMO_GITHUB_TOKEN) .docker/build/everest-move.sh $CI_THREADS $CI_BRANCH
