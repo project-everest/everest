@@ -643,9 +643,9 @@ OCAML
     # note: nothing left, we will use vcvarsall.bat/vsdevcmd.bat instead
     true
   else
-    success_or "fsharpc" "brew install mono (Intel) or install mono from website (M1) and reopen terminal"
+    success_or "dotnet" "Install .NET Core following https://docs.microsoft.com/en-us/dotnet/core/install/"
   fi
-  echo "... fsc found in PATH"
+  echo "... dotnet found in PATH"
 
   do_update_z3
 
