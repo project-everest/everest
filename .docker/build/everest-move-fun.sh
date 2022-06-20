@@ -71,7 +71,9 @@ function everest_move() {
         echo "MsgToSlack content: $MsgToSlack"
         echo $MsgToSlack >$slack_file
         feedback SkipDockerImagePush true
-    elif ! ./everest --yes -j $threads $everest_args; then
+    # We also perform `everest check`, which will install z3 and opam packages
+    # and perform a sanity check that will fail if something is off the rails
+    elif ! ./everest --yes -j $threads check $everest_args; then
         # Provide a meaningful summary of what we tried
         msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
         MsgToSlack="$msg"
