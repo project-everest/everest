@@ -37,6 +37,12 @@ ENV HOME /home/test
 WORKDIR $HOME
 SHELL ["/bin/bash", "--login", "-c"]
 
+# Install OCaml
+ENV OPAMYES 1
+ARG OCAML_VERSION=4.12.0
+RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing 
+RUN opam env --set-switch | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
+
 # Add Everest files and projects
 
 # Alternative 1: use the current clone
@@ -54,12 +60,6 @@ RUN ./everest --yes reset
 
 # Install z3
 RUN ./everest --yes z3
-
-# Install OCaml
-ENV OPAMYES 1
-ARG OCAML_VERSION=4.12.0
-RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing 
-RUN opam env --set-switch | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
 
 # Install opam packages
 ARG CI_THREADS=24
