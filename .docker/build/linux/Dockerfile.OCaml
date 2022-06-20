@@ -56,6 +56,7 @@ WORKDIR $EVEREST_DIR
 RUN ./everest --yes reset
 
 # Check that all Everest dependencies are correctly installed
+ARG EVEREST_THREADS=24
 RUN ./everest --yes -j $EVEREST_THREADS check
 
 # Make Everest
