@@ -29,10 +29,6 @@ If you don't have Opam for Windows installed already, please download and run
 the [64-bit installer](https://fdopen.github.io/opam-repository-mingw/installation/).
 It will also install Cygwin, then you can launch this script from a Cygwin prompt.
 
-Install the [production scons for
-Windows](http://scons.org/pages/download.html). After installation, ensure that
-`scons.bat` is in the system path.
-
 ## Usage
 
 See `./everest help`
