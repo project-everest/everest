@@ -1,8 +1,8 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=98ca1e0b817eb4ae04de906e582855bd93ae1a75
-branches[everparse]=master
-hashes[FStar]=d29c4c0bc3093bef8fda073cf54da3b49172cfbd
+hashes[everparse]=b04e256e59abafb3b1fad84e0e071cd86552cb9b
+branches[everparse]=_fstar_2635
+hashes[FStar]=8240d675f5fe53c9afdaaa353110dbfbaf73f3d7
 branches[FStar]=_nik_2635
 hashes[hacl-star]=df2235f2052d28f2fee3d5439d5156a5a6865e89
 branches[hacl-star]=_fstar_2635_hints
