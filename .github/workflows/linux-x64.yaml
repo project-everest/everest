@@ -20,7 +20,9 @@ jobs:
       - name: Build Everest and its dependencies
         run: |
           ci_docker_image_tag=everest:local-run-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
-          if docker buildx build -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.OCaml . ; then
+          ci_docker_builder=builder_everest_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}
+          docker buildx create --name $ci_docker_builder --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=50000000
+          if docker buildx build --builder $ci_docker_builder --load -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.OCaml . ; then
             ci_docker_status=true
           else
             ci_docker_status=false
@@ -31,6 +33,7 @@ jobs:
             fi
             docker tag $ci_docker_image_tag everest:local-commit-$GITHUB_SHA
           fi
+          docker buildx rm $ci_docker_builder
           $ci_docker_status
       - name: Compute elapsed time
         if: ${{ always() }}

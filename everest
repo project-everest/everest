@@ -643,42 +643,11 @@ OCAML
     # note: nothing left, we will use vcvarsall.bat/vsdevcmd.bat instead
     true
   else
-    success_or "fsharpc" "brew install mono (Intel) or install mono from website (M1) and reopen terminal"
+    success_or "dotnet" "Install .NET Core following https://docs.microsoft.com/en-us/dotnet/core/install/"
   fi
-  echo "... fsc found in PATH"
+  echo "... dotnet found in PATH"
 
   do_update_z3
-
-  # Check whether python points to a python2
-  if which python > /dev/null 2>&1 ; then
-    # nasty: python outputs its version on STDERR
-    if python --version 2>&1 | grep '^Python 2\.' 2>/dev/null ; then
-      echo "... python found in PATH, points to some Python 2.x"
-    else
-      red "ERROR: python points to something that is not a Python 2.x"
-      red "Please fix this according to your platform"
-      exit 1
-    fi
-  else
-    magenta "WARNING: python not found in PATH"
-  fi
-
-  # Check for Python 2
-  if ! which python2 >/dev/null 2>&1 ; then
-    red "ERROR: python2 not found in PATH"
-    if is_windows ; then
-        magenta "Do you want to install a Cygwin python2?"
-        find_cygsetup
-        cygcmd="$cygsetup $cygsetup_args --packages=python2"
-        echo "$cygcmd"
-        prompt_yes "$cygcmd"
-    else
-        echo Please install python2 using your package manager
-        exit 1
-    fi
-  else
-    echo "... python2 found in PATH"
-  fi
 
   if is_windows; then
     if [[ $(echo $FSTAR_HOME | cut -c 1 | tr -d '\r\n' ) == "/" ]]; then

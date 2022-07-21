@@ -7,7 +7,7 @@ FROM ubuntu:22.04
 # Install the dependencies of Project Everest
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
-RUN apt-get --yes install --no-install-recommends opam emacs gcc binutils make m4 git time gnupg ca-certificates sudo python-is-python3 python3 nodejs cmake
+RUN apt-get --yes install --no-install-recommends opam gcc binutils make m4 git time gnupg ca-certificates sudo cmake curl wget
 
 # Install .NET Core, following https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 RUN apt install -y gnupg ca-certificates wget && \
@@ -20,6 +20,10 @@ RUN apt install -y gnupg ca-certificates wget && \
     apt-get --yes install --no-install-recommends \
     dotnet-sdk-6.0
 
+# Install NodeJS 16
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y --no-install-recommends nodejs
+
 # Create a new user and give them sudo rights
 RUN useradd -d /home/test test
 RUN echo 'test ALL=NOPASSWD: ALL' >> /etc/sudoers
@@ -29,6 +33,12 @@ USER test
 ENV HOME /home/test
 WORKDIR $HOME
 SHELL ["/bin/bash", "--login", "-c"]
+
+# Install OCaml
+ENV OPAMYES 1
+ARG OCAML_VERSION=4.12.0
+RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing 
+RUN opam env --set-switch | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
 
 # Add Everest files and projects
 
@@ -45,22 +55,9 @@ ENV EVEREST_DIR $HOME
 WORKDIR $EVEREST_DIR
 RUN ./everest --yes reset
 
-# Install z3
-RUN ./everest --yes z3
-
-# Install OCaml
-ENV OPAMYES 1
-ARG OCAML_VERSION=4.12.0
-RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing 
-RUN opam env --set-switch | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
-
-# Install opam packages
+# Check that all Everest dependencies are correctly installed
 ARG EVEREST_THREADS=24
-RUN ./everest --yes -j $EVEREST_THREADS z3 opam
-
-# Perform F* CI
-RUN make -j $EVEREST_THREADS -C FStar
-RUN env KRML_HOME=$EVEREST_DIR/karamel make -j $EVEREST_THREADS -C FStar/src uregressions
+RUN ./everest --yes -j $EVEREST_THREADS check
 
 # Make Everest
 RUN ./everest --yes -j $EVEREST_THREADS make
