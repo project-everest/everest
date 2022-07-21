@@ -1,13 +1,13 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=e7227152dfade6cb4f0adf7dc03816273c0ef4e0
+hashes[everparse]=b770e9b7153a18c05b481957594ac99a86403a1c
 branches[everparse]=master
-hashes[FStar]=96534f492dd4a91a78ad5d01e9c39e49808c1c10
+hashes[FStar]=9988091552ae4fd0786240fc4b116fc3546450fc
 branches[FStar]=master
-hashes[hacl-star]=49c852f9b8bd67a208e402f97c79092953f4d504
-branches[hacl-star]=master
-hashes[karamel]=d67210df9520c3b1705dd540acf891b8030f73a8
-branches[karamel]=master
+hashes[hacl-star]=1cf18e5dd0d7d791d352cfe3c7faa14b9cb602a6
+branches[hacl-star]=protz_fix_dependency_edge
+hashes[karamel]=ebbf6437d8f969ce4459ffe7479f6014830df308
+branches[karamel]=protz_monomorphization
 hashes[mitls-fstar]=d0c3a4419627c088ee209c732f86efd948380dc6
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
