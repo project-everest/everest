@@ -22,7 +22,7 @@ jobs:
           ci_docker_image_tag=everest:local-run-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
           ci_docker_builder=builder_everest_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}
           docker buildx create --name $ci_docker_builder --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=50000000
-          if docker buildx build --builder $ci_docker_builder --load -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.OCaml . ; then
+          if docker buildx build --pull --builder $ci_docker_builder --load -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.OCaml . ; then
             ci_docker_status=true
           else
             ci_docker_status=false
