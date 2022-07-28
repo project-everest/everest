@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[everparse]=4f19cc5c8a12c0602984e7462b9c9feb1a9419c6
 branches[everparse]=master
-hashes[FStar]=962033f8546bc11d5d30e35f0cc5d7104b65d5e5
+hashes[FStar]=f617eefd3b23b551e6b23395ce5f96f25a65cb04
 branches[FStar]=master
 hashes[hacl-star]=0a58b6343c2dac2cd87a17f1ecb8233c3947f856
 branches[hacl-star]=master
