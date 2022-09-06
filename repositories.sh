@@ -10,8 +10,8 @@ https[FStar]=https://github.com/FStarLang/FStar.git
 repositories[karamel]=git@github.com:FStarLang/karamel.git
 https[karamel]=https://github.com/FStarLang/karamel.git
 
-repositories[hacl-star]=git@github.com:project-everest/hacl-star.git
-https[hacl-star]=https://github.com/project-everest/hacl-star.git
+repositories[hacl-star]=git@github.com:hacl-star/hacl-star.git
+https[hacl-star]=https://github.com/hacl-star/hacl-star.git
 
 repositories[mitls-fstar]=git@github.com:project-everest/mitls-fstar.git
 https[mitls-fstar]=https://github.com/project-everest/mitls-fstar.git
