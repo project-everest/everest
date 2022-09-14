@@ -1,13 +1,13 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=07a03635395f9a661148555021219505c55cce14
-branches[everparse]=master
+hashes[everparse]=25170f9b0ef2d2f372224bb3fa56e3fedec227eb
+branches[everparse]=_aseem_ftar_2691
 hashes[everquic-crypto]=f98ed65261c6080649465853412ae554fe7724f0
 branches[everquic-crypto]=master
-hashes[FStar]=9fb00b9abea774e9231d9e23664db3bc2332fec4
-branches[FStar]=master
-hashes[hacl-star]=cc75c3e50ad86904891cac536cca6f533d1b0065
-branches[hacl-star]=main
+hashes[FStar]=e6e52e065c3d1797fa2fbc4d4415f57e656eee45
+branches[FStar]=aseem_top_level_indexed_effects
+hashes[hacl-star]=ddf91543987aefa92280ca8bfba8619f881eab87
+branches[hacl-star]=_aseem_fstar_2691
 hashes[karamel]=101a7abe20c34e61fd923289457d87d5b3a6bdf1
 branches[karamel]=master
 hashes[mitls-fstar]=3780fedcf43c8496928bd18186c5770f73c60671
