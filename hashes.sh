@@ -2,7 +2,7 @@ declare -A hashes
 declare -A branches
 hashes[everparse]=61095391d073298ad90182b24115e0db8fc60cc8
 branches[everparse]=master
-hashes[everquic-crypto]=f98ed65261c6080649465853412ae554fe7724f0
+hashes[everquic-crypto]=383e383c676b66c87d809c6a3b289cbe60e889d8
 branches[everquic-crypto]=master
 hashes[FStar]=d99b1b0a6d01a0944db3404e817744ee1793be4b
 branches[FStar]=nik_logical
