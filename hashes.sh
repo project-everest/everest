@@ -1,16 +1,16 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=61095391d073298ad90182b24115e0db8fc60cc8
+hashes[everparse]=be96e489c05dfb059b2f54cb707ec08f47bd720f
 branches[everparse]=master
-hashes[everquic-crypto]=f98ed65261c6080649465853412ae554fe7724f0
+hashes[everquic-crypto]=68ae95ed536909f1dc70c1f338993f610c2cc62f
 branches[everquic-crypto]=master
-hashes[FStar]=75ae521146f8f68b0b7fd46c5076e0f43f6f413b
+hashes[FStar]=80abd5984fbaa59351bb3775915b5ba51dbfc78f
 branches[FStar]=master
-hashes[hacl-star]=dd85eb740f7b3fb11ae7e9c0764c4794bbd7aa61
+hashes[hacl-star]=c083433155a6092dca620bb8c249ac43b7d4160f
 branches[hacl-star]=main
-hashes[karamel]=140c57644e47a2096ca07ca4000eeb4f643b70fe
+hashes[karamel]=d08eab257ec694bb00b6b762c57f875ea8cb407f
 branches[karamel]=master
-hashes[mitls-fstar]=3780fedcf43c8496928bd18186c5770f73c60671
+hashes[mitls-fstar]=a12125f8ffa63596bc50720853e4d0c0564f45e9
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
