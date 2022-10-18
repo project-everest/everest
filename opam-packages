@@ -23,4 +23,4 @@ cppo cppo
 ppxlib ppxlib.0.25.1
 re re
 odoc odoc
-
+alcotest alcotest
