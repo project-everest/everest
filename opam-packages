@@ -20,7 +20,7 @@ cryptokit cryptokit
 ocamlbuild ocamlbuild
 qcheck qcheck
 cppo cppo
-ppxlib ppxlib.0.25.1
+ppxlib ppxlib
 re re
 odoc odoc
 alcotest alcotest
