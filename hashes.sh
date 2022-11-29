@@ -14,5 +14,5 @@ hashes[mitls-fstar]=a12125f8ffa63596bc50720853e4d0c0564f45e9
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[merkle-tree]=7b3f5db1b44e50b6161ad744589b7bea78511f8f
+hashes[merkle-tree]=b7be609e0810835e2a72eddacd4ba866bdc9d4c9
 branches[merkle-tree]=main
