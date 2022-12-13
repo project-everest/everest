@@ -985,9 +985,10 @@ do_make ()
   build_commands[mitls-fstar]="build_mitls"
   build_commands[everparse]="$MAKE -C everparse $make_opts"
   build_commands[everquic-crypto]="make -C everquic-crypto dist/libeverquic.a $make_opts"
+  build_commands[merkle-tree]="make -C merkle-tree dist/libmerkletree.a $make_opts"
 
   # Order matters.
-  for p in FStar karamel MLCrypto hacl-star everparse everquic-crypto mitls-fstar; do
+  for p in FStar karamel MLCrypto hacl-star merkle-tree everparse everquic-crypto mitls-fstar; do
     # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
@@ -1019,6 +1020,8 @@ do_test () {
   # evercrypt
   # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
   LD_LIBRARY_PATH= $MAKE -C hacl-star test $make_opts
+  # everquic-crypto
+  make -C merkle-tree $make_opts test
   # everparse
   $MAKE -C everparse $make_opts test
   # everquic-crypto
@@ -1042,6 +1045,7 @@ do_verify () {
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
   verify_commands[everparse]="echo nothing to verify for everparse"
   verify_commands[everquic-crypto]="echo nothing to verify for everquic-crypto"
+  verify_commands[merkle-tree]="echo nothing to verify for merkle-tree"
 
   for p in $ALL_PROJECTS; do
     separator
@@ -1070,6 +1074,7 @@ do_clean ()
     MLCrypto/{,openssl} \
     everparse \
     everquic-crypto \
+    merkle-tree \
     mitls-fstar/src/tls \
     karamel \
     ; do
@@ -1226,7 +1231,7 @@ PROJECT:
   The commands
     pull reset advance merge make
   can be restricted to operate on one of the following:
-    FStar karamel mitls-fstar hacl-star MLCrypto everparse everquic-crypto
+    FStar karamel mitls-fstar hacl-star merkle-tree MLCrypto everparse everquic-crypto
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1393,7 +1398,7 @@ while true; do
       break
       ;;
 
-    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|everparse|everquic-crypto)
+    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|everparse|merkle-tree|everquic-crypto)
       ALL_PROJECTS=$1
       ;;
 

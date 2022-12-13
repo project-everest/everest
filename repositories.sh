@@ -13,6 +13,9 @@ https[karamel]=https://github.com/FStarLang/karamel.git
 repositories[hacl-star]=git@github.com:hacl-star/hacl-star.git
 https[hacl-star]=https://github.com/hacl-star/hacl-star.git
 
+repositories[merkle-tree]=git@github.com:hacl-star/merkle-tree.git
+https[merkle-tree]=https://github.com/hacl-star/merkle-tree.git
+
 repositories[mitls-fstar]=git@github.com:project-everest/mitls-fstar.git
 https[mitls-fstar]=https://github.com/project-everest/mitls-fstar.git
 
@@ -21,3 +24,4 @@ https[MLCrypto]=https://github.com/project-everest/MLCrypto.git
 
 repositories[everquic-crypto]=git@github.com:project-everest/everquic-crypto.git
 https[everquic-crypto]=https://github.com/project-everest/everquic-crypto.git
+
