@@ -24,3 +24,4 @@ ppxlib ppxlib
 re re
 odoc odoc
 alcotest alcotest
+secp256k1-internal secp256k1-internal
