@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=e14c9d39cbf96b708ede78d0914f0eaef9f9ddd2
+hashes[everparse]=c42da561b8d83fa647444daf269ecea32f0dcf2d
 branches[everparse]=master
 hashes[everquic-crypto]=deeb1137ed863c5949b4e521923c44490f42617c
 branches[everquic-crypto]=master
