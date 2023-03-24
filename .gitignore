@@ -6,6 +6,7 @@ mitls-fstar
 MLCrypto
 everparse
 everquic-crypto
+merkle-tree
 log
 fstarlang_binaries
 
