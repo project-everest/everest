@@ -14,7 +14,7 @@ set -o pipefail
 
 # Known URLs, directories and versions
 OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz
-MINIMAL_OCAML_VERSION=4.08.0
+MINIMAL_OCAML_VERSION=4.10.0
 OPAM_VERSION=4.12.0+mingw64c
 
 SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
@@ -956,9 +956,7 @@ build_hacl () {
   # deleting these, make would think that Makefile.basic is more recent than the
   # source files.
   rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
-  $MAKE -C hacl-star $make_opts &&
-  $MAKE -C hacl-star/dist/gcc-compatible install-hacl-star-raw &&
-  (cd hacl-star/bindings/ocaml && dune build @install && dune build && dune install)
+  $MAKE -C hacl-star $make_opts
 }
 
 build_mitls () {
@@ -1180,22 +1178,8 @@ do_ci () {
         export OCAMLFIND_DESTDIR=$PWD/ocaml-packages
         export OCAMLPATH=$OCAMLFIND_DESTDIR:$OCAMLPATH
     fi
-    if ocamlfind query hacl-star ; then ocamlfind remove hacl-star ; fi
-    if ocamlfind query hacl-star-raw ; then ocamlfind remove hacl-star-raw ; fi
     do_reset
     do_make
-    if is_windows && ! which libevercrypt.dll ; then
-        # Locate libevercrypt.dll and add it to the PATH
-        local libevercrypt_path
-        for f in $(sed 's![\t\v\f \r\n]*$!!' < $(ocamlfind printconf ldconf)) $(ocamlfind query hacl-star-raw) ; do
-            if [[ -f "$f"/libevercrypt.dll ]] ; then
-                libevercrypt_path=$f
-                break
-            fi
-        done
-        test -n $libevercrypt_path
-        export PATH=$(cygpath -u $libevercrypt_path):$PATH
-    fi
     do_test
 }
 
