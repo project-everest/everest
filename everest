@@ -671,6 +671,8 @@ OCAML
     magenta "Note: you *may* want to export FSTAR_HOME=${xpwd}/FStar"
   [ -n "${KRML_HOME}" ] || \
     magenta "Note: you *may* want to export KRML_HOME=${xpwd}/karamel"
+  [ -n "${STEEL_HOME}" ] || \
+    magenta "Note: you *may* want to export STEEL_HOME=${xpwd}/steel"
   [ -n "${HACL_HOME}" ] || \
     magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
@@ -887,6 +889,7 @@ setup_env () {
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KRML_HOME=$(cygpath -m $(pwd)/karamel)
+    export STEEL_HOME=$(cygpath -m $(pwd)/steel)
     export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
     export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
     export EVERPARSE_HOME=$(cygpath -m $(pwd)/everparse)
@@ -895,6 +898,7 @@ setup_env () {
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
     export KRML_HOME=$(pwd)/karamel
+    export STEEL_HOME=$(pwd)/steel
     export HACL_HOME=$(pwd)/hacl-star
     export MLCRYPTO_HOME=$(pwd)/MLCrypto
     export EVERPARSE_HOME=$(pwd)/everparse
@@ -904,6 +908,7 @@ setup_env () {
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
   magenta "exported KRML_HOME=$KRML_HOME"
+  magenta "exported STEEL_HOME=$STEEL_HOME"
   magenta "exported VALE_HOME=$VALE_HOME"
   magenta "exported HACL_HOME=$HACL_HOME"
   magenta "exported MLCRYPTO_HOME=$MLCRYPTO_HOME"
@@ -978,6 +983,7 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[karamel]="build_karamel"
+  build_commands[steel]="$MAKE -C steel $make_opts"
   build_commands[MLCrypto]="$MAKE -C MLCrypto $make_opts"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
@@ -986,7 +992,7 @@ do_make ()
   build_commands[merkle-tree]="make -C merkle-tree dist/libmerkletree.a $make_opts"
 
   # Order matters.
-  for p in FStar karamel MLCrypto hacl-star merkle-tree everparse everquic-crypto mitls-fstar; do
+  for p in FStar karamel steel MLCrypto hacl-star merkle-tree everparse everquic-crypto mitls-fstar; do
     # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
@@ -1013,6 +1019,8 @@ do_test () {
   separator
   blue "Running tests (commands shown below)"
   set -x
+  # steel
+  $MAKE -C steel test $make_opts
   # karamel
   LD_LIBRARY_PATH= $MAKE -C karamel/test $make_opts everything
   # evercrypt
@@ -1038,6 +1046,7 @@ do_verify () {
   declare -A verify_commands
   verify_commands[FStar]="$MAKE -C FStar/src ulong $make_opts"
   verify_commands[karamel]="echo nothing to verify for karamel"
+  verify_commands[steel]="echo nothing to verify for steel"
   verify_commands[hacl-star]="$MAKE -C hacl-star $parallel_opt -k verify"
   verify_commands[mitls-fstar]="$MAKE -C mitls-fstar/src/tls verify $parallel_opt -k"
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
@@ -1074,6 +1083,7 @@ do_clean ()
     everquic-crypto \
     merkle-tree \
     mitls-fstar/src/tls \
+    steel \
     karamel \
     ; do
     if test -d "$d" ; then
