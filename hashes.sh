@@ -1,18 +1,20 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=44c1409773cbf8cc7ffb473c7d4fc163ecc62fa4
-branches[everparse]=master
+hashes[everparse]=4228eb49ae338f9316d67044933080df7dfe584d
+branches[everparse]=taramana_cbor_separate_steel
 hashes[everquic-crypto]=a8f302498505ac85853130e93e2589ee47bfccdf
 branches[everquic-crypto]=master
-hashes[FStar]=19d3455f9c7c67c5a24345c8a41947110e8eee07
-branches[FStar]=master
+hashes[FStar]=df704e33e44b7ae8423237f53f43cd8e8644c211
+branches[FStar]=taramana_no_steel
 hashes[hacl-star]=bdec1e64754213ddeceec5e0d1fa0f6633ca2251
 branches[hacl-star]=main
-hashes[karamel]=57421358050a722f051ca196522b1427a8df9e8f
-branches[karamel]=master
+hashes[karamel]=d917daabcad0f5ea12deafb0c0a3093f76a878ca
+branches[karamel]=taramana_no_steel
 hashes[merkle-tree]=6833f73af570fa76bd40ce0047876e198167ba75
 branches[merkle-tree]=main
 hashes[mitls-fstar]=3cdf485b69e517eb414dc821af80d2ae8da55d64
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
+hashes[steel]=11c62545d97a8a4dde3181166f6a05609c36304f
+branches[steel]=main
