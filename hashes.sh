@@ -1,6 +1,6 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=4228eb49ae338f9316d67044933080df7dfe584d
+hashes[everparse]=a6f509d46051ae0be34b5764be6447c683ec55c8
 branches[everparse]=taramana_cbor_separate_steel
 hashes[everquic-crypto]=a8f302498505ac85853130e93e2589ee47bfccdf
 branches[everquic-crypto]=master
@@ -16,5 +16,5 @@ hashes[mitls-fstar]=3cdf485b69e517eb414dc821af80d2ae8da55d64
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[steel]=11c62545d97a8a4dde3181166f6a05609c36304f
-branches[steel]=main
+hashes[steel]=836d4ec04b3ff74ab1d60334d4c105bd0c00da95
+branches[steel]=john_ml_steel_c
