@@ -1,7 +1,7 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=a6f509d46051ae0be34b5764be6447c683ec55c8
-branches[everparse]=taramana_cbor_separate_steel
+hashes[everparse]=44c1409773cbf8cc7ffb473c7d4fc163ecc62fa4
+branches[everparse]=master
 hashes[everquic-crypto]=a8f302498505ac85853130e93e2589ee47bfccdf
 branches[everquic-crypto]=master
 hashes[FStar]=df704e33e44b7ae8423237f53f43cd8e8644c211
