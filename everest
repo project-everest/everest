@@ -1392,7 +1392,7 @@ while true; do
       break
       ;;
 
-    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|everparse|merkle-tree|everquic-crypto)
+    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|everparse|merkle-tree|everquic-crypto|steel)
       ALL_PROJECTS=$1
       ;;
 
