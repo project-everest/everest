@@ -55,8 +55,17 @@ jobs:
             ;;
           esac
           echo "CI_COMMIT=$(echo ${{ github.event.head_commit.id || github.event.pull_request.head.sha }} | grep -o '^........')" >> $GITHUB_ENV
-      - name: Post to the Slack channel
+
+      - name: Check if we should post to Slack
         if: ${{ always() }}
+        run:
+          echo "SLACK_SHOULD_POST=$SLACK_SHOULD_POST" >> $GITHUB_ENV
+        env:
+          SLACK_SHOULD_POST: ${{ secrets.SLACK_WEBHOOK_URL != '' && 'yes' || 'no' }}
+          # ^ this thing is the closest to a ternary operator in github actions
+
+      - name: Post to the Slack channel
+        if: ${{ always () && env.SLACK_SHOULD_POST == 'yes' }}
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         with:
