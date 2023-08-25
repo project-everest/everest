@@ -27,3 +27,4 @@ alcotest alcotest
 secp256k1-internal secp256k1-internal
 sha sha
 sexplib sexplib
+memtrace memtrace
