@@ -180,6 +180,8 @@ fi
 
 # May be overridden to include a single project
 ALL_PROJECTS="${!repositories[@]}"
+SELECTIVE=false
+# ^ Whether we are only running over a subset of the projects
 
 # ------------------------------------------------------------------------------
 # A series of helpers
@@ -1202,7 +1204,7 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 [OPTIONS] [PROJECT] COMMANDS
+USAGE: $0 [OPTIONS] [PROJECTS] COMMANDS
 
 OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
@@ -1224,8 +1226,11 @@ OPTION:
 PROJECT:
   The commands
     pull reset advance merge make
-  can be restricted to operate on one of the following:
+  can be restricted to operate on one or many of the following:
     FStar karamel mitls-fstar hacl-star merkle-tree MLCrypto everparse everquic-crypto
+  to restrict the projects to a subset, pass them in separate arguments
+  before any command, e.g.:
+    ./everest FStar karamel everparse make -k -j16
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1393,7 +1398,12 @@ while true; do
       ;;
 
     FStar|mitls-fstar|karamel|hacl-star|MLCrypto|everparse|merkle-tree|everquic-crypto|steel)
-      ALL_PROJECTS=$1
+      if $SELECTIVE; then
+        ALL_PROJECTS="$ALL_PROJECTS,$1"
+      else
+        ALL_PROJECTS="$1"
+        SELECTIVE=true
+      fi
       ;;
 
     reset)
