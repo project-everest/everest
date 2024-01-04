@@ -1193,6 +1193,13 @@ do_ci () {
     do_test
 }
 
+do_shell() {
+  setup_env
+  echo -n "# Switching back to "
+  cd -
+  exec "${@:-$SHELL}"
+}
+
 # ------------------------------------------------------------------------------
 # Usage and parsing arguments
 # ------------------------------------------------------------------------------
@@ -1273,6 +1280,8 @@ COMMAND:
   clean-c   only clean generated C files, useful when switching to -windows
 
   clean     clean all projects
+
+  shell     run a shell with the correct FSTAR_HOME/... environment variables
 
   help      print the current message
 HELP
@@ -1447,6 +1456,12 @@ while true; do
 
     archive)
       do_archive
+      ;;
+
+    shell)
+      shift
+      do_shell "$@"
+      # do_shell does not return
       ;;
 
     *)
