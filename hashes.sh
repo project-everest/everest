@@ -16,5 +16,5 @@ hashes[mitls-fstar]=6b3be13068797eb32aa32827992e082ecff2f5f5
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[steel]=5bd13c3ed3ede9a4d6fabfda70cd86a3093b1694
+hashes[steel]=09fad80406a104ded8654a340b417a015f10e55e
 branches[steel]=main
