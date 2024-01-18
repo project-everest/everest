@@ -36,8 +36,17 @@ $ProgressPreference = 'SilentlyContinue'
 Push-Location -ErrorAction Stop -LiteralPath $PSScriptRoot
 
 $Error.Clear()
+Write-Host "Install WinGet"
+Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile Microsoft.DesktopAppInstaller_WinGet.msixbundle
+Add-AppxPackage Microsoft.DesktopAppInstaller_WinGet.msixbundle
+if (-not $?) {
+    $Error
+    exit 1
+}
+
+$Error.Clear()
 Write-Host "Install GitHub CLI"
-cmd.exe /c winget install --id GitHub.cli
+winget.exe install --id GitHub.cli
 if (-not $?) {
     $Error
     exit 1
