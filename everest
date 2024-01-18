@@ -595,14 +595,19 @@ OCAML
   fi
   echo "... Node.js found in PATH"
 
-  # F# and MS compilers (note: nothing for OSX/Linux right now)
-  if is_windows; then
-    # note: nothing left, we will use vcvarsall.bat/vsdevcmd.bat instead
-    true
+  # .NET 6.0 (needed to compile F* ulib/fs)
+  if dotnet --list-sdks | grep '^6\.0\.' >/dev/null ; then
+    echo "... dotnet with .NET SDK 6.0 found"
   else
-    success_or "dotnet" "Install .NET Core following https://docs.microsoft.com/en-us/dotnet/core/install/"
+    red "ERROR: .NET SDK 6.0 not found"
+    if is_windows ; then
+	magenta "Install it with winget? [Yn]"
+	prompt_yes "winget install Microsoft.DotNet.SDK.6"
+    else
+	echo "Install .NET SDK 6.0 https://docs.microsoft.com/en-us/dotnet/core/install/"
+	exit 1
+    fi
   fi
-  echo "... dotnet found in PATH"
 
   do_update_z3
 
