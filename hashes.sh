@@ -16,5 +16,7 @@ hashes[mitls-fstar]=6b3be13068797eb32aa32827992e082ecff2f5f5
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
+hashes[pulse]=1d9a8b0eff520883df7ba695bf44baf2c15d158e
+branches[pulse]=_taramana_fork_pulse_20230209
 hashes[steel]=f984200f79bdc452374ae994a5ca837496476c41
 branches[steel]=main
