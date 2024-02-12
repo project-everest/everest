@@ -18,5 +18,5 @@ hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[pulse]=99b612fafacb586f8fdf9a1f3c5b36a586592ea3
 branches[pulse]=_taramana_fork_pulse_20240209
-hashes[steel]=f984200f79bdc452374ae994a5ca837496476c41
-branches[steel]=main
+hashes[steel]=7947e090784095e4bf4a35bbc61d6176f53ce73d
+branches[steel]=taramana_remove_pulse
