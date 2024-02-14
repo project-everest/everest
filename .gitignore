@@ -6,6 +6,7 @@ mitls-fstar
 MLCrypto
 everparse
 everquic-crypto
+pulse
 steel
 merkle-tree
 log
