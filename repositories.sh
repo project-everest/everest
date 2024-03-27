@@ -25,6 +25,9 @@ https[mitls-fstar]=https://github.com/project-everest/mitls-fstar.git
 repositories[MLCrypto]=git@github.com:project-everest/MLCrypto.git
 https[MLCrypto]=https://github.com/project-everest/MLCrypto.git
 
+repositories[pulse]=git@github.com:FStarLang/pulse
+https[pulse]=https://github.com/FStarLang/pulse
+
 repositories[everquic-crypto]=git@github.com:project-everest/everquic-crypto.git
 https[everquic-crypto]=https://github.com/project-everest/everquic-crypto.git
 
