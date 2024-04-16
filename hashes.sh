@@ -18,5 +18,5 @@ hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[pulse]=c5617d595bc09463db6687f8aa60adf10535461e
 branches[pulse]=_nik_injectivity
-hashes[steel]=4029762e510466a0de5a9f3fd1ada67dea087311
-branches[steel]=nik_compat_injectivity
+hashes[steel]=ae0a423027679ee2faf6b2b782db31dea4285b9c
+branches[steel]=_nik_compat_injectivity
