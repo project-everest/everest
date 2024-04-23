@@ -1,10 +1,10 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=3e1260c30a129c8dd4158c76c14145d2526a57fd
-branches[everparse]=master
+hashes[everparse]=b9dddb4876274ba7855947208ff1439e48888dcf
+branches[everparse]=nik_stabilize
 hashes[everquic-crypto]=cc4457e546cdb1e8f9a23d2e4fa387aab1a6b502
 branches[everquic-crypto]=master
-hashes[FStar]=07b70f77023f5e92806e25d719215b7ae80d8866
+hashes[FStar]=34089dd1d9ad2d6e6d9e9ff87248a2e234a8f295
 branches[FStar]=nik_restrict_injectivity_wip
 hashes[hacl-star]=81f0e3bb461fc7d0102211dc9fa5be03951cd654
 branches[hacl-star]=main
@@ -18,5 +18,5 @@ hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[pulse]=450d3b905d6ce68f995858317de1cd36ba73d6fc
 branches[pulse]=main
-hashes[steel]=876bf9343a3fa4b8ab2e3b26e3574c7a445c3cd8
-branches[steel]=main
+hashes[steel]=ec3b34077009e7c13e8f334afea598330c9a42b2
+branches[steel]=nik_remove_compat_injectivity
