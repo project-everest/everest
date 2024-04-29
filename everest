@@ -957,7 +957,7 @@ do_make ()
   build_commands[mitls-fstar]="build_mitls"
   build_commands[everparse]="$MAKE -C everparse $make_opts"
   build_commands[everquic-crypto]="make -C everquic-crypto dist/libeverquic.a $make_opts"
-  build_commands[merkle-tree]="make -C merkle-tree dist/libmerkletree.a $make_opts"
+  build_commands[merkle-tree]="OTHERFLAGS='--admit_smt_queries true' make -C merkle-tree dist/libmerkletree.a $make_opts"
 
   # Order matters.
   for p in FStar karamel pulse steel MLCrypto hacl-star merkle-tree everparse everquic-crypto mitls-fstar; do
