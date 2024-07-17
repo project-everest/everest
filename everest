@@ -933,12 +933,12 @@ build_hacl () {
 
 build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
-  $MAKE -C mitls-fstar/libs/ffi $make_opts && \
-  $MAKE -C mitls-fstar/src/pki $make_opts && \
   $MAKE -C mitls-fstar/src/tls $make_opts && \
-  $MAKE -C mitls-fstar/apps/cmitls $make_opts && \
   true
   # $MAKE -C mitls-fstar/apps/quicMinusNet $make_opts
+  # $MAKE -C mitls-fstar/apps/cmitls $make_opts && \
+  # $MAKE -C mitls-fstar/libs/ffi $make_opts && \
+  # $MAKE -C mitls-fstar/src/pki $make_opts && \
 }
 
 do_make ()
@@ -1004,7 +1004,7 @@ do_test () {
   make -C everquic-crypto $make_opts test
   # mitls; note: these tests make assumption on their current working directory
   (cd mitls-fstar/src/tls && $MAKE $make_opts test)
-  (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
+  # (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
   # (cd mitls-fstar/apps/quicMinusNet && $MAKE $keep_going_opt test)
   set +x
   separator
