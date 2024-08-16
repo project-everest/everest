@@ -18,5 +18,5 @@ hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
 hashes[pulse]=c05e87852be2e0cba4aee9aa4ab7f3123612e89c
 branches[pulse]=main
-hashes[steel]=71c77ebf45f2da018269c285bf4fef56091d3720
+hashes[steel]=54fa7e48ac232399ef843fa1c4566f21d0b3467e
 branches[steel]=main
