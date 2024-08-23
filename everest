@@ -980,32 +980,69 @@ do_make ()
   green "SUCCESS"
 }
 
+test_FStar () {
+  $MAKE -C FStar ci-uregressions $make_opts
+}
+
+test_karamel () {
+  LD_LIBRARY_PATH= $MAKE -C karamel/test $make_opts everything
+}
+test_pulse () {
+  $MAKE -C pulse test $make_opts
+}
+test_steel () {
+  $MAKE -C steel test $make_opts
+}
+
+test_hacl-star () {
+  # No need to run dependency analysis again
+  NODEPEND=1 $MAKE -C hacl-star test $make_opts
+}
+
+test_merkle-tree () {
+  $MAKE -C merkle-tree test $make_opts
+}
+test_everparse () {
+  $MAKE -C everparse test $make_opts
+}
+
+test_everquic-crypto () {
+  $MAKE -C everquic-crypto test $make_opts
+}
+
+test_mitls-fstar () {
+  (cd mitls-fstar/src/tls && $MAKE $make_opts test)
+  # (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
+  # (cd mitls-fstar/apps/quicMinusNet && $MAKE $keep_going_opt test)
+}
+
 do_test () {
   check_no_archive
   setup_env
 
   separator
-  blue "Running tests (commands shown below)"
-  set -x
-  # pulse
-  $MAKE -C pulse test $make_opts
-  # steel
-  $MAKE -C steel test $make_opts
-  # karamel
-  LD_LIBRARY_PATH= $MAKE -C karamel/test $make_opts everything
-  # evercrypt
-  # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
-  LD_LIBRARY_PATH= $MAKE -C hacl-star test $make_opts
-  # everquic-crypto
-  make -C merkle-tree $make_opts test
-  # everparse
-  $MAKE -C everparse $make_opts test
-  # everquic-crypto
-  make -C everquic-crypto $make_opts test
-  # mitls; note: these tests make assumption on their current working directory
-  (cd mitls-fstar/src/tls && $MAKE $make_opts test)
-  # (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
-  # (cd mitls-fstar/apps/quicMinusNet && $MAKE $keep_going_opt test)
+  blue "Running tests"
+
+  # Order SHOULD NOT matter
+  for p in FStar karamel pulse steel hacl-star merkle-tree everparse everquic-crypto mitls-fstar; do
+    # For individual components, we set ALL_PROJECTS=foo
+    if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
+      continue
+    fi
+    separator
+    blue "Testing $p"
+    blue "Running: test_$p"
+    blue "$(type test_$p)"
+    if ! test_$p ; then
+      separator
+      red "FAILURE: testing failed for $p"
+      return 2
+    fi
+    separator
+    echo -e "\n\n"
+  done
+
+  green "SUCCESS"
   set +x
   separator
 }
