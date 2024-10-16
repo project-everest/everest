@@ -14,7 +14,7 @@ set -o pipefail
 
 # Known URLs, directories and versions
 OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz
-MINIMAL_OCAML_VERSION=4.08.0
+MINIMAL_OCAML_VERSION=4.10.0
 OPAM_VERSION=4.14.0+mingw64c
 
 SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
@@ -133,53 +133,10 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
   exit 1
 fi
 
-# Windows only: Visual Studio's command line to set up environment (VS_ENV_CMD)
-if is_windows ; then
-  # Starting from Visual Studio 2017, version 15.2 or later,
-  # we can determine the location of a VS install
-  # using vswhere.exe, see:
-  # https://docs.microsoft.com/en-us/visualstudio/extensibility/locating-visual-studio
-  if
-    VSWHERE_WINDOWS="$(cmd.exe /C 'echo %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe' | sed 's!\r!!g')" &&
-    VSWHERE=$(cygpath -u "$VSWHERE_WINDOWS") &&
-    VS_HOME=$("$VSWHERE" -requires Microsoft.VisualStudio.Component.FSharp -format value -property InstallationPath | head -1 | sed 's!\r!!g') &&
-    [[ -n "$VS_HOME" ]]
-  then
-    echo ... found Visual Studio 2017 or later at $VS_HOME
-    # Visual Studio 2017 (15.2) or later
-    # vcvarsall.bat has been superseded by vsdevcmd.bat, see:
-    # https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/how-to-set-environment-variables-for-the-visual-studio-command-line
-    VSDEVCMD_PATH=$(cygpath -u "$VS_HOME")/Common7/Tools
-    VSDEVCMD=$(cygpath -w "$VSDEVCMD_PATH/VsDevCmd.bat")
-    # Here we assume that BOTH the target platform
-    # and the host platform are amd64.
-    VS_ENV_CMD='"'"$VSDEVCMD"'" -arch=amd64 -host_arch=amd64'
-  else
-    # Older versions are based on vcvarsall.bat
-    if [[ -v VS140COMNTOOLS ]]; then
-      # Visual Studio 2015 (14.x)
-      VS_TOOLS_PATH="$VS140COMNTOOLS"
-    elif [[ -v VS120COMNTOOLS ]]; then
-      # Visual Studio 2012 (12.x)
-      VS_TOOLS_PATH="$VS120COMNTOOLS"
-    elif [[ -v VS110COMNTOOLS ]]; then
-      # Visual Studio 2010 (10.x)
-      VS_TOOLS_PATH="$VS110COMNTOOLS"
-    else
-      # Not found
-      echo Could not find Visual Studio
-      exit 1
-    fi
-    VCVARSALL_PATH="$VS_TOOLS_PATH"/../../VC
-    VCVARSALL=$(cygpath -d "$VCVARSALL_PATH/vcvarsall.bat")
-    # Here we assume that BOTH the target platform
-    # and the host platform are amd64.
-    VS_ENV_CMD="$VCVARSALL amd64"
-  fi
-fi
-
 # May be overridden to include a single project
 ALL_PROJECTS="${!repositories[@]}"
+SELECTIVE=false
+# ^ Whether we are only running over a subset of the projects
 
 # ------------------------------------------------------------------------------
 # A series of helpers
@@ -638,14 +595,19 @@ OCAML
   fi
   echo "... Node.js found in PATH"
 
-  # F# and MS compilers (note: nothing for OSX/Linux right now)
-  if is_windows; then
-    # note: nothing left, we will use vcvarsall.bat/vsdevcmd.bat instead
-    true
+  # .NET 6.0 (needed to compile F* ulib/fs)
+  if dotnet --list-sdks | grep '^6\.0\.' >/dev/null ; then
+    echo "... dotnet with .NET SDK 6.0 found"
   else
-    success_or "dotnet" "Install .NET Core following https://docs.microsoft.com/en-us/dotnet/core/install/"
+    red "ERROR: .NET SDK 6.0 not found"
+    if is_windows ; then
+	magenta "Install it with winget? [Yn]"
+	prompt_yes "winget install Microsoft.DotNet.SDK.6"
+    else
+	echo "Install .NET SDK 6.0 https://docs.microsoft.com/en-us/dotnet/core/install/"
+	exit 1
+    fi
   fi
-  echo "... dotnet found in PATH"
 
   do_update_z3
 
@@ -671,6 +633,10 @@ OCAML
     magenta "Note: you *may* want to export FSTAR_HOME=${xpwd}/FStar"
   [ -n "${KRML_HOME}" ] || \
     magenta "Note: you *may* want to export KRML_HOME=${xpwd}/karamel"
+  [ -n "${PULSE_HOME}" ] || \
+    magenta "Note: you *may* want to export PULSE_HOME=${xpwd}/pulse"
+  [ -n "${STEEL_HOME}" ] || \
+    magenta "Note: you *may* want to export STEEL_HOME=${xpwd}/steel"
   [ -n "${HACL_HOME}" ] || \
     magenta "Note: you *may* want to export HACL_HOME=${xpwd}/hacl-star"
 }
@@ -887,6 +853,8 @@ setup_env () {
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KRML_HOME=$(cygpath -m $(pwd)/karamel)
+    export PULSE_HOME=$(cygpath -m $(pwd)/pulse)
+    export STEEL_HOME=$(cygpath -m $(pwd)/steel)
     export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
     export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
     export EVERPARSE_HOME=$(cygpath -m $(pwd)/everparse)
@@ -895,6 +863,8 @@ setup_env () {
     export FSTAR_HOME=$(pwd)/FStar
     export VALE_HOME=$(pwd)/vale
     export KRML_HOME=$(pwd)/karamel
+    export PULSE_HOME=$(pwd)/pulse
+    export STEEL_HOME=$(pwd)/steel
     export HACL_HOME=$(pwd)/hacl-star
     export MLCRYPTO_HOME=$(pwd)/MLCrypto
     export EVERPARSE_HOME=$(pwd)/everparse
@@ -904,6 +874,8 @@ setup_env () {
   magenta "exported FSTAR_HOME=$FSTAR_HOME"
   magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
   magenta "exported KRML_HOME=$KRML_HOME"
+  magenta "exported PULSE_HOME=$PULSE_HOME"
+  magenta "exported STEEL_HOME=$STEEL_HOME"
   magenta "exported VALE_HOME=$VALE_HOME"
   magenta "exported HACL_HOME=$HACL_HOME"
   magenta "exported MLCRYPTO_HOME=$MLCRYPTO_HOME"
@@ -956,19 +928,17 @@ build_hacl () {
   # deleting these, make would think that Makefile.basic is more recent than the
   # source files.
   rm -rf hacl-star/dist/*/{Makefile.basic,package.json}
-  $MAKE -C hacl-star $make_opts &&
-  $MAKE -C hacl-star/dist/gcc-compatible install-hacl-star-raw &&
-  (cd hacl-star/bindings/ocaml && dune build @install && dune build && dune install)
+  $MAKE -C hacl-star $make_opts
 }
 
 build_mitls () {
   CFLAGS="$MITLS_CFLAGS" \
-  $MAKE -C mitls-fstar/libs/ffi $make_opts && \
-  $MAKE -C mitls-fstar/src/pki $make_opts && \
   $MAKE -C mitls-fstar/src/tls $make_opts && \
-  $MAKE -C mitls-fstar/apps/cmitls $make_opts && \
   true
   # $MAKE -C mitls-fstar/apps/quicMinusNet $make_opts
+  # $MAKE -C mitls-fstar/apps/cmitls $make_opts && \
+  # $MAKE -C mitls-fstar/libs/ffi $make_opts && \
+  # $MAKE -C mitls-fstar/src/pki $make_opts && \
 }
 
 do_make ()
@@ -980,14 +950,17 @@ do_make ()
   declare -A build_commands
   build_commands[FStar]="build_fstar"
   build_commands[karamel]="build_karamel"
+  build_commands[pulse]="$MAKE -C pulse $make_opts"
+  build_commands[steel]="$MAKE -C steel $make_opts"
   build_commands[MLCrypto]="$MAKE -C MLCrypto $make_opts"
   build_commands[hacl-star]="build_hacl"
   build_commands[mitls-fstar]="build_mitls"
   build_commands[everparse]="$MAKE -C everparse $make_opts"
   build_commands[everquic-crypto]="make -C everquic-crypto dist/libeverquic.a $make_opts"
+  build_commands[merkle-tree]="make -C merkle-tree dist/libmerkletree.a $make_opts"
 
   # Order matters.
-  for p in FStar karamel MLCrypto hacl-star everparse everquic-crypto mitls-fstar; do
+  for p in FStar karamel pulse steel MLCrypto hacl-star merkle-tree everparse everquic-crypto mitls-fstar; do
     # For individual components, we set ALL_PROJECTS=foo
     if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
       continue
@@ -1007,26 +980,69 @@ do_make ()
   green "SUCCESS"
 }
 
+test_FStar () {
+  $MAKE -C FStar ci-uregressions $make_opts
+}
+
+test_karamel () {
+  LD_LIBRARY_PATH= $MAKE -C karamel/test $make_opts everything
+}
+test_pulse () {
+  $MAKE -C pulse test $make_opts
+}
+test_steel () {
+  $MAKE -C steel test $make_opts
+}
+
+test_hacl-star () {
+  # No need to run dependency analysis again
+  NODEPEND=1 $MAKE -C hacl-star test $make_opts
+}
+
+test_merkle-tree () {
+  $MAKE -C merkle-tree test $make_opts
+}
+test_everparse () {
+  $MAKE -C everparse test $make_opts
+}
+
+test_everquic-crypto () {
+  $MAKE -C everquic-crypto test $make_opts
+}
+
+test_mitls-fstar () {
+  (cd mitls-fstar/src/tls && $MAKE $make_opts test)
+  # (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
+  # (cd mitls-fstar/apps/quicMinusNet && $MAKE $keep_going_opt test)
+}
+
 do_test () {
   check_no_archive
   setup_env
 
   separator
-  blue "Running tests (commands shown below)"
-  set -x
-  # karamel
-  LD_LIBRARY_PATH= $MAKE -C karamel/test $make_opts everything
-  # evercrypt
-  # LD_LIBRARY_PATH is already taken care of by the HACL* Makefile
-  LD_LIBRARY_PATH= $MAKE -C hacl-star test $make_opts
-  # everparse
-  $MAKE -C everparse $make_opts test
-  # everquic-crypto
-  make -C everquic-crypto $make_opts test
-  # mitls; note: these tests make assumption on their current working directory
-  (cd mitls-fstar/src/tls && $MAKE $make_opts test)
-  (cd mitls-fstar/apps/cmitls && $MAKE $keep_going_opt test)
-  # (cd mitls-fstar/apps/quicMinusNet && $MAKE $keep_going_opt test)
+  blue "Running tests"
+
+  # Order SHOULD NOT matter
+  for p in FStar karamel pulse steel hacl-star merkle-tree everparse everquic-crypto mitls-fstar; do
+    # For individual components, we set ALL_PROJECTS=foo
+    if [[ ${ALL_PROJECTS/$p/} == $ALL_PROJECTS ]]; then
+      continue
+    fi
+    separator
+    blue "Testing $p"
+    blue "Running: test_$p"
+    blue "$(type test_$p)"
+    if ! test_$p ; then
+      separator
+      red "FAILURE: testing failed for $p"
+      return 2
+    fi
+    separator
+    echo -e "\n\n"
+  done
+
+  green "SUCCESS"
   set +x
   separator
 }
@@ -1037,11 +1053,14 @@ do_verify () {
   declare -A verify_commands
   verify_commands[FStar]="$MAKE -C FStar/src ulong $make_opts"
   verify_commands[karamel]="echo nothing to verify for karamel"
+  verify_commands[pulse]="echo nothing to verify for pulse"
+  verify_commands[steel]="echo nothing to verify for steel"
   verify_commands[hacl-star]="$MAKE -C hacl-star $parallel_opt -k verify"
   verify_commands[mitls-fstar]="$MAKE -C mitls-fstar/src/tls verify $parallel_opt -k"
   verify_commands[MLCrypto]="echo nothing to verify for MLCrypto"
   verify_commands[everparse]="echo nothing to verify for everparse"
   verify_commands[everquic-crypto]="echo nothing to verify for everquic-crypto"
+  verify_commands[merkle-tree]="echo nothing to verify for merkle-tree"
 
   for p in $ALL_PROJECTS; do
     separator
@@ -1070,7 +1089,10 @@ do_clean ()
     MLCrypto/{,openssl} \
     everparse \
     everquic-crypto \
+    merkle-tree \
     mitls-fstar/src/tls \
+    pulse \
+    steel \
     karamel \
     ; do
     if test -d "$d" ; then
@@ -1129,6 +1151,50 @@ do_qbuild ()
   check_no_archive
   setup_env
 
+  # Windows only: Visual Studio's command line to set up environment (VS_ENV_CMD)
+  blue "Checking for Visual Studio"
+  # Starting from Visual Studio 2017, version 15.2 or later,
+  # we can determine the location of a VS install
+  # using vswhere.exe, see:
+  # https://docs.microsoft.com/en-us/visualstudio/extensibility/locating-visual-studio
+  if
+    VSWHERE_WINDOWS="$(cmd.exe /C 'echo %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe' | sed 's!\r!!g')" &&
+    VSWHERE=$(cygpath -u "$VSWHERE_WINDOWS") &&
+    VS_HOME=$("$VSWHERE" -requires Microsoft.VisualStudio.Component.FSharp -format value -property InstallationPath | head -1 | sed 's!\r!!g') &&
+    [[ -n "$VS_HOME" ]]
+  then
+    echo ... found Visual Studio 2017 or later at $VS_HOME
+    # Visual Studio 2017 (15.2) or later
+    # vcvarsall.bat has been superseded by vsdevcmd.bat, see:
+    # https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/how-to-set-environment-variables-for-the-visual-studio-command-line
+    VSDEVCMD_PATH=$(cygpath -u "$VS_HOME")/Common7/Tools
+    VSDEVCMD=$(cygpath -w "$VSDEVCMD_PATH/VsDevCmd.bat")
+    # Here we assume that BOTH the target platform
+    # and the host platform are amd64.
+    VS_ENV_CMD='"'"$VSDEVCMD"'" -arch=amd64 -host_arch=amd64'
+  else
+    # Older versions are based on vcvarsall.bat
+    if [[ -v VS140COMNTOOLS ]]; then
+      # Visual Studio 2015 (14.x)
+      VS_TOOLS_PATH="$VS140COMNTOOLS"
+    elif [[ -v VS120COMNTOOLS ]]; then
+      # Visual Studio 2012 (12.x)
+      VS_TOOLS_PATH="$VS120COMNTOOLS"
+    elif [[ -v VS110COMNTOOLS ]]; then
+      # Visual Studio 2010 (10.x)
+      VS_TOOLS_PATH="$VS110COMNTOOLS"
+    else
+      # Not found
+      echo Could not find Visual Studio
+      exit 1
+    fi
+    VCVARSALL_PATH="$VS_TOOLS_PATH"/../../VC
+    VCVARSALL=$(cygpath -d "$VCVARSALL_PATH/vcvarsall.bat")
+    # Here we assume that BOTH the target platform
+    # and the host platform are amd64.
+    VS_ENV_CMD="$VCVARSALL amd64"
+  fi
+
   blue "Building Windows libraries"
   # Instead of invoking cmd.exe /c, which would force us to
   # rely on its flaky semantics for double quotes,
@@ -1175,23 +1241,16 @@ do_ci () {
         export OCAMLFIND_DESTDIR=$PWD/ocaml-packages
         export OCAMLPATH=$OCAMLFIND_DESTDIR:$OCAMLPATH
     fi
-    if ocamlfind query hacl-star ; then ocamlfind remove hacl-star ; fi
-    if ocamlfind query hacl-star-raw ; then ocamlfind remove hacl-star-raw ; fi
     do_reset
     do_make
-    if is_windows && ! which libevercrypt.dll ; then
-        # Locate libevercrypt.dll and add it to the PATH
-        local libevercrypt_path
-        for f in $(sed 's![\t\v\f \r\n]*$!!' < $(ocamlfind printconf ldconf)) $(ocamlfind query hacl-star-raw) ; do
-            if [[ -f "$f"/libevercrypt.dll ]] ; then
-                libevercrypt_path=$f
-                break
-            fi
-        done
-        test -n $libevercrypt_path
-        export PATH=$(cygpath -u $libevercrypt_path):$PATH
-    fi
     do_test
+}
+
+do_shell() {
+  setup_env
+  echo -n "# Switching back to "
+  cd -
+  exec "${@:-$SHELL}"
 }
 
 # ------------------------------------------------------------------------------
@@ -1203,7 +1262,7 @@ print_usage ()
   cat <<HELP
 OVERVIEW: $0, a high-level management script for Project Everest
 
-USAGE: $0 [OPTIONS] [PROJECT] COMMANDS
+USAGE: $0 [OPTIONS] [PROJECTS] COMMANDS
 
 OPTION:
   --yes     Non-interactive mode (answer y to all questions, verbose)
@@ -1225,8 +1284,11 @@ OPTION:
 PROJECT:
   The commands
     pull reset advance merge make
-  can be restricted to operate on one of the following:
-    FStar karamel mitls-fstar hacl-star MLCrypto everparse everquic-crypto
+  can be restricted to operate on one or many of the following:
+    FStar karamel mitls-fstar hacl-star merkle-tree MLCrypto everparse everquic-crypto
+  to restrict the projects to a subset, pass them in separate arguments
+  before any command, e.g.:
+    ./everest FStar karamel everparse make -k -j16
 
 COMMAND:
   check     ensure that all the required programs are found in path, install
@@ -1274,6 +1336,8 @@ COMMAND:
   clean-c   only clean generated C files, useful when switching to -windows
 
   clean     clean all projects
+
+  shell     run a shell with the correct FSTAR_HOME/... environment variables
 
   help      print the current message
 HELP
@@ -1393,8 +1457,13 @@ while true; do
       break
       ;;
 
-    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|everparse|everquic-crypto)
-      ALL_PROJECTS=$1
+    FStar|mitls-fstar|karamel|hacl-star|MLCrypto|everparse|merkle-tree|everquic-crypto|pulse|steel)
+      if $SELECTIVE; then
+        ALL_PROJECTS="$ALL_PROJECTS,$1"
+      else
+        ALL_PROJECTS="$1"
+        SELECTIVE=true
+      fi
       ;;
 
     reset)
@@ -1448,6 +1517,12 @@ while true; do
 
     archive)
       do_archive
+      ;;
+
+    shell)
+      shift
+      do_shell "$@"
+      # do_shell does not return
       ;;
 
     *)

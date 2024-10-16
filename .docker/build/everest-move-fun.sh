@@ -1,7 +1,7 @@
 function everest_move() {
     [[ -n "$DZOMO_GITHUB_TOKEN" ]] || return 1
     git config --global user.name "Dzomo, the Everest Yak"
-    git config --global user.email "everbld@microsoft.com"
+    git config --global user.email "24394600+dzomo@users.noreply.github.com"
 
     # Work around `git pull` getting stuck
     # From https://askubuntu.com/questions/336907/really-verbose-way-to-test-git-connection-over-ssh
