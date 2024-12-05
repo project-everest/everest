@@ -502,7 +502,7 @@ OCAML
   # [opam-packages], where each line is of the form:
   #   <ocamlfind-package-name> <SPACE> <opam-package-name>
   if [ ! -d ~/.opam ]; then
-    red "opam not initialized! Do you want to run `opam init`?"
+    red "opam not initialized! Do you want to run opam init?"
     if_yes "opam init --compiler $OPAM_VERSION"
     eval $(opam env)
   fi
