@@ -501,12 +501,6 @@ OCAML
   # OCamlfind & extra packages. Required OPAM packages are stored in
   # [opam-packages], where each line is of the form:
   #   <ocamlfind-package-name> <SPACE> <opam-package-name>
-  if [ ! -d ~/.opam ]; then
-    red "opam not initialized! Do you want to run opam init?"
-    if_yes "opam init --compiler $OPAM_VERSION"
-    eval $(opam env)
-  fi
-
   if ! command -v ocamlfind >/dev/null 2>&1; then
     magenta "ocamlfind not found!"
     if_yes "opam install ocamlfind"
