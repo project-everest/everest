@@ -253,9 +253,9 @@ install_all_opam_packages () {
   packages=$(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')
   opam update
   if is_windows; then
-    opam install depext-cygwinports
+    opam install depext-cygwinports || true
   fi
-  opam depext $packages
+  opam depext $packages || true
   opam install -j 4 $packages
 }
 
