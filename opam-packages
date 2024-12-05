@@ -15,7 +15,6 @@ ctypes ctypes
 visitors visitors
 ctypes.foreign ctypes-foreign
 hex hex
-cryptokit cryptokit
 ocamlbuild ocamlbuild
 qcheck qcheck
 cppo cppo
