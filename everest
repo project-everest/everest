@@ -510,6 +510,8 @@ OCAML
   if ! command -v ocamlfind >/dev/null 2>&1; then
     magenta "ocamlfind not found!"
     if_yes "opam install ocamlfind"
+  else
+    echo "... ocamlfind found"
   fi
 
   missing=false
@@ -520,6 +522,8 @@ OCAML
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
       missing=true
       break
+    else
+      echo "... opam package $opam_package found"
     fi
   done < opam-packages
   if $missing; then
