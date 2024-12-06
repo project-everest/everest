@@ -23,7 +23,7 @@ function global:Invoke-BashCmd
     if (-not $?) {
         Write-Host "*** Error:"
         $Error
-        exit 1
+        return 1
     }
 }
 
