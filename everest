@@ -456,6 +456,7 @@ MSG
   else
       echo "... opam found"
   fi
+  eval $(opam env) # `eval $(...)` "absorbs" the return code from the inner command, and when `opam env` fails, there is no output
 
   # OCaml detection
   if ! command -v >/dev/null 2>&1 ocaml; then
