@@ -603,11 +603,11 @@ OCAML
   if ! which cargo >/dev/null 2>&1 ; then
     red "ERROR: rust (cargo) doesn\'t seem to be installed"
     if is_windows ; then
-      magenta "Install Rust with winget? [Yn]"
-      prompt_yes "winget install Rustlang.Rustup" "exit 1"
-      # Test whether Rust installed properly
-      # Impossible: Windows PATH has changed, we cannot refresh it
-      # which node > /dev/null 2>&1
+      magenta "Install Rust with rustup? [Yn]"
+      prompt_yes "true" "exit 1"
+      wget -o rustup-init.exe https://win.rustup.rs/x86_64
+      chmod +x rustup-init.exe
+      ./rustup-init.exe
       red "CRITICAL: Windows PATH has changed, please restart a new Cygwin window"
     else
       echo "Please install Rust through your package manager"
