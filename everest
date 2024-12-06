@@ -196,6 +196,13 @@ write_cygwin_env_dest_file () {
   write_to_env_dest_file "$str"
 }
 
+write_cc_env_dest_file () {
+  str="
+    # This line automatically added by $0
+    export CC=x86_64-w64-mingw32-gcc.exe"
+  write_to_env_dest_file "$str"
+}
+
 write_cxx_env_dest_file () {
   str="
     # This line automatically added by $0
@@ -397,6 +404,12 @@ do_check ()
       prompt_yes write_cygwin_env_dest_file true
     else
       echo "... proper mingw directory seems to be in PATH"
+    fi
+
+    if [[ -z "$CC" ]] ; then
+      red "Warning: CC not defined"
+      magenta "Automatically set CC to x86_64-w64-mingw32-gcc.exe?"
+      prompt_yes write_cc_env_dest_file true
     fi
 
     if [[ -z "$CXX" ]] ; then
