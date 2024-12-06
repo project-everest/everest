@@ -469,11 +469,6 @@ MSG
       prompt_yes true "exit 1"
       echo "Interactive is: $INTERACTIVE ; auto-setup is: $OPAM_AUTO_SETUP ; dot-profile is: $EVEREST_ENV_DEST_FILE ;"
       opam init --compiler $OPAM_VERSION
-      if { ! $INTERACTIVE ; } && ! grep 'opam-init' "$EVEREST_ENV_DEST_FILE"  >/dev/null ; then
-        # --auto-setup might not have worked, so manually do it here.
-        # Do not expand variables in the textual output.
-        echo '. "$HOME/.opam/opam-init/init.sh" > /dev/null 2>/dev/null' >> "$EVEREST_ENV_DEST_FILE"
-      fi
       eval $(opam env)
     else
       red "ERROR: no ocaml found in PATH"
