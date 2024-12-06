@@ -75,13 +75,20 @@ if (-not $?) {
 }
 
 $Error.Clear()
+Write-Host "PATH = $env:Path"
 Write-Host "Install and build Everest dependencies, pass 1 of 3"
 $everestCmd = '$HOME/everest/everest --yes check'
 Invoke-BashCmd $everestCmd
 $Error.Clear()
+Write-Host "Refresh PATH"
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+Write-Host "PATH = $env:Path"
 Write-Host "Install and build Everest dependencies, pass 2 of 3"
 Invoke-BashCmd $everestCmd
 $Error.Clear()
+Write-Host "Refresh PATH"
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+Write-Host "PATH = $env:Path"
 Write-Host "Install and build Everest dependencies, pass 3 of 3"
 Invoke-BashCmd $everestCmd
 if (-not $?) {
