@@ -18,7 +18,7 @@ function global:Invoke-BashCmd
     $cygpathExe = "$cygwinRoot\bin\cygpath.exe"
     $cygpath = & $cygpathExe -u ${pwd}
     $bashExe = "$cygwinRoot\bin\bash.exe"
-    & $bashExe --login -c "cd $cygpath && $args"
+    & $bashExe --login -c "cd $cygpath && { $args ; }"
 
     if (-not $?) {
         Write-Host "*** Error:"
@@ -38,6 +38,9 @@ $ProgressPreference = 'SilentlyContinue'
 # Switch to this script's directory
 Push-Location -ErrorAction Stop -LiteralPath $PSScriptRoot
 
+Write-Host "Refresh PATH"
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+
 $Error.Clear()
 Write-Host "Install WinGet"
 Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile Microsoft.DesktopAppInstaller_WinGet.msixbundle
@@ -48,11 +51,16 @@ if (-not $?) {
 }
 
 $Error.Clear()
-Write-Host "Install GitHub CLI"
-winget.exe install --id GitHub.cli
+Write-Host "Looking for GitHub CLI"
+gh --version
 if (-not $?) {
+  $Error.Clear()
+  Write-Host "Install GitHub CLI"
+  winget.exe install --id GitHub.cli
+  if (-not $?) {
     $Error
     exit 1
+  }
 }
 
 $Error.Clear()
@@ -67,7 +75,7 @@ Remove-Item "cygwinsetup.exe"
 
 $Error.Clear()
 Write-Host "Clone everest"
-$everestCmd = "git clone --branch " + $branch + ' https://github.com/project-everest/everest.git $HOME/everest'
+$everestCmd = 'test -d $HOME/everest || git clone --branch ' + $branch + ' https://github.com/project-everest/everest.git $HOME/everest'
 Invoke-BashCmd $everestCmd
 if (-not $?) {
     $Error
