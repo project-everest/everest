@@ -1,5 +1,8 @@
 # This script installs Everest build dependencies (including Cygwin)
-# and GitHub CLI. It is meant to run on a Windows 11 machine.
+# and GitHub CLI. It is meant to run on a Windows 11 machine. It is
+# meant to be downloaded alone, without a full copy of everest.
+
+param ($branch = "_taramana_windows")
 
 $Global:cygwinRoot = "C:\cygwin64"
 
@@ -63,8 +66,17 @@ if (-not $?) {
 Remove-Item "cygwinsetup.exe"
 
 $Error.Clear()
+Write-Host "Clone everest"
+$everestCmd = "git clone --branch " + $branch + ' https://github.com/project-everest/everest.git $HOME/everest'
+Invoke-BashCmd $everestCmd
+if (-not $?) {
+    $Error
+    exit 1
+}
+
+$Error.Clear()
 Write-Host "Install and build Everest dependencies, pass 1 of 3"
-$everestCmd = "./everest --yes check"
+$everestCmd = '$HOME/everest/everest --yes check'
 Invoke-BashCmd $everestCmd
 $Error.Clear()
 Write-Host "Install and build Everest dependencies, pass 2 of 3"
