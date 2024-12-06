@@ -840,6 +840,9 @@ clean_hacl () {
 }
 
 setup_env () {
+  opam_env="$(opam env)"
+  eval $opam_env
+  magenta "opam environment set up with: $opam_env"
   if is_windows; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
