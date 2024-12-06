@@ -19,13 +19,6 @@ OPAM_VERSION=5.2.1
 SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
 MAKE=$(which gmake >/dev/null 2>&1 && echo gmake || echo make)
 
-# OPAM_AUTO_SETUP defines the opam command-line option to
-# automatically setup environment variables into
-# $EVEREST_ENV_DEST_FILE . By default, it is left empty, but it is set
-# to --auto-setup if everest is run with --yes, i.e. in
-# non-interactive mode
-OPAM_AUTO_SETUP=
-
 ADVANCE_YES=false
 
 IS_ARCHIVE=false
@@ -40,7 +33,6 @@ make_non_interactive () {
   export OPAMYES=1
   export NOSHORTLOG=1
   export ADVANCE_YES=true
-  OPAM_AUTO_SETUP=--auto-setup
 }
 
 # The parallel option, either empty (by default), or -j n,
@@ -468,8 +460,9 @@ MSG
 Proceed with the installation?
 MSG
       prompt_yes true "exit 1"
-      echo "Interactive is: $INTERACTIVE ; auto-setup is: $OPAM_AUTO_SETUP ; dot-profile is: $EVEREST_ENV_DEST_FILE ;"
-      opam init --compiler $OPAM_VERSION
+      # Do not update the user shell configuration to setup opam.
+      # see https://github.com/dra27/mingw-w64-shims/issues/2#issuecomment-2518393694
+      opam init --no-setup --compiler $OPAM_VERSION
       eval $(opam env)
     else
       red "ERROR: no ocaml found in PATH"
