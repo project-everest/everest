@@ -63,8 +63,14 @@ if (-not $?) {
 Remove-Item "cygwinsetup.exe"
 
 $Error.Clear()
-Write-Host "Install and build Everest dependencies"
+Write-Host "Install and build Everest dependencies, pass 1 of 3"
 $everestCmd = "./everest --yes check"
+Invoke-BashCmd $everestCmd
+$Error.Clear()
+Write-Host "Install and build Everest dependencies, pass 2 of 3"
+Invoke-BashCmd $everestCmd
+$Error.Clear()
+Write-Host "Install and build Everest dependencies, pass 3 of 3"
 Invoke-BashCmd $everestCmd
 if (-not $?) {
     $Error
