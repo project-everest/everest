@@ -43,6 +43,7 @@ Push-Location -ErrorAction Stop -LiteralPath $PSScriptRoot
 
 Write-Host "Refresh PATH"
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+Write-Host "PATH = $env:Path"
 
 $Error.Clear()
 Write-Host "Install WinGet"
@@ -80,30 +81,30 @@ $Error.Clear()
 Write-Host "Clone everest"
 $everestCmd = 'test -d $HOME/everest || git clone --branch ' + $branch + ' https://github.com/project-everest/everest.git $HOME/everest'
 Invoke-BashCmd $everestCmd
-if (-not $?) {
-    $Error
-    exit 1
-}
-
-$Error.Clear()
-Write-Host "PATH = $env:Path"
-Write-Host "Install and build Everest dependencies, pass 1 of 3"
-$everestCmd = '$HOME/everest/everest --yes check'
-Invoke-BashCmd $everestCmd
-$Error.Clear()
-Write-Host "Refresh PATH"
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
-Write-Host "PATH = $env:Path"
-Write-Host "Install and build Everest dependencies, pass 2 of 3"
-Invoke-BashCmd $everestCmd
-$Error.Clear()
-Write-Host "Refresh PATH"
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
-Write-Host "PATH = $env:Path"
-Write-Host "Install and build Everest dependencies, pass 3 of 3"
-Invoke-BashCmd $everestCmd
-Pop-Location
 if ($Global:BashCmdError) {
     exit 1
 }
+
+$everestCmd = '$HOME/everest/everest --yes check'
+$nbRuns = 4
+$nbSuccesses = 0
+Do {
+   $Error.Clear()
+   Write-Host "Refresh PATH"
+   $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+   Write-Host "PATH = $env:Path"
+   Write-Host "Install and build Everest dependencies, $nbRuns run(s) remaining"
+   Invoke-BashCmd $everestCmd
+   if (-not $Global:BashCmdError) {
+      $nbSuccesses++
+   } else {
+      $nbRuns--
+   }
+} Until (($nbRuns -eq 0) -or ($nbSuccesses -eq 2))
+Pop-Location
+if ($Global:BashCmdError) {
+    Write-Host "FAILURE"
+    exit 1
+}
+$Error.Clear()
 Write-Host "Everest dependencies are now installed."
