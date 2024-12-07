@@ -6,10 +6,13 @@ param ($branch = "_taramana_windows")
 
 $Global:cygwinRoot = "C:\cygwin64"
 
+$Global:BashCmdError = $false
+
 function global:Invoke-BashCmd
 {
     # This function invokes a Bash command via Cygwin bash.
     $Error.Clear()
+    $Global:BashCmdError = $false
 
     Write-Host "Args:" $args
 
@@ -23,7 +26,7 @@ function global:Invoke-BashCmd
     if (-not $?) {
         Write-Host "*** Error:"
         $Error
-        return 1
+	$Global:BashCmdError = $true
     }
 }
 
@@ -99,10 +102,8 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";"
 Write-Host "PATH = $env:Path"
 Write-Host "Install and build Everest dependencies, pass 3 of 3"
 Invoke-BashCmd $everestCmd
-if (-not $?) {
-    $Error
+Pop-Location
+if ($Global:BashCmdError) {
     exit 1
 }
-
-Pop-Location
 Write-Host "Everest dependencies are now installed."
