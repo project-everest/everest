@@ -592,7 +592,8 @@ OCAML
     if is_windows ; then
       magenta "Install Rust with rustup? [Yn]"
       prompt_yes "true" "exit 1"
-      wget -o rustup-init.exe https://win.rustup.rs/x86_64
+      rm -f rustup-init.exe
+      wget -O rustup-init.exe https://win.rustup.rs/x86_64
       chmod +x rustup-init.exe
       ./rustup-init.exe
       red "CRITICAL: Windows PATH has changed, please restart a new Cygwin window"
