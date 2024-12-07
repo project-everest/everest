@@ -23,7 +23,8 @@ function global:Invoke-BashCmd
     if (-not $?) {
         Write-Host "*** Error:"
         $Error
-        return 1
+    } else {
+      return 0
     }
 }
 
@@ -98,11 +99,10 @@ Write-Host "Refresh PATH"
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
 Write-Host "PATH = $env:Path"
 Write-Host "Install and build Everest dependencies, pass 3 of 3"
-Invoke-BashCmd $everestCmd
-if (-not $?) {
-    $Error
-    exit 1
-}
-
+$ret = Invoke-BashCmd $everestCmd
 Pop-Location
+if ($ret -ne 0) {
+   Write-Host "FAILURE"
+    exit $ret
+}
 Write-Host "Everest dependencies are now installed."
