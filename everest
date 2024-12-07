@@ -862,6 +862,14 @@ setup_env () {
   eval $opam_env
   magenta "opam environment set up with: $opam_env"
   if is_windows; then
+    if [[ -z "$CC" ]] ; then
+      # NOTE: we CANNOT define this in the config file, because this
+      # would be caught by `opam install`, even with `CC=`, and this would
+      # make `alcotest`, `sha`, etc. fail to build. But we DO need to set CC
+      # to make Karamel and EverParse tests succeed.
+      export CC=x86_64-w64-mingw32-gcc.exe
+      magenta "exported CC=$CC"
+    fi
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KRML_HOME=$(cygpath -m $(pwd)/karamel)
