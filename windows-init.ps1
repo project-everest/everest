@@ -98,6 +98,7 @@ Do {
    if (-not $Global:BashCmdError) {
       $nbSuccesses++
    } else {
+      $nbSuccesses = 0
       $nbRuns--
    }
 } Until (($nbRuns -eq 0) -or ($nbSuccesses -eq 2))
