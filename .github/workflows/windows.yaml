@@ -4,18 +4,19 @@ on:
 jobs:
   build:
     runs-on: [self-hosted, Windows, X64, opam-2-3]
+    timeout-minutes: 1440
     steps:
       - name: Check out repo        
         uses: actions/checkout@v3
       - name: Everest reset
         shell: C:\cygwin64\bin\bash.exe --login '{0}'
         run: |
-          $GITHUB_WORKSPACE/everest --yes -j 8 -k reset && echo "There is a CR at the end of this line"
+          $GITHUB_WORKSPACE/everest --yes -j 16 -k reset && echo "There is a CR at the end of this line"
       - name: Everest make
         shell: C:\cygwin64\bin\bash.exe --login '{0}'
         run: |
-          $GITHUB_WORKSPACE/everest -j 8 -k make && echo "There is a CR at the end of this line"
+          $GITHUB_WORKSPACE/everest -j 16 -k make && echo "There is a CR at the end of this line"
       - name: Everest test
         shell: C:\cygwin64\bin\bash.exe --login '{0}'
         run: |
-          $GITHUB_WORKSPACE/everest -j 8 -k test && echo "There is a CR at the end of this line"
+          $GITHUB_WORKSPACE/everest -j 16 -k test && echo "There is a CR at the end of this line"
