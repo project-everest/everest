@@ -10,7 +10,7 @@ jobs:
       - name: Everest reset
         shell: C:\cygwin64\bin\bash.exe --login '{0}'
         run: |
-          $GITHUB_WORKSPACE/everest -j 8 -k reset && echo "There is a CR at the end of this line"
+          $GITHUB_WORKSPACE/everest --yes -j 8 -k reset && echo "There is a CR at the end of this line"
       - name: Everest make
         shell: C:\cygwin64\bin\bash.exe --login '{0}'
         run: |
