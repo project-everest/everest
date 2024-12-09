@@ -7,3 +7,11 @@ jobs:
     steps:
       - name: Check out repo        
         uses: actions/checkout@v3
+      - name: Everest make
+        shell: C:\cygwin64\bin\bash.exe --login '{0}'
+        run: |
+          $GITHUB_WORKSPACE/everest -j 8 -k make
+      - name: Everest test
+        shell: C:\cygwin64\bin\bash.exe --login '{0}'
+        run: |
+          $GITHUB_WORKSPACE/everest -j 8 -k test
