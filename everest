@@ -490,13 +490,56 @@ OCAML
   # OCamlfind & extra packages. Required OPAM packages are stored in
   # [opam-packages], where each line is of the form:
   #   <ocamlfind-package-name> <SPACE> <opam-package-name>
-  if ! command -v ocamlfind >/dev/null 2>&1; then
-    magenta "ocamlfind not found!"
+
+  # On Windows, OCamlfind 1.9.8 or later is necessary, because
+  # otherwise, we encounter https://github.com/ocaml/opam/issues/6129
+  # when building the HACL* OCaml bindings. In fact,
+  # https://github.com/ocaml/ocamlfind/pull/64 was not merged until
+  # that release (see also
+  # https://github.com/ocaml/opam-repository/pull/26510 ) For now, we
+  # need to download ocamlfind it manually, because it has not been
+  # uploaded to the opam package repository yet
+  ocamlfind_found=false
+  if command -v ocamlfind >/dev/null 2>&1; then
+      ocamlfind_found=true
+  else
+      magenta "ocamlfind not found!"
+  fi
+  if is_windows ; then
+    if $ocamlfind_found ; then
+	ocamlfind_version=$(ocamlfind query findlib -format '%v')
+	echo "... ocamlfind $ocamlfind_version found"
+	if ! ocaml -noinit -noprompt -stdin <<OCAML
+	      if "$ocamlfind_version" < "1.9.8" then begin
+	        print_endline "ERROR: ocamlfind < 1.9.8 detected";
+		exit 1
+	      end
+OCAML
+	then
+	    ocamlfind_found=false
+	fi
+    fi
+    if ! $ocamlfind_found ; then
+	echo "Install ocamlfind 1.9.8?"
+	prompt_yes true "exit 1"
+	if [[ -d ocamlfind ]] ; then
+	    pushd ocamlfind
+	    git_checkout_success=true
+	    git checkout findlib-1.9.8 || git_checkout_success=false
+	    popd # ocamlfind
+	    $git_checkout_success
+	else
+	    git clone --branch findlib-1.9.8 https://github.com/ocaml/ocamlfind ocamlfind
+	fi
+	opam install ./ocamlfind
+    fi
+  elif ! $ocamlfind_found ; then
     if_yes "opam install ocamlfind"
   else
     echo "... ocamlfind found"
   fi
 
+  # Now, check for other OPAM packages
   missing=false
   while read line; do
     ocamlfind_package=$(echo $line | cut -d " " -f 1)
