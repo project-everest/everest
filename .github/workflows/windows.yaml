@@ -10,8 +10,8 @@ jobs:
       - name: Everest make
         shell: C:\cygwin64\bin\bash.exe --login '{0}'
         run: |
-          $GITHUB_WORKSPACE/everest -j 8 -k make
+          $GITHUB_WORKSPACE/everest -j 8 -k make && echo "There is a CR at the end of this line"
       - name: Everest test
         shell: C:\cygwin64\bin\bash.exe --login '{0}'
         run: |
-          $GITHUB_WORKSPACE/everest -j 8 -k test
+          $GITHUB_WORKSPACE/everest -j 8 -k test && echo "There is a CR at the end of this line"
