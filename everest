@@ -1045,7 +1045,7 @@ do_make ()
 }
 
 test_FStar () {
-  $MAKE -C FStar ci-uregressions $make_opts
+  $MAKE -C FStar ci-uregressions $make_opts V=1
 }
 
 test_karamel () {
