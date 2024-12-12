@@ -2,7 +2,7 @@
 # and GitHub CLI. It is meant to run on a Windows 11 machine. It is
 # meant to be downloaded alone, without a full copy of everest.
 
-param ($branch = "_taramana_windows")
+param ($branch = "master")
 
 $Global:cygwinRoot = "C:\cygwin64"
 
