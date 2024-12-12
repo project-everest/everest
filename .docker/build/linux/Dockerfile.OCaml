@@ -37,7 +37,6 @@ RUN wget https://download.visualstudio.microsoft.com/download/pr/cd0d0a4d-2a6a-4
 ENV OPAMYES 1
 ARG OCAML_VERSION=4.14.0
 RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing 
-RUN opam env --set-switch | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
 
 # Add Everest files and projects
 

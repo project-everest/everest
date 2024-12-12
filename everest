@@ -13,19 +13,11 @@ set -o pipefail
 # set -u
 
 # Known URLs, directories and versions
-OPAM_URL=https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.2/opam64.tar.xz
 MINIMAL_OCAML_VERSION=4.10.0
-OPAM_VERSION=4.14.0+mingw64c
+OPAM_VERSION=5.2.1
 
 SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
 MAKE=$(which gmake >/dev/null 2>&1 && echo gmake || echo make)
-
-# OPAM_AUTO_SETUP defines the opam command-line option to
-# automatically setup environment variables into
-# $EVEREST_ENV_DEST_FILE . By default, it is left empty, but it is set
-# to --auto-setup if everest is run with --yes, i.e. in
-# non-interactive mode
-OPAM_AUTO_SETUP=
 
 ADVANCE_YES=false
 
@@ -41,7 +33,6 @@ make_non_interactive () {
   export OPAMYES=1
   export NOSHORTLOG=1
   export ADVANCE_YES=true
-  OPAM_AUTO_SETUP=--auto-setup
 }
 
 # The parallel option, either empty (by default), or -j n,
@@ -253,9 +244,9 @@ install_all_opam_packages () {
   packages=$(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')
   opam update
   if is_windows; then
-    opam install depext-cygwinports
+    opam install depext-cygwinports || true
   fi
-  opam depext $packages
+  opam depext $packages || true
   opam install -j 4 $packages
 }
 
@@ -425,11 +416,11 @@ do_check ()
     echo "... github.com access ok"
   fi
 
-  # OCaml detection
-  if ! command -v >/dev/null 2>&1 ocaml; then
-    # Offer to install and sed-setup a crappy snapshot
+  # opam detection
+  if ! command -v >/dev/null 2>&1 opam; then
+    # Offer to install opam on Windows
     if is_windows; then
-      magenta "No OCaml detected!"
+      magenta "No opam detected!"
       cat <<MSG
 
 Proceed with the download?
@@ -444,18 +435,35 @@ MSG
         prompt_yes true "exit 1"
       fi
       # Download and Install OPAM
-      wget $OPAM_URL
-      tar -xf 'opam64.tar.xz'
-      rm -f 'opam64.tar.xz'
-      bash opam64/install.sh
-      echo "Interactive is: $INTERACTIVE ; auto-setup is: $OPAM_AUTO_SETUP ; dot-profile is: $EVEREST_ENV_DEST_FILE ;"
-      opam init default "https://github.com/fdopen/opam-repository-mingw.git#opam2" -c "ocaml-variants.$OPAM_VERSION" --disable-sandboxing
-      if { ! $INTERACTIVE ; } && ! grep 'opam-init' "$EVEREST_ENV_DEST_FILE"  >/dev/null ; then
-        # --auto-setup might not have worked, so manually do it here.
-        # Do not expand variables in the textual output.
-        echo '. "$HOME/.opam/opam-init/init.sh" > /dev/null 2>/dev/null' >> "$EVEREST_ENV_DEST_FILE"
+      winget install OCaml.opam
+      if ! command -v >/dev/null 2>&1 opam; then
+          echo "Please reopen a new shell to refresh your PATH"
+          exit 1
       fi
-      eval $(opam config env)
+    else
+      red "ERROR: opam not found in PATH"
+      echo "Please install opam following your specific distribution instructions"
+      exit 1
+    fi
+  else
+      echo "... opam found"
+  fi
+  eval $(opam env) # `eval $(...)` "absorbs" the return code from the inner command, and when `opam env` fails, there is no output
+
+  # OCaml detection
+  if ! command -v >/dev/null 2>&1 ocaml; then
+    # Offer to install opam on Windows
+    if is_windows; then
+      magenta "No OCaml detected!"
+      cat <<MSG
+
+Proceed with the installation?
+MSG
+      prompt_yes true "exit 1"
+      # Do not update the user shell configuration to setup opam.
+      # see https://github.com/dra27/mingw-w64-shims/issues/2#issuecomment-2518393694
+      opam init --no-setup --compiler $OPAM_VERSION
+      eval $(opam env)
     else
       red "ERROR: no ocaml found in PATH"
       if is_osx; then
@@ -482,23 +490,56 @@ OCAML
   # OCamlfind & extra packages. Required OPAM packages are stored in
   # [opam-packages], where each line is of the form:
   #   <ocamlfind-package-name> <SPACE> <opam-package-name>
-  success_or "opam"
-  if [ ! -d ~/.opam ]; then
-    if is_windows; then
-      echo "This is a Windows environment; not running opam init."
-      echo "Please follow instructions for the installer you picked."
-      echo "Hint: https://github.com/protz/ocaml-installer/wiki or https://fdopen.github.io/opam-repository-mingw/"
-    else
-      if_yes "opam init"
+
+  # On Windows, OCamlfind 1.9.8 or later is necessary, because
+  # otherwise, we encounter https://github.com/ocaml/opam/issues/6129
+  # when building the HACL* OCaml bindings. In fact,
+  # https://github.com/ocaml/ocamlfind/pull/64 was not merged until
+  # that release (see also
+  # https://github.com/ocaml/opam-repository/pull/26510 ) For now, we
+  # need to download ocamlfind it manually, because it has not been
+  # uploaded to the opam package repository yet
+  ocamlfind_found=false
+  if command -v ocamlfind >/dev/null 2>&1; then
+      ocamlfind_found=true
+  else
+      magenta "ocamlfind not found!"
+  fi
+  if is_windows ; then
+    if $ocamlfind_found ; then
+	ocamlfind_version=$(ocamlfind query findlib -format '%v')
+	echo "... ocamlfind $ocamlfind_version found"
+	if ! ocaml -noinit -noprompt -stdin <<OCAML
+	      if "$ocamlfind_version" < "1.9.8" then begin
+	        print_endline "ERROR: ocamlfind < 1.9.8 detected";
+		exit 1
+	      end
+OCAML
+	then
+	    ocamlfind_found=false
+	fi
     fi
-    eval $(opam config env)
-  fi
-
-  if ! command -v ocamlfind >/dev/null 2>&1; then
-    magenta "ocamlfind not found!"
+    if ! $ocamlfind_found ; then
+	echo "Install ocamlfind 1.9.8?"
+	prompt_yes true "exit 1"
+	if [[ -d ocamlfind ]] ; then
+	    pushd ocamlfind
+	    git_checkout_success=true
+	    git checkout findlib-1.9.8 || git_checkout_success=false
+	    popd # ocamlfind
+	    $git_checkout_success
+	else
+	    git clone --branch findlib-1.9.8 https://github.com/ocaml/ocamlfind ocamlfind
+	fi
+	opam install ./ocamlfind
+    fi
+  elif ! $ocamlfind_found ; then
     if_yes "opam install ocamlfind"
+  else
+    echo "... ocamlfind found"
   fi
 
+  # Now, check for other OPAM packages
   missing=false
   while read line; do
     ocamlfind_package=$(echo $line | cut -d " " -f 1)
@@ -507,6 +548,8 @@ OCAML
       red "ERROR: ocamlfind package $ocamlfind_package is not installed"
       missing=true
       break
+    else
+      echo "... opam package $opam_package found"
     fi
   done < opam-packages
   if $missing; then
@@ -572,18 +615,8 @@ OCAML
   if ! which node >/dev/null 2>&1 ; then
     red "ERROR: Node.js doesn\'t seem to be installed"
     if is_windows ; then
-      magenta "Download it from the internet? [Yn]"
-      prompt_yes true "exit 1"
-      # There is no clean way to determine the latest version of
-      # Node.js available. However, the URL below points to a HTML
-      # page containing a list of files, and there, there is exactly
-      # one link to a .msi file corresponding to 64-bit platforms. So
-      # we just need to extract its name from the page.
-      NODEJS_MSI=$(wget --output-document=- --no-verbose --quiet https://nodejs.org/dist/latest/ | grep -o '"node-[^-]*-x64\.msi"' | sed 's!"!!g')
-      # Check that there are exactly one .msi file there
-      test $(echo "$NODEJS_MSI" | grep -o '\.msi' | wc -l) -eq 1
-      # Finally, launch Windows installer in unattended mode
-      msiexec /i "https://nodejs.org/dist/latest/$NODEJS_MSI" /quiet /passive
+      magenta "Install Node.js with winget? [Yn]"
+      prompt_yes "winget install OpenJS.NodeJS.LTS" "exit 1"
       # Test whether Node.js installed properly
       # Impossible: Windows PATH has changed, we cannot refresh it
       # which node > /dev/null 2>&1
@@ -592,8 +625,28 @@ OCAML
       echo "Please install node.js through your package manager"
       exit 1
     fi
+  else
+      echo "... Node.js found in PATH"
   fi
-  echo "... Node.js found in PATH"
+
+  # Check for rust (necessary for Karamel tests)
+  if ! which cargo >/dev/null 2>&1 ; then
+    red "ERROR: rust (cargo) doesn\'t seem to be installed"
+    if is_windows ; then
+      magenta "Install Rust with rustup? [Yn]"
+      prompt_yes "true" "exit 1"
+      rm -f rustup-init.exe
+      wget -O rustup-init.exe https://win.rustup.rs/x86_64
+      chmod +x rustup-init.exe
+      ./rustup-init.exe
+      red "CRITICAL: Windows PATH has changed, please restart a new Cygwin window"
+    else
+      echo "Please install Rust through your package manager"
+      exit 1
+    fi
+  else
+      echo "... rust (cargo) found in PATH"
+  fi
 
   # .NET 6.0 (needed to compile F* ulib/fs)
   if dotnet --list-sdks | grep '^6\.0\.' >/dev/null ; then
@@ -849,7 +902,18 @@ clean_hacl () {
 }
 
 setup_env () {
+  opam_env="$(opam env)"
+  eval $opam_env
+  magenta "opam environment set up with: $opam_env"
   if is_windows; then
+    if [[ -z "$CC" ]] ; then
+      # NOTE: we CANNOT define this in the config file, because this
+      # would be caught by `opam install`, even with `CC=`, and this would
+      # make `alcotest`, `sha`, etc. fail to build. But we DO need to set CC
+      # to make Karamel and EverParse tests succeed.
+      export CC=x86_64-w64-mingw32-gcc.exe
+      magenta "exported CC=$CC"
+    fi
     export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
     export VALE_HOME=$(cygpath -m $(pwd)/vale)
     export KRML_HOME=$(cygpath -m $(pwd)/karamel)
@@ -981,7 +1045,7 @@ do_make ()
 }
 
 test_FStar () {
-  $MAKE -C FStar ci-uregressions $make_opts
+  $MAKE -C FStar ci-uregressions $make_opts V=1
 }
 
 test_karamel () {

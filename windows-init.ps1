@@ -1,12 +1,18 @@
 # This script installs Everest build dependencies (including Cygwin)
-# and GitHub CLI. It is meant to run on a Windows 11 machine.
+# and GitHub CLI. It is meant to run on a Windows 11 machine. It is
+# meant to be downloaded alone, without a full copy of everest.
+
+param ($branch = "_taramana_windows")
 
 $Global:cygwinRoot = "C:\cygwin64"
+
+$Global:BashCmdError = $false
 
 function global:Invoke-BashCmd
 {
     # This function invokes a Bash command via Cygwin bash.
     $Error.Clear()
+    $Global:BashCmdError = $false
 
     Write-Host "Args:" $args
 
@@ -15,12 +21,12 @@ function global:Invoke-BashCmd
     $cygpathExe = "$cygwinRoot\bin\cygpath.exe"
     $cygpath = & $cygpathExe -u ${pwd}
     $bashExe = "$cygwinRoot\bin\bash.exe"
-    & $bashExe --login -c "cd $cygpath && $args"
+    & $bashExe --login -c "cd $cygpath && { $args ; }"
 
     if (-not $?) {
         Write-Host "*** Error:"
         $Error
-        exit 1
+	$Global:BashCmdError = $true
     }
 }
 
@@ -35,6 +41,10 @@ $ProgressPreference = 'SilentlyContinue'
 # Switch to this script's directory
 Push-Location -ErrorAction Stop -LiteralPath $PSScriptRoot
 
+Write-Host "Refresh PATH"
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+Write-Host "PATH = $env:Path"
+
 $Error.Clear()
 Write-Host "Install WinGet"
 Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile Microsoft.DesktopAppInstaller_WinGet.msixbundle
@@ -45,11 +55,16 @@ if (-not $?) {
 }
 
 $Error.Clear()
-Write-Host "Install GitHub CLI"
-winget.exe install --id GitHub.cli
+Write-Host "Looking for GitHub CLI"
+gh --version
 if (-not $?) {
+  $Error.Clear()
+  Write-Host "Install GitHub CLI"
+  winget.exe install --id GitHub.cli
+  if (-not $?) {
     $Error
     exit 1
+  }
 }
 
 $Error.Clear()
@@ -63,13 +78,34 @@ if (-not $?) {
 Remove-Item "cygwinsetup.exe"
 
 $Error.Clear()
-Write-Host "Install and build Everest dependencies"
-$everestCmd = "./everest --yes check"
+Write-Host "Clone everest"
+$everestCmd = 'test -d $HOME/everest || git clone --branch ' + $branch + ' https://github.com/project-everest/everest.git $HOME/everest'
 Invoke-BashCmd $everestCmd
-if (-not $?) {
-    $Error
+if ($Global:BashCmdError) {
     exit 1
 }
 
+$everestCmd = '$HOME/everest/everest --yes check'
+$nbRuns = 4
+$nbSuccesses = 0
+Do {
+   $Error.Clear()
+   Write-Host "Refresh PATH"
+   $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+   Write-Host "PATH = $env:Path"
+   Write-Host "Install and build Everest dependencies, $nbRuns run(s) remaining"
+   Invoke-BashCmd $everestCmd
+   if (-not $Global:BashCmdError) {
+      $nbSuccesses++
+   } else {
+      $nbSuccesses = 0
+      $nbRuns--
+   }
+} Until (($nbRuns -eq 0) -or ($nbSuccesses -eq 2))
 Pop-Location
+if ($Global:BashCmdError) {
+    Write-Host "FAILURE"
+    exit 1
+}
+$Error.Clear()
 Write-Host "Everest dependencies are now installed."
