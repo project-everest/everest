@@ -33,6 +33,10 @@ make_non_interactive () {
   export OPAMYES=1
   export NOSHORTLOG=1
   export ADVANCE_YES=true
+  if is_ubuntu ; then
+      # for some packages (e.g. tzdata), apt-get install --yes is not enough
+      export DEBIAN_FRONTEND=noninteractive
+  fi
 }
 
 # The parallel option, either empty (by default), or -j n,
@@ -143,15 +147,21 @@ write_to_env_dest_file () {
   magenta "Remember to run source \"$EVEREST_ENV_DEST_FILE\" in your terminal afterwards!"
 }
 
-# Append $1 to the (Cygwin) path
-windows_append_path () {
-  path=$(cygpath -m -d "$1")
-  path=$(cygpath "$path")
+# Append $1 to the path
+append_path () {
+  path="$1"
   str="
     # This line automatically added by $0
     export PATH=\"$path\":\$PATH"
   write_to_env_dest_file "$str"
   export PATH="$path":"$PATH"
+}
+
+# Append $1 to the (Cygwin) path
+windows_append_path () {
+  path=$(cygpath -m -d "$1")
+  path=$(cygpath "$path")
+  append_path "$path"
 }
 
 # Windows requires several tools that can be installed via Visual Studio, but
@@ -291,7 +301,7 @@ do_update_z3 () {
     local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-win.zip
   elif is_osx; then
     local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-osx-*.zip
-  elif [[ $(lsb_release -i | awk '{ print $3; }') == "Ubuntu" ]]; then
+  elif is_ubuntu; then
     local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-ubuntu-14.04.zip
   elif [[ $(lsb_release -i | awk '{ print $3; }') == "Debian" ]]; then
     local new_z3_file=fstarlang_binaries/z3-tested/z3-4.8.5*-x64-debian-*.zip
@@ -337,12 +347,44 @@ do_check ()
     success_or "gmake" "$msg"
   fi
 
+  # Ubuntu: refresh package repository
+  if is_ubuntu ; then
+      if ! command -v sudo >/dev/null 2>&1 ; then
+          red "sudo not found."
+          echo "Trying to refresh package repository as root"
+          if apt-get update ; then
+              magenta "It is not recommended to run ./everest as root. Continue? [Yn]"
+              prompt_yes true "exit 1"
+          else
+              red 'ERROR: Cannot refresh package repository. Please install `sudo`'
+              exit 1
+          fi
+          sudo=""
+      else
+          echo "Refreshing package repository"
+          sudo apt-get update
+          sudo="sudo"
+      fi
+  fi
+
+  apt-get-install () {
+      if $INTERACTIVE ; then
+          apt_get_yes=""
+      else
+          apt_get_yes=--yes
+      fi
+      $sudo apt-get install $apt_get_yes --no-install-recommends "$@"
+  }
+
   # Slightly suboptimal, since we may end up running Cygwin's setup twice.
   if ! command -v git >/dev/null 2>&1; then
     if is_windows; then
       magenta "Git not found. Install Cygwin's git? [Yn]"
       find_cygsetup
       prompt_yes "$cygsetup $cygsetup_args --packages=git"
+    elif is_ubuntu; then
+      red "Git not found. Install git? [Yn]"
+      prompt_yes "apt-get-install git"
     else
       red "ERROR: git not found; install it via your favorite package manager"
       exit 1
@@ -406,6 +448,22 @@ do_check ()
     fi
   fi # if is_windows
 
+  # ubuntu prerequisites
+  if is_ubuntu ; then
+    # The list of required Ubuntu packages
+    echo "Checking for Ubuntu packages"
+    required_packages="$(cat ubuntu-packages)"
+    for p in $required_packages; do
+      if dpkg-query -s $p; then
+        echo "... Ubuntu package $p found"
+      else
+        red "Ubuntu package $p is missing"
+        if_yes "apt-get-install $required_packages"
+      fi
+    done
+    echo "... all $(wc -l ubuntu-packages) Ubuntu packages seem to be installed"
+  fi
+
   # Note: ssh returns the exit code of the remote command (1 in this case),
   # hence the || true -- the success of this step is determined by the presence
   # of "authenticated".
@@ -440,6 +498,10 @@ MSG
           echo "Please reopen a new shell to refresh your PATH"
           exit 1
       fi
+    elif is_ubuntu ; then
+      magenta "No opam detected!"
+      echo "Install opam?"
+      prompt_yes "apt-get-install opam" "exit 1"
     else
       red "ERROR: opam not found in PATH"
       echo "Please install opam following your specific distribution instructions"
@@ -453,16 +515,26 @@ MSG
   # OCaml detection
   if ! command -v >/dev/null 2>&1 ocaml; then
     # Offer to install opam on Windows
-    if is_windows; then
+    # or Ubuntu
+    if is_windows || is_ubuntu ; then
       magenta "No OCaml detected!"
       cat <<MSG
 
 Proceed with the installation?
 MSG
       prompt_yes true "exit 1"
+      # On Ubuntu, I need to check whether I am running in a Docker container
+      disable_sandboxing=""
+      if is_ubuntu ; then
+          if ! bwrap --unshare-all --ro-bind / / true ; then
+              echo "You are probably running inside a Docker container. Do you confirm and want to continue with --disable-sandboxing? [Yn]"
+              prompt_yes true "exit 1"
+              disable_sandboxing=--disable-sandboxing
+          fi
+      fi
       # Do not update the user shell configuration to setup opam.
       # see https://github.com/dra27/mingw-w64-shims/issues/2#issuecomment-2518393694
-      opam init --no-setup --compiler $OPAM_VERSION
+      opam init $disable_sandboxing --no-setup --compiler $OPAM_VERSION
       eval $(opam env)
     else
       red "ERROR: no ocaml found in PATH"
@@ -474,7 +546,6 @@ MSG
       fi
       exit 1
     fi
-
   else
     # OCaml; if this exits, set -e means this is a hard error
     ocaml -noinit -noprompt -stdin <<OCAML
@@ -621,6 +692,9 @@ OCAML
       # Impossible: Windows PATH has changed, we cannot refresh it
       # which node > /dev/null 2>&1
       red "CRITICAL: Windows PATH has changed, please restart a new Cygwin window"
+    elif is_ubuntu ; then
+        magenta "Install Node.js? [Yn]"
+        prompt_yes "apt-get-install nodejs" "exit 1"
     else
       echo "Please install node.js through your package manager"
       exit 1
@@ -640,6 +714,9 @@ OCAML
       chmod +x rustup-init.exe
       ./rustup-init.exe
       red "CRITICAL: Windows PATH has changed, please restart a new Cygwin window"
+    elif is_ubuntu ; then
+        echo "Install rust-all?"
+        prompt_yes "apt-get-install rust-all" "exit 1"
     else
       echo "Please install Rust through your package manager"
       exit 1
@@ -654,11 +731,20 @@ OCAML
   else
     red "ERROR: .NET SDK 6.0 not found"
     if is_windows ; then
-	magenta "Install it with winget? [Yn]"
-	prompt_yes "winget install Microsoft.DotNet.SDK.6"
+        magenta "Install it with winget? [Yn]"
+        prompt_yes "winget install Microsoft.DotNet.SDK.6"
+    elif is_ubuntu ; then
+        echo "Install .NET SDK 6.0 and add it to your PATH via configuration file $EVEREST_ENV_DEST_FILE?"
+        prompt_yes true "exit 1"
+        DOTNET_ROOT="$PWD/dotnet"
+        wget https://download.visualstudio.microsoft.com/download/pr/cd0d0a4d-2a6a-4d0d-b42e-dfd3b880e222/008a93f83aba6d1acf75ded3d2cfba24/dotnet-sdk-6.0.400-linux-x64.tar.gz
+        mkdir -p "$DOTNET_ROOT"
+        tar xf dotnet-sdk-6.0.400-linux-x64.tar.gz -C "$DOTNET_ROOT"
+        append_path "$DOTNET_ROOT/tools"
+        append_path "$DOTNET_ROOT"
     else
-	echo "Install .NET SDK 6.0 https://docs.microsoft.com/en-us/dotnet/core/install/"
-	exit 1
+        echo "Install .NET SDK 6.0 https://docs.microsoft.com/en-us/dotnet/core/install/"
+        exit 1
     fi
   fi
 

@@ -1,0 +1,35 @@
+ARG UBUNTU_VERSION=24.04
+FROM ubuntu:$UBUNTU_VERSION
+
+# Install sudo
+RUN apt-get --yes update && apt-get --yes install --no-install-recommends sudo
+
+# Create a new user and give them sudo rights
+RUN useradd -d /home/test test
+RUN echo 'test ALL=NOPASSWD: ALL' >> /etc/sudoers
+RUN mkdir /home/test
+RUN chown test:test /home/test
+USER test
+ENV HOME /home/test
+WORKDIR $HOME
+SHELL ["/bin/bash", "--login", "-c"]
+
+# Clone Everest
+ADD --chown=test . .
+
+ARG EVEREST_THREADS=24
+
+# Install dependencies
+RUN ./everest --yes -j $EVEREST_THREADS check
+
+# Check that all dependencies are installed
+RUN ./everest -j $EVEREST_THREADS check
+
+# Make Everest
+RUN ./everest --yes -j $EVEREST_THREADS reset
+
+# Make Everest
+RUN ./everest --yes -j $EVEREST_THREADS make
+
+# Test Everest
+RUN ./everest --yes -j $EVEREST_THREADS test

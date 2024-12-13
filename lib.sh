@@ -49,6 +49,10 @@ is_windows () {
   [[ $OS == "Windows_NT" ]]
 }
 
+is_ubuntu () {
+    ( . /etc/os-release && [[ "$NAME" = Ubuntu ]] )
+}
+
 # If a command [cmd] is not found in path, then [success_or cmd msg] prints
 # [msg] if non-empty, then aborts with a non-zero exit status.
 success_or ()
