@@ -368,12 +368,14 @@ do_check ()
   fi
 
   apt-get-install () {
+      local lsudo="$sudo"
       if $INTERACTIVE ; then
           apt_get_yes=""
       else
           apt_get_yes=--yes
+	  lsudo="$lsudo DEBIAN_FRONTEND=noninteractive"
       fi
-      $sudo apt-get install $apt_get_yes --no-install-recommends "$@"
+      $lsudo apt-get install $apt_get_yes --no-install-recommends "$@"
   }
 
   # Slightly suboptimal, since we may end up running Cygwin's setup twice.
