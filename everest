@@ -292,7 +292,7 @@ do_update_z3 () {
     prompt_yes true "exit 1"
     ./get_fstar_z3.sh $z3_versions_dest
     magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path $z3_versions_dest? [Yn]"
-    prompt_yes "write_z3_env_dest_file $z3versions_dest" true
+    prompt_yes "write_z3_env_dest_file $z3_versions_dest" true
   fi
 
 }
