@@ -22,8 +22,10 @@ ARG EVEREST_THREADS=24
 # Install dependencies
 RUN ./everest --yes -j $EVEREST_THREADS check
 
+ARG OCAML_VERSION=5.2.1
+
 # Check that all dependencies are installed
-RUN ./everest -j $EVEREST_THREADS check
+RUN EVEREST_OCAML_VERSION=$OCAML_VERSION ./everest -j $EVEREST_THREADS check
 
 # Make Everest
 RUN ./everest --yes -j $EVEREST_THREADS reset

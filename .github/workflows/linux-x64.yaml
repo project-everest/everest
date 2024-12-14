@@ -6,6 +6,11 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      ocaml_version:
+        type: string
+        description: OCaml version
+        required: true
+        default: 5.2.1
       ubuntu_version:
         type: choice
         description: Ubuntu version
@@ -31,14 +36,16 @@ jobs:
         if: ${{ (github.event_name == 'workflow_dispatch') }}
         run: |
           echo "CI_UBUNTU_VERSION=--build-arg UBUNTU_VERSION=$CI_UBUNTU_VER" >> $GITHUB_ENV
+          echo "CI_OCAML_VERSION=--build-arg OCAML_VERSION=$CI_OCAML_VER" >> $GITHUB_ENV
         env:
           CI_UBUNTU_VER: ${{ inputs.ubuntu_version }}
+          CI_OCAML_VER: ${{ inputs.ocaml_version }}
       - name: Build Everest and its dependencies
         run: |
           ci_docker_image_tag=everest:local-run-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
           ci_docker_builder=builder_everest_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}
           docker buildx create --name $ci_docker_builder --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=500000000
-          if docker buildx build --pull --builder $ci_docker_builder --load -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.Ubuntu $CI_UBUNTU_VERSION . ; then
+          if docker buildx build --pull --builder $ci_docker_builder --load -t $ci_docker_image_tag -f .docker/build/linux/Dockerfile.Ubuntu $CI_UBUNTU_VERSION $CI_OCAML_VERSION . ; then
             ci_docker_status=true
           else
             ci_docker_status=false

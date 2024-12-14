@@ -14,7 +14,9 @@ set -o pipefail
 
 # Known URLs, directories and versions
 MINIMAL_OCAML_VERSION=4.10.0
-OPAM_VERSION=5.2.1
+if [[ -z "$EVEREST_OCAML_VERSION" ]] ; then
+    EVEREST_OCAML_VERSION=5.2.1
+fi
 
 SED=$(which gsed >/dev/null 2>&1 && echo gsed || echo sed)
 MAKE=$(which gmake >/dev/null 2>&1 && echo gmake || echo make)
@@ -536,7 +538,7 @@ MSG
       fi
       # Do not update the user shell configuration to setup opam.
       # see https://github.com/dra27/mingw-w64-shims/issues/2#issuecomment-2518393694
-      opam init $disable_sandboxing --no-setup --compiler $OPAM_VERSION
+      opam init $disable_sandboxing --no-setup --compiler $EVEREST_OCAML_VERSION
       eval $(opam env)
     else
       red "ERROR: no ocaml found in PATH"
