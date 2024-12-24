@@ -17,7 +17,7 @@ SHELL ["/bin/bash", "--login", "-c"]
 # Clone Everest
 ADD --chown=test . .
 
-ARG EVEREST_THREADS=24
+ARG EVEREST_THREADS=8
 
 # Install dependencies
 RUN ./everest --yes -j $EVEREST_THREADS check
