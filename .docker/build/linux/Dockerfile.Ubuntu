@@ -20,9 +20,10 @@ ADD --chown=test . .
 ARG EVEREST_THREADS=8
 
 # Install dependencies
-RUN EVEREST_OCAML_VERSION=$OCAML_VERSION ./everest --yes -j $EVEREST_THREADS check
 
 ARG OCAML_VERSION=4.14.2
+
+RUN EVEREST_OCAML_VERSION=$OCAML_VERSION ./everest --yes -j $EVEREST_THREADS check
 
 # Check that all dependencies are installed
 RUN EVEREST_OCAML_VERSION=$OCAML_VERSION ./everest -j $EVEREST_THREADS check
