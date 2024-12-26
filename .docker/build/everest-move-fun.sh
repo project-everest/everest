@@ -82,6 +82,13 @@ function everest_move() {
         echo $MsgToSlack >$slack_file
         return 255
     else
+        # Try to update the get_fstar_z3.sh script, from the F* repo
+        if [[ -f "FStar/bin/get_fstar_z3.sh" ]]; then
+          echo "# THIS FILE AUTOMATICALLY UPDATED FROM F* REPO, DO NOT EDIT HERE" > get_fstar_z3.sh
+          cat "FStar/bin/get_fstar_z3.sh" >> get_fstar_z3.sh
+          chmod +x get_fstar_z3.sh
+        fi
+
         # Life is good, record new revisions and commit.
         msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
         MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
