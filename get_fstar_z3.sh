@@ -1,3 +1,4 @@
+# THIS FILE AUTOMATICALLY UPDATED FROM F* REPO, DO NOT EDIT HERE
 #!/usr/bin/env bash
 set -euo pipefail
 
