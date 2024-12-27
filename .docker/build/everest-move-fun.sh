@@ -82,18 +82,27 @@ function everest_move() {
         echo $MsgToSlack >$slack_file
         return 255
     else
-        # Try to update the get_fstar_z3.sh script, from the F* repo
-        if [[ -f "FStar/bin/get_fstar_z3.sh" ]]; then
-          echo "# THIS FILE AUTOMATICALLY UPDATED FROM F* REPO, DO NOT EDIT HERE" > get_fstar_z3.sh
-          cat "FStar/bin/get_fstar_z3.sh" >> get_fstar_z3.sh
-          chmod +x get_fstar_z3.sh
-        fi
+        # Try to update the get_fstar_z3.sh script, from the F* repo,
+        # and commit it if updated.
+        function update_get_z3_script () {
+          if [[ -f "FStar/bin/get_fstar_z3.sh" ]]; then
+            echo "# THIS FILE AUTOMATICALLY UPDATED FROM F* REPO, DO NOT EDIT HERE" > get_fstar_z3.sh
+            cat "FStar/bin/get_fstar_z3.sh" >> get_fstar_z3.sh
+            chmod +x get_fstar_z3.sh
+
+            if ! [[ -z "$(git ls-files -m get_fstar_z3.sh)" ]]; then
+                    git add get_fstar_z3.sh
+                    git commit -m "[CI] Update get_fstar_z3.sh"
+            fi
+          fi
+        }
 
         # Life is good, record new revisions and commit.
         msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
         MsgToSlack="$msg\n\n:no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
         git_remote=https://"$DZOMO_GITHUB_TOKEN"@github.com/project-everest/everest.git
         git checkout $CI_BRANCH &&
+            update_get_z3_script &&
             git pull --rebase "$git_remote" $CI_BRANCH &&
             ./everest --yes snapshot &&
             git commit -am "[CI] automatic upgrade" &&
