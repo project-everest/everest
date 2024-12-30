@@ -951,7 +951,8 @@ set_openssl () {
 }
 
 build_fstar () {
-  $MAKE -C FStar $make_opts
+  $MAKE -C FStar $make_opts fstar
+  $MAKE -C FStar $make_opts bootstrap
 }
 
 build_karamel () {
