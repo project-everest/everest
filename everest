@@ -622,6 +622,7 @@ OCAML
   else
       echo "... rust (cargo) found in PATH"
   fi
+  cargo install bindgen-cli
 
   # .NET 6.0 (needed to compile F* ulib/fs)
   if dotnet --list-sdks | grep '^6\.0\.' >/dev/null ; then
@@ -950,7 +951,7 @@ set_openssl () {
   export MITLS_USE_OPENSSL=1
 }
 
-build_fstar () {
+build_FStar () {
   $MAKE -C FStar $make_opts fstar
   $MAKE -C FStar $make_opts bootstrap
 }
@@ -961,7 +962,19 @@ build_karamel () {
   $MAKE -C karamel/krmllib $make_opts
 }
 
-build_hacl () {
+build_pulse () {
+  $MAKE -C pulse $make_opts
+}
+
+build_steel () {
+  $MAKE -C steel $make_opts
+}
+
+build_MLCrypto () {
+  $MAKE -C MLCrypto $make_opts
+}
+
+build_hacl-star () {
   # Force regeneration of each target as part of Everest build, for maximum
   # testing. This is not necessarily the optimal scenario for someone who just
   # wants to build HACL*. Note: based on version control mtimes, if we weren't
@@ -971,7 +984,7 @@ build_hacl () {
   $MAKE -C hacl-star $make_opts
 }
 
-build_mitls () {
+build_mitls-fstar () {
   CFLAGS="$MITLS_CFLAGS" \
   $MAKE -C mitls-fstar/src/tls $make_opts && \
   true
@@ -981,23 +994,23 @@ build_mitls () {
   # $MAKE -C mitls-fstar/src/pki $make_opts && \
 }
 
+build_everparse () {
+  $MAKE -C everparse $make_opts
+}
+
+build_everquic-crypto () {
+  $MAKE -C everquic-crypto dist/libeverquic.a $make_opts
+}
+
+build_merkle-tree () {
+  $MAKE -C merkle-tree dist/libmerkletree.a $make_opts
+}
+
 do_make ()
 {
   setup_env
   failed=""
   mkdir -p log
-
-  declare -A build_commands
-  build_commands[FStar]="build_fstar"
-  build_commands[karamel]="build_karamel"
-  build_commands[pulse]="$MAKE -C pulse $make_opts"
-  build_commands[steel]="$MAKE -C steel $make_opts"
-  build_commands[MLCrypto]="$MAKE -C MLCrypto $make_opts"
-  build_commands[hacl-star]="build_hacl"
-  build_commands[mitls-fstar]="build_mitls"
-  build_commands[everparse]="$MAKE -C everparse $make_opts"
-  build_commands[everquic-crypto]="make -C everquic-crypto dist/libeverquic.a $make_opts"
-  build_commands[merkle-tree]="make -C merkle-tree dist/libmerkletree.a $make_opts"
 
   # Order matters.
   for p in FStar karamel pulse steel MLCrypto hacl-star merkle-tree everparse everquic-crypto mitls-fstar; do
@@ -1007,8 +1020,9 @@ do_make ()
     fi
     separator
     blue "Rebuilding $p"
-    blue "Running: ${build_commands[$p]}"
-    if ! ${build_commands[$p]} ; then
+    blue "Running: build_$p"
+    blue "$(type build_$p)"
+    if ! build_$p ; then
       separator
       red "FAILURE: build failed for $p"
       return 2
