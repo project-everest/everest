@@ -888,7 +888,8 @@ setup_env () {
   eval $opam_env
   magenta "opam environment set up with: $opam_env"
 
-  FSTAR_HOME=$(pwd)/FStar/
+  FSTAR_EXE=$(pwd)/FStar/bin/fstar.exe
+  FSTAR_HOME=$(pwd)/FStar/ # only for Pulse
   VALE_HOME=$(pwd)/vale
   KRML_HOME=$(pwd)/karamel
   PULSE_HOME=$(pwd)/pulse
@@ -918,7 +919,7 @@ setup_env () {
       magenta "exported $v=${!v}"
     done
   }
-  exp FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+  exp FSTAR_HOME FSTAR_EXE VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
   exp MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
 
   PATH=$(pwd)/FStar/bin:$(pwd)/karamel:$PATH
@@ -954,8 +955,7 @@ set_openssl () {
 }
 
 build_FStar () {
-  $MAKE -C FStar $make_opts fstar
-  $MAKE -C FStar $make_opts bootstrap
+  $MAKE -C FStar $make_opts
 }
 
 build_karamel () {
