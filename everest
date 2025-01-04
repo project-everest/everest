@@ -650,7 +650,7 @@ OCAML
   }
 
   if is_windows; then
-    check_no_slash FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+    check_no_slash FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
     check_no_slash MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
   fi
 
@@ -666,6 +666,8 @@ OCAML
   magenta "Note: you *may* want to add ${xpwd}/FStar/bin and ${xpwd}/karamel to your PATH"
   [ -n "${FSTAR_HOME}" ] || \
     magenta "Note: you *may* want to export FSTAR_HOME=${xpwd}/FStar"
+  [ -n "${FSTAR_EXE}" ] || \
+    magenta "Note: you *may* want to export FSTAR_EXE=${xpwd}/FStar/bin/fstar.exe"
   [ -n "${KRML_HOME}" ] || \
     magenta "Note: you *may* want to export KRML_HOME=${xpwd}/karamel"
   [ -n "${PULSE_HOME}" ] || \
@@ -895,7 +897,8 @@ setup_env () {
   eval $opam_env
   magenta "opam environment set up with: $opam_env"
 
-  FSTAR_HOME=$(pwd)/FStar/
+  FSTAR_EXE=$(pwd)/FStar/bin/fstar.exe
+  FSTAR_HOME=$(pwd)/FStar/ # temporary and will be removed
   VALE_HOME=$(pwd)/vale
   KRML_HOME=$(pwd)/karamel
   PULSE_HOME=$(pwd)/pulse
@@ -914,7 +917,7 @@ setup_env () {
       export CC=x86_64-w64-mingw32-gcc.exe
       magenta "exported CC=$CC"
     fi
-    cygify FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+    cygify FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
     cygify MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
   fi
   export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
@@ -925,7 +928,7 @@ setup_env () {
       magenta "exported $v=${!v}"
     done
   }
-  exp FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+  exp FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
   exp MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
 
   PATH=$(pwd)/FStar/bin:$(pwd)/karamel:$PATH
@@ -961,8 +964,13 @@ set_openssl () {
 }
 
 build_FStar () {
-  $MAKE -C FStar $make_opts fstar
-  $MAKE -C FStar $make_opts bootstrap
+  # Migration for https://github.com/FStarLang/FStar/pull/3637
+  if [ -d FStar/stage0 ]; then
+    $MAKE -C FStar $make_opts
+  else
+    $MAKE -C FStar $make_opts fstar
+    $MAKE -C FStar $make_opts bootstrap
+  fi
 }
 
 build_karamel () {
@@ -1044,7 +1052,12 @@ do_make ()
 }
 
 test_FStar () {
-  $MAKE -C FStar ci-uregressions $make_opts V=1
+  # Migration for https://github.com/FStarLang/FStar/pull/3637
+  if [ -d FStar/stage0 ]; then
+    $MAKE -C FStar $make_opts test
+  else
+    $MAKE -C FStar $make_opts test ci-uregressions
+  fi
 }
 
 test_karamel () {
