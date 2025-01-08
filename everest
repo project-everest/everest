@@ -977,6 +977,11 @@ build_MLCrypto () {
 }
 
 build_hacl-star () {
+  # TEMP: (GM) I opened a PR from the dev branch so I don't want to update it.
+  # This replaces fstar.lib for fstar.pluginlib in the single line where
+  # that is needed for the new build.
+  sed -i 's/^\(OCAMLSHARED.*\)fstar\.lib/\1fstar.pluginlib/' hacl-star/Makefile.common
+
   # Force regeneration of each target as part of Everest build, for maximum
   # testing. This is not necessarily the optimal scenario for someone who just
   # wants to build HACL*. Note: based on version control mtimes, if we weren't
