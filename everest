@@ -639,12 +639,19 @@ OCAML
 
   do_update_z3
 
+  check_no_slash () {
+    for v; do
+      if echo "${!v}" | grep -q '^/'; then
+        red "You are on windows but your $v is a Cygwin-style path."
+        red "Don't do that, follow the suggestion below."
+        unset $v
+      fi
+    done
+  }
+
   if is_windows; then
-    if [[ $(echo $FSTAR_HOME | cut -c 1 | tr -d '\r\n' ) == "/" ]]; then
-      magenta "You are on windows but your FSTAR_HOME is a Cygwin-style path."
-      magenta "Don't do that, follow the suggestion below, and check all your other *_HOME variables."
-      unset FSTAR_HOME
-    fi
+    check_no_slash FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+    check_no_slash MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
   fi
 
   echo
@@ -1393,7 +1400,7 @@ COMMAND:
 
   clean     clean all projects
 
-  shell     run a shell with the correct FSTAR_HOME/... environment variables
+  shell     run a shell with the correct environment variables
 
   help      print the current message
 HELP
