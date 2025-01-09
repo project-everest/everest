@@ -639,12 +639,19 @@ OCAML
 
   do_update_z3
 
+  check_no_slash () {
+    for v; do
+      if echo "${!v}" | grep -q '^/'; then
+        red "You are on windows but your $v is a Cygwin-style path."
+        red "Don't do that, follow the suggestion below."
+        unset $v
+      fi
+    done
+  }
+
   if is_windows; then
-    if [[ $(echo $FSTAR_HOME | cut -c 1 | tr -d '\r\n' ) == "/" ]]; then
-      magenta "You are on windows but your FSTAR_HOME is a Cygwin-style path."
-      magenta "Don't do that, follow the suggestion below, and check all your other *_HOME variables."
-      unset FSTAR_HOME
-    fi
+    check_no_slash FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+    check_no_slash MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
   fi
 
   echo
@@ -659,6 +666,8 @@ OCAML
   magenta "Note: you *may* want to add ${xpwd}/FStar/bin and ${xpwd}/karamel to your PATH"
   [ -n "${FSTAR_HOME}" ] || \
     magenta "Note: you *may* want to export FSTAR_HOME=${xpwd}/FStar"
+  [ -n "${FSTAR_EXE}" ] || \
+    magenta "Note: you *may* want to export FSTAR_EXE=${xpwd}/FStar/bin/fstar.exe"
   [ -n "${KRML_HOME}" ] || \
     magenta "Note: you *may* want to export KRML_HOME=${xpwd}/karamel"
   [ -n "${PULSE_HOME}" ] || \
@@ -876,10 +885,29 @@ clean_hacl () {
   done
 }
 
+# Pass environment variables through cygpath -m
+cygify () {
+  for v; do
+    export $v=$(cygpath -m ${!v})
+  done
+}
+
 setup_env () {
   opam_env="$(opam env)"
   eval $opam_env
   magenta "opam environment set up with: $opam_env"
+
+  FSTAR_EXE=$(pwd)/FStar/bin/fstar.exe
+  FSTAR_HOME=$(pwd)/FStar/ # temporary and will be removed
+  VALE_HOME=$(pwd)/vale
+  KRML_HOME=$(pwd)/karamel
+  PULSE_HOME=$(pwd)/pulse
+  STEEL_HOME=$(pwd)/steel
+  HACL_HOME=$(pwd)/hacl-star
+  MLCRYPTO_HOME=$(pwd)/MLCrypto
+  EVERPARSE_HOME=$(pwd)/everparse
+  MITLS_HOME=$(pwd)/mitls-fstar
+
   if is_windows; then
     if [[ -z "$CC" ]] ; then
       # NOTE: we CANNOT define this in the config file, because this
@@ -889,47 +917,32 @@ setup_env () {
       export CC=x86_64-w64-mingw32-gcc.exe
       magenta "exported CC=$CC"
     fi
-    export FSTAR_HOME=$(cygpath -m $(pwd)/FStar)
-    export VALE_HOME=$(cygpath -m $(pwd)/vale)
-    export KRML_HOME=$(cygpath -m $(pwd)/karamel)
-    export PULSE_HOME=$(cygpath -m $(pwd)/pulse)
-    export STEEL_HOME=$(cygpath -m $(pwd)/steel)
-    export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
-    export MLCRYPTO_HOME=$(cygpath -m $(pwd)/MLCrypto)
-    export EVERPARSE_HOME=$(cygpath -m $(pwd)/everparse)
-    export MITLS_HOME=$(cygpath -m $(pwd)/mitls-fstar)
-  else
-    export FSTAR_HOME=$(pwd)/FStar
-    export VALE_HOME=$(pwd)/vale
-    export KRML_HOME=$(pwd)/karamel
-    export PULSE_HOME=$(pwd)/pulse
-    export STEEL_HOME=$(pwd)/steel
-    export HACL_HOME=$(pwd)/hacl-star
-    export MLCRYPTO_HOME=$(pwd)/MLCrypto
-    export EVERPARSE_HOME=$(pwd)/everparse
-    export MITLS_HOME=$(pwd)/mitls-fstar
+    cygify FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+    cygify MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
   fi
   export OPENSSL_HOME=$MLCRYPTO_HOME/openssl
-  magenta "exported FSTAR_HOME=$FSTAR_HOME"
-  magenta "exported OPENSSL_HOME=$OPENSSL_HOME"
-  magenta "exported KRML_HOME=$KRML_HOME"
-  magenta "exported PULSE_HOME=$PULSE_HOME"
-  magenta "exported STEEL_HOME=$STEEL_HOME"
-  magenta "exported VALE_HOME=$VALE_HOME"
-  magenta "exported HACL_HOME=$HACL_HOME"
-  magenta "exported MLCRYPTO_HOME=$MLCRYPTO_HOME"
-  export PATH=$(pwd)/FStar/bin:$(pwd)/karamel:$PATH
+
+  exp () {
+    for v; do
+      export $v
+      magenta "exported $v=${!v}"
+    done
+  }
+  exp FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+  exp MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
+
+  PATH=$(pwd)/FStar/bin:$(pwd)/karamel:$PATH
 
   if is_windows; then
-    export PATH=$(cygpath -u $OPENSSL_HOME):$PATH
+    PATH=$(cygpath -u $OPENSSL_HOME):$PATH
   elif [[ $(uname) == "Darwin" ]]; then
-    export DYLD_LIBRARY_PATH=$OPENSSL_HOME:$DYLD_LIBRARY_PATH
-    magenta "exported DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+    DYLD_LIBRARY_PATH=$OPENSSL_HOME:$DYLD_LIBRARY_PATH
+    exp DYLD_LIBRARY_PATH
   else
-    export LD_LIBRARY_PATH=$OPENSSL_HOME:$LD_LIBRARY_PATH
-    magenta "exported LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+    LD_LIBRARY_PATH=$OPENSSL_HOME:$LD_LIBRARY_PATH
+    exp LD_LIBRARY_PATH
   fi
-  magenta "exported PATH=$PATH"
+  exp PATH
 }
 
 separator () {
@@ -951,8 +964,13 @@ set_openssl () {
 }
 
 build_FStar () {
-  $MAKE -C FStar $make_opts fstar
-  $MAKE -C FStar $make_opts bootstrap
+  # Migration for https://github.com/FStarLang/FStar/pull/3637
+  if [ -d FStar/stage0 ]; then
+    $MAKE -C FStar $make_opts
+  else
+    $MAKE -C FStar $make_opts fstar
+    $MAKE -C FStar $make_opts bootstrap
+  fi
 }
 
 build_karamel () {
@@ -1034,7 +1052,12 @@ do_make ()
 }
 
 test_FStar () {
-  $MAKE -C FStar ci-uregressions $make_opts V=1
+  # Migration for https://github.com/FStarLang/FStar/pull/3637
+  if [ -d FStar/stage0 ]; then
+    $MAKE -C FStar $make_opts test
+  else
+    $MAKE -C FStar $make_opts ci-uregressions
+  fi
 }
 
 test_karamel () {
@@ -1390,7 +1413,7 @@ COMMAND:
 
   clean     clean all projects
 
-  shell     run a shell with the correct FSTAR_HOME/... environment variables
+  shell     run a shell with the correct environment variables
 
   help      print the current message
 HELP
