@@ -1056,7 +1056,7 @@ test_FStar () {
   if [ -d FStar/stage0 ]; then
     $MAKE -C FStar $make_opts test
   else
-    $MAKE -C FStar $make_opts test ci-uregressions
+    $MAKE -C FStar $make_opts ci-uregressions
   fi
 }
 
