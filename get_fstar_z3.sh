@@ -64,7 +64,7 @@ download_z3() {
   pushd "$tmp_dir"
   curl -L "$url" -o "$base_name"
 
-  unzip "$base_name" "$z3_path"
+  unzip -q "$base_name" "$z3_path"
   popd
   install -m0755 "$tmp_dir/$z3_path" "$destination_file_name"
   echo ">>> Installed Z3 $version to $destination_file_name"
@@ -84,14 +84,19 @@ full_install_z3() {
   base_name="$(basename "$url")"
   curl -L "$url" -o "$base_name"
 
-  unzip "$base_name"
+  unzip -q "$base_name"
   mv "${base_name%.zip}"/* .
   rmdir "${base_name%.zip}"
   rm "$base_name"
   popd
 }
 
-if [ "$1" == "--full" ]; then
+usage() {
+  echo "Usage: get_fstar_z3.sh destination/directory/bin"
+  exit 1
+}
+
+if [ $# -ge 1 ] && [ "$1" == "--full" ]; then
   # Passing --full xyz/ will create a tree like
   #  xyz/z3-4.8.5/bin/z3
   #  xyz/z3-4.13.3/bin/z3
@@ -101,11 +106,11 @@ if [ "$1" == "--full" ]; then
   shift;
 fi
 
-dest_dir="$1"
-if [ -z "$dest_dir" ]; then
-  echo "Usage: get_fstar_z3.sh destination/directory/bin"
-  exit 1
+if [ $# -ne 1 ]; then
+  usage
 fi
+
+dest_dir="$1"
 
 mkdir -p "$dest_dir"
 
