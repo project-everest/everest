@@ -85,9 +85,9 @@ function everest_move() {
         # Try to update the get_fstar_z3.sh script, from the F* repo,
         # and commit it if updated.
         function update_get_z3_script () {
-          if [[ -f "FStar/bin/get_fstar_z3.sh" ]]; then
+          if [[ -f "FStar/.scripts/get_fstar_z3.sh" ]]; then
             echo "# THIS FILE AUTOMATICALLY UPDATED FROM F* REPO, DO NOT EDIT HERE" > get_fstar_z3.sh
-            cat "FStar/bin/get_fstar_z3.sh" >> get_fstar_z3.sh
+            cat "FStar/.scripts/get_fstar_z3.sh" >> get_fstar_z3.sh
             chmod +x get_fstar_z3.sh
 
             if ! [[ -z "$(git ls-files -m get_fstar_z3.sh)" ]]; then
