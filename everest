@@ -671,7 +671,7 @@ OCAML
   [ -n "${KRML_HOME}" ] || \
     magenta "Note: you *may* want to export KRML_HOME=${xpwd}/karamel"
   [ -n "${PULSE_HOME}" ] || \
-    magenta "Note: you *may* want to export PULSE_HOME=${xpwd}/pulse"
+    magenta "Note: you *may* want to export PULSE_HOME=${xpwd}/pulse/out"
   [ -n "${STEEL_HOME}" ] || \
     magenta "Note: you *may* want to export STEEL_HOME=${xpwd}/steel"
   [ -n "${HACL_HOME}" ] || \
@@ -901,7 +901,7 @@ setup_env () {
   FSTAR_HOME=$(pwd)/FStar/ # temporary and will be removed
   VALE_HOME=$(pwd)/vale
   KRML_HOME=$(pwd)/karamel
-  PULSE_HOME=$(pwd)/pulse
+  PULSE_HOME=$(pwd)/pulse/out
   STEEL_HOME=$(pwd)/steel
   HACL_HOME=$(pwd)/hacl-star
   MLCRYPTO_HOME=$(pwd)/MLCrypto
