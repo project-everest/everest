@@ -964,13 +964,7 @@ set_openssl () {
 }
 
 build_FStar () {
-  # Migration for https://github.com/FStarLang/FStar/pull/3637
-  if [ -d FStar/stage0 ]; then
-    $MAKE -C FStar $make_opts
-  else
-    $MAKE -C FStar $make_opts fstar
-    $MAKE -C FStar $make_opts bootstrap
-  fi
+  $MAKE -C FStar $make_opts
 }
 
 build_karamel () {
