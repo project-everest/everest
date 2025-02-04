@@ -10,7 +10,6 @@ build_home="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Some environment variables we want
 export OCAMLRUNPARAM=b
-export OTHERFLAGS="--use_hints"
 export MAKEFLAGS="$MAKEFLAGS -Otarget"
 export V=1 # Verbose F* build
 
