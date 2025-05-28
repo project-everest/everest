@@ -4,11 +4,11 @@ declare -A https
 repositories[everparse]=git@github.com:project-everest/everparse.git
 https[everparse]=https://github.com/project-everest/everparse.git
 
-repositories[FStar]=git@github.com:FStarLang/FStar.git
-https[FStar]=https://github.com/FStarLang/FStar.git
+repositories[FStar]=git@github.com:tahina-pro/FStar.git
+https[FStar]=https://github.com/tahina-pro/FStar.git
 
-repositories[karamel]=git@github.com:FStarLang/karamel.git
-https[karamel]=https://github.com/FStarLang/karamel.git
+repositories[karamel]=git@github.com:tahina-pro/kremlin.git
+https[karamel]=https://github.com/tahina-pro/kremlin.git
 
 repositories[steel]=git@github.com:FStarLang/steel.git
 https[steel]=https://github.com/FStarLang/steel.git
