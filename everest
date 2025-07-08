@@ -1046,12 +1046,7 @@ do_make ()
 }
 
 test_FStar () {
-  # Migration for https://github.com/FStarLang/FStar/pull/3637
-  if [ -d FStar/stage0 ]; then
-    $MAKE -C FStar $make_opts test
-  else
-    $MAKE -C FStar $make_opts ci-uregressions
-  fi
+  $MAKE -C FStar $make_opts test
 }
 
 test_karamel () {
