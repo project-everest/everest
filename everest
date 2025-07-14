@@ -276,6 +276,8 @@ parse_z3_version () {
 # The functions that implement the main actions
 # ------------------------------------------------------------------------------
 
+z3_versions_dest="z3-versions"
+
 do_update_z3 () {
   # Check that we have z3-4.13.3 and z3-4.8.5 in the path
   # Otherwise, run get_fstar_z3.sh to download them both from github.com/z3prover/z3
@@ -287,7 +289,6 @@ do_update_z3 () {
   if [[ $current_z3_4_13_3 == "4.13.3" && $current_z3_4_8_5 == "4.8.5" ]]; then
     echo "Found z3-4.13.3 and z3-4.8.5 in PATH; nothing to do"
   else
-    local z3_versions_dest="z3-versions"
     magenta "Download z3 4.13.3 and 4.8.5 to $z3_versions_dest? [Yn]"
     prompt_yes true "exit 1"
     ./get_fstar_z3.sh $z3_versions_dest
@@ -942,6 +943,11 @@ setup_env () {
     LD_LIBRARY_PATH=$OPENSSL_HOME:$LD_LIBRARY_PATH
     exp LD_LIBRARY_PATH
   fi
+
+  if [[ -d $z3_versions_dest ]] ; then
+      PATH=$(pwd)/$z3_versions_dest:$PATH
+  fi
+
   exp PATH
 }
 
