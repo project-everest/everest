@@ -1052,19 +1052,14 @@ do_make ()
 }
 
 test_FStar () {
-  # Migration for https://github.com/FStarLang/FStar/pull/3637
-  if [ -d FStar/stage0 ]; then
-    $MAKE -C FStar $make_opts test
-  else
-    $MAKE -C FStar $make_opts ci-uregressions
-  fi
+  $MAKE -C FStar $make_opts test
 }
 
 test_karamel () {
   LD_LIBRARY_PATH= $MAKE -C karamel/test $make_opts everything
 }
 test_pulse () {
-  $MAKE -C pulse test $make_opts PULSE_NO_RUST=1
+  $MAKE -C pulse test $make_opts PULSE_NO_RUST=1 PULSE_NO_DOMAINSLIB=1
 }
 test_steel () {
   $MAKE -C steel test $make_opts
