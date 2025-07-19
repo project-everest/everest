@@ -5,7 +5,7 @@
 # TODO: Ideally, this should be doable with Dockerfile.OCaml
 # To do so, we need to move the everest-move rule into the Everest script.
 
-FROM ubuntu:22.04
+FROM ubuntu:24.10
 
 # Install the dependencies of Project Everest
 # libicu (for .NET, cf. https://aka.ms/dotnet-missing-libicu )

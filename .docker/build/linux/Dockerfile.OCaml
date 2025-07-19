@@ -2,7 +2,7 @@
 # It must be loaded from the everest repository root
 # (NOT from the directory that contains the Dockerfile)
 
-FROM ubuntu:22.04
+FROM ubuntu:24.10
 
 # Install the dependencies of Project Everest
 # libicu (for .NET, cf. https://aka.ms/dotnet-missing-libicu )
