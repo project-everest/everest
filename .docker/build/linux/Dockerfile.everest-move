@@ -11,6 +11,7 @@ FROM ubuntu:24.10
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get --yes install --no-install-recommends opam emacs gcc binutils make m4 git time gnupg ca-certificates sudo python-is-python3 python3 cmake curl wget libssl-dev rust-all
+RUN apt install python3.12-venv # For Everparse testing
 
 # Install NodeJS 16
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
