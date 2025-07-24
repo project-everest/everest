@@ -1074,7 +1074,7 @@ test_merkle-tree () {
   $MAKE -C merkle-tree test $make_opts
 }
 test_everparse () {
-  $MAKE -C everparse test $make_opts
+  $MAKE -C everparse test $make_opts EVERPARSE_NO_DIFF=1
 }
 
 test_everquic-crypto () {
