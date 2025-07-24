@@ -1,6 +1,10 @@
 # For pretty output
+quiet=false
+
 color () {
-  if [ -t 1 ]; then
+  if $quiet; then
+    :
+  elif [ -t 1 ]; then
     tput setaf $2 || true
     echo $1
     tput sgr0 || true
