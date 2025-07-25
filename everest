@@ -106,7 +106,7 @@ check_no_archive () {
 }
 
 # "Modularity": include other files (requires us to be in the right directory)
-source lib.sh
+source lib.sh           # defines the 'quiet' variable
 source repositories.sh
 source hashes.sh
 
@@ -951,6 +951,17 @@ setup_env () {
   exp PATH
 }
 
+print_env () {
+  setup_env
+  exp () {
+    for v; do
+      echo "$v='${!v}'; export $v;"
+    done
+  }
+  exp FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
+  exp MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
+}
+
 separator () {
   echo "================================================================================"
 }
@@ -1408,6 +1419,9 @@ COMMAND:
 
   clean     clean all projects
 
+  env       print the relevant environment variables to set, in
+            sourceable format
+
   shell     run a shell with the correct environment variables
 
   help      print the current message
@@ -1594,6 +1608,13 @@ while true; do
       shift
       do_shell "$@"
       # do_shell does not return
+      ;;
+
+    env)
+      quiet=true
+      shift
+      print_env
+      exit 0
       ;;
 
     *)
