@@ -1,14 +1,14 @@
 declare -A hashes
 declare -A branches
-hashes[everparse]=627d54d8e452859fa0465dac57b9303d47498fce
+hashes[everparse]=e56dec64f858aab8c4cd4690f67656b6ddb7af0f
 branches[everparse]=master
 hashes[everquic-crypto]=da57244848d6ac66031163db28ddc18ec630493f
 branches[everquic-crypto]=master
-hashes[FStar]=8ad92853f97336da62fc809fb05cae3c9313555b
+hashes[FStar]=41d6ddad6a8320d2dd8178ebc322d2e9bf2919b2
 branches[FStar]=master
-hashes[hacl-star]=afeb4de23ff04699bcd0cd00cb8873210bc9cc7b
+hashes[hacl-star]=531820c1af15cafc2437068fb565fa0b8b431e73
 branches[hacl-star]=main
-hashes[karamel]=c56e0932f05c89c8c68089d909ad9c195f44a02c
+hashes[karamel]=a0b4dabb385bb3c5a43ec8735354acd9e33ed8c9
 branches[karamel]=master
 hashes[merkle-tree]=4cfeff47084c12d5543d2b1fc724dd9f5d3624ca
 branches[merkle-tree]=main
@@ -16,7 +16,7 @@ hashes[mitls-fstar]=7b7e79d075a615828afcf1e64e16d8a7b0b086c9
 branches[mitls-fstar]=master
 hashes[MLCrypto]=190250bbb8f16e7c3f6a8d443b13600ada4fbe79
 branches[MLCrypto]=master
-hashes[pulse]=e0094e84dc148d8d3c999fd6f534f6cd02db76c6
+hashes[pulse]=f1e6f4b4b36f95035145fa9c3038aa3eda4811f8
 branches[pulse]=main
-hashes[steel]=97acce443442a0e9a5f3f298124377a1b143f075
+hashes[steel]=8e90539d2fea98677de84a1f48aadf32c3827e98
 branches[steel]=main
