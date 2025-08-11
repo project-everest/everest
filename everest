@@ -75,9 +75,9 @@ fi
 # - calling "../path/to/everest"
 # This bails for corner cases, e.g. "source everest" or "wget http://.../everest | bash"
 cd_to_everest () {
-  echo -n "# Switching to the everest directory"
+  echo -n "# Switching to the everest directory" >&2
   if [[ ${0##*/} != "everest" ]]; then
-    echo -e "\nThis script must be called via ./everest"
+    echo -e "\nThis script must be called via ./everest" >&2
     exit 1
   fi
   if [[ $0 != ${0#*/} ]]; then
@@ -87,8 +87,8 @@ cd_to_everest () {
     # Called via the path
     cd $(dirname $(which $0))
   fi
-  echo " ... now in $(pwd)"
-  echo
+  echo " ... now in $(pwd)" >&2
+  echo >&2
 }
 # Save the initial working directory, to switch to when $0 pull calls
 # the new version of $0
