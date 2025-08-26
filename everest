@@ -895,11 +895,7 @@ cygify () {
   done
 }
 
-setup_env () {
-  opam_env="$(opam env)"
-  eval $opam_env
-  magenta "opam environment set up with: $opam_env"
-
+setup_env_without_opam () {
   FSTAR_EXE=$(pwd)/FStar/bin/fstar.exe
   FSTAR_HOME=$(pwd)/FStar/ # temporary and will be removed
   VALE_HOME=$(pwd)/vale
@@ -953,8 +949,18 @@ setup_env () {
   exp PATH
 }
 
+setup_env () {
+  opam_env="$(opam env)"
+  eval $opam_env
+  magenta "opam environment set up with: $opam_env"
+  setup_env_without_opam
+}
+
 print_env () {
-  setup_env
+  opam_env="$(opam env)"
+  echo "$opam_env"
+  eval $opam_env
+  setup_env_without_opam
   exp () {
     for v; do
       echo "$v='${!v}'; export $v;"
@@ -962,6 +968,7 @@ print_env () {
   }
   exp FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
   exp MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
+  exp PATH
 }
 
 separator () {
