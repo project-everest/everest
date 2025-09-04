@@ -240,8 +240,13 @@ find_cygsetup () {
   fi
 }
 
+windows_opam_packages=
+if is_windows ; then
+    windows_opam_packages=windows-opam-packages
+fi
+
 install_all_opam_packages () {
-  packages=$(cat opam-packages | cut -d ' ' -f 2 | tr '\n' ' ')
+  packages=$(cat opam-packages $windows_opam_packages | cut -d ' ' -f 2 | tr '\n' ' ')
   opam update
   if ! { [[ "$OPAMNODEPEXTS" = 1 ]] || [[ "$OPAMNODEPEXTS" = yes ]] || [[ "$OPAMNODEPEXTS" = true ]] ; } ; then
       if is_windows; then
@@ -519,6 +524,7 @@ OCAML
 
   # Now, check for other OPAM packages
   missing=false
+  cat opam_packages $windows_opam_packages |
   while read line; do
     ocamlfind_package=$(echo $line | cut -d " " -f 1)
     opam_package=$(echo $line | cut -d " " -f 2)
@@ -529,11 +535,11 @@ OCAML
     else
       echo "... opam package $opam_package found"
     fi
-  done < opam-packages
+  done
   if $missing; then
     if_yes "install_all_opam_packages"
   fi
-  echo "... all $(cat opam-packages | wc -l) ocamlfind packages found"
+  echo "... all $(cat opam-packages $windows_opam_packages | wc -l) ocamlfind packages found"
 
   # Check for caveats using my OCaml installer
   if ! (cd test && ocamlbuild test.native -use-ocamlfind >compiler_output 2>&1); then
@@ -838,6 +844,7 @@ do_archive ()
 
   cp everest \
      opam-packages \
+     $windows_opam_packages \
      hashes.sh \
      repositories.sh \
      lib.sh \
