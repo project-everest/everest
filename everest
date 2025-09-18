@@ -906,6 +906,8 @@ setup_env_without_opam () {
   MLCRYPTO_HOME=$(pwd)/MLCrypto
   EVERPARSE_HOME=$(pwd)/everparse
   MITLS_HOME=$(pwd)/mitls-fstar
+  EVERPARSE_USE_KRML_HOME=1
+  EVERPARSE_USE_PULSE_HOME=1
 
   if is_windows; then
     if [[ -z "$CC" ]] ; then
@@ -929,6 +931,7 @@ setup_env_without_opam () {
   }
   exp FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
   exp MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
+  exp EVERPARSE_USE_KRML_HOME EVERPARSE_USE_PULSE_HOME
 
   PATH=$(pwd)/FStar/bin:$(pwd)/karamel:$PATH
 
@@ -968,6 +971,7 @@ print_env () {
   }
   exp FSTAR_EXE FSTAR_HOME VALE_HOME KRML_HOME PULSE_HOME STEEL_HOME HACL_HOME
   exp MLCRYPTO_HOME EVERPARSE_HOME MITLS_HOME
+  exp EVERPARSE_USE_KRML_HOME EVERPARSE_USE_PULSE_HOME
   exp PATH
 }
 
