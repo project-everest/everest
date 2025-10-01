@@ -285,13 +285,15 @@ do_update_z3 () {
   # Otherwise, run get_fstar_z3.sh to download them both from github.com/z3prover/z3
   # and add them to the path
 
+    
+  local current_z3_4_15_3=$(parse_z3_version "z3-4.15.3")
   local current_z3_4_13_3=$(parse_z3_version "z3-4.13.3")
   local current_z3_4_8_5=$(parse_z3_version "z3-4.8.5")
 
-  if [[ $current_z3_4_13_3 == "4.13.3" && $current_z3_4_8_5 == "4.8.5" ]]; then
-    echo "Found z3-4.13.3 and z3-4.8.5 in PATH; nothing to do"
+  if [[ $current_z3_4_13_3 == "4.13.3" && $current_z3_4_8_5 == "4.8.5" && $current_z3_4_15_3 == "4.15.3" ]]; then
+    echo "Found z3-4.15.3, z3-4.13.3 and z3-4.8.5 in PATH; nothing to do"
   else
-    magenta "Download z3 4.13.3 and 4.8.5 to $z3_versions_dest? [Yn]"
+    magenta "Download z3 4.15.3, 4.13.3 and 4.8.5 to $z3_versions_dest? [Yn]"
     prompt_yes true "exit 1"
     ./get_fstar_z3.sh $z3_versions_dest
     magenta "Automatically customize $EVEREST_ENV_DEST_FILE with the z3 path $z3_versions_dest? [Yn]"
