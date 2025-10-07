@@ -18,7 +18,7 @@ hex hex
 ocamlbuild ocamlbuild
 qcheck qcheck
 cppo cppo
-ppxlib ppxlib
+ppxlib ppxlib.0.36.0
 re re
 odoc odoc
 alcotest alcotest
