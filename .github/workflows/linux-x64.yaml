@@ -5,6 +5,8 @@ on:
     - _**
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * TUE' # every tuesday 4am
 jobs:
   build:
     runs-on: [self-hosted, linux, X64]

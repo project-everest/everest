@@ -1,8 +1,10 @@
 name: Upgrade Everest
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '1 4,10,16,22 * * *'
+  # This is disabled since ACL* is using a pinned F* version,
+  # and upgrades will almost surely fail.
+  # schedule:
+  #   - cron: '1 4,10,16,22 * * *'
 jobs:
   build:
     runs-on: [self-hosted, linux, X64]
