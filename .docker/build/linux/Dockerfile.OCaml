@@ -7,7 +7,7 @@ FROM ubuntu:24.04
 # Install the dependencies of Project Everest
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
-RUN apt-get --yes install --no-install-recommends opam gcc binutils make m4 git time gnupg ca-certificates sudo cmake curl wget libssl-dev python-is-python3 python3 rust-all
+RUN apt-get --yes install --no-install-recommends opam gcc binutils make m4 git time gnupg ca-certificates sudo cmake curl wget libssl-dev python-is-python3 python3 rust-all clang
 RUN apt install -y python3.12-venv # For Everparse testing
 
 # Install NodeJS 16
