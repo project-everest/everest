@@ -56,7 +56,7 @@ jobs:
             echo "CI_EMOJI=❌" >> $GITHUB_ENV
             ;;
           esac
-          echo "CI_COMMIT=$(echo ${{ github.event.head_commit.id || github.event.pull_request.head.sha }} | grep -o '^........')" >> $GITHUB_ENV
+          echo "CI_COMMIT=$(echo ${{ github.event.head_commit.id || github.sha }} | grep -o '^........')" >> $GITHUB_ENV
 
       - name: Check if we should post to Slack
         if: ${{ always() }}
@@ -79,14 +79,14 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "<${{ github.event.head_commit.url || github.event.pull_request.html_url }}|${{ env.CI_COMMIT }}> on (${{ github.ref_name }}) by ${{ github.event.head_commit.author.username || github.event.pull_request.user.login }}"
+                    "text": "<${{ github.event.head_commit.url || github.event.pull_request.html_url || github.event_name }}|${{ env.CI_COMMIT }}> on (${{ github.ref_name }}) by ${{ github.event.head_commit.author.username || github.event.pull_request.user.login || 'schedule' }}"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "plain_text",
-                    "text": ${{ toJSON(github.event.head_commit.message || github.event.pull_request.title) }}
+                    "text": ${{ toJSON(github.event.head_commit.message || github.event.pull_request.title || github.event_name ) }}
                   }
                 },
                 {
